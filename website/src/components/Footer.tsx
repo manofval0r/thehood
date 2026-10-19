@@ -94,14 +94,20 @@ export default function Footer() {
             </dl>
           </div>
 
-          {/* Link columns */}
+          {/* Link columns. The heading and its links share a left rail so
+              each group reads as one unit; no panel or fill is added, the
+              rule does the grouping. */}
           <div className="grid grid-cols-2 gap-x-10 gap-y-8 sm:grid-cols-3">
             {columns.map((col) => (
               <div key={col.heading}>
-                <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                <h3 className="flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground">
                   {col.heading}
+                  <span
+                    aria-hidden="true"
+                    className="h-px flex-1 bg-border"
+                  />
                 </h3>
-                <ul className="mt-4 space-y-0.5">
+                <ul className="mt-3.5 space-y-0.5 border-l border-border pl-3.5">
                   {col.links.map((link) => (
                     <li key={link.label}>
                       {link.external ? (
@@ -109,12 +115,12 @@ export default function Footer() {
                           href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="row-hover group inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2 py-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+                          className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded py-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {link.href.includes("github") ? (
-                            <GitBranch size={13} className="opacity-70" />
+                            <GitBranch size={13} className="opacity-60" />
                           ) : (
-                            <Globe size={13} className="opacity-70" />
+                            <Globe size={13} className="opacity-60" />
                           )}
                           {link.label}
                           <ArrowUpRight
@@ -126,10 +132,10 @@ export default function Footer() {
                         <Link
                           href={link.href}
                           {...(link.download ? { download: true } : {})}
-                          className="row-hover inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2 py-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded py-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {link.download ? (
-                            <Download size={13} className="opacity-70" />
+                            <Download size={13} className="opacity-60" />
                           ) : (
                             <span className="w-[13px]" />
                           )}

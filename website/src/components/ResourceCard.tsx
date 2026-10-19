@@ -49,10 +49,12 @@ export default function ResourceCard({
     <AppleCard maxTilt={5} className="h-full">
       <div
         className={cn(
-          "card-tilt settle flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface p-5"
+          // No overflow-hidden: it forces transform-style flat.
+          "card-tilt settle relative flex h-full flex-col rounded-lg border border-border bg-surface p-5"
         )}
         style={{ animationDelay: `${Math.min(index * 55, 330)}ms` }}
       >
+        <span className="card-cast" aria-hidden="true" />
         <span className="card-accent-glow" aria-hidden="true" />
         <span className="card-bevel" aria-hidden="true" />
 

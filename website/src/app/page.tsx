@@ -47,7 +47,14 @@ export default function Home() {
   return (
     <div>
       {/* ================= HERO ================= */}
-      <section className="relative overflow-hidden border-b border-border">
+      {/*
+        No overflow-hidden here. The search results panel is absolutely
+        positioned and extends well past the section box; clipping the hero
+        truncated the dropdown mid-list. Horizontal bleed is handled by
+        overflow-x-clip on <body>, which unlike overflow-hidden does not
+        create a scroll container and so leaves the sticky nav working.
+      */}
+      <section className="relative border-b border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="pb-20 pt-14 md:pt-20">
             {/* Department line */}

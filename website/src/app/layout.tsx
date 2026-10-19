@@ -20,7 +20,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col overflow-x-clip">
         <link rel="icon" href="/favicon.png" sizes="48x48" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         {/*

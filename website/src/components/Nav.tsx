@@ -3,43 +3,62 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { GitBranch, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { cn } from "@/lib/utils";
 
 /**
- * Navigation shaped like a git branch switcher.
+ * GitHub-style repository navigation.
  *
- * "Courses" is the default branch. The other destinations hang off it as
- * named branches, and the checked-out one is filled, with a stem dropping
- * to the baseline. The active pill is measured and moved with a transform,
- * so switching pages slides it rather than snapping it.
+ * At rest it is a plain full-width bar with underlined tabs. Once the page
+ * scrolls, the bar contracts into a floating pill with a soft backdrop and a
+ * lift shadow, so it stops competing with the content it floats above.
+ *
+ * Scroll state comes from an IntersectionObserver watching a sentinel at the
+ * top of the document, not a scroll listener: the threshold is the only thing
+ * that matters, and the observer costs nothing between changes.
  */
-const BRANCHES = [
-  { href: "/", label: "Courses", ref: "main" },
-  { href: "/timetable", label: "Timetable", ref: "weekly" },
-  { href: "/timeline", label: "Calendar", ref: "session" },
-  { href: "/registration", label: "Registration", ref: "enrolment" },
+
+const TABS = [
+  { href: "/", label: "Courses" },
+  { href: "/timetable", label: "Timetable" },
+  { href: "/timeline", label: "Calendar" },
+  { href: "/registration", label: "Registration" },
 ];
 
 export default function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [pill, setPill] = useState({ left: 0, width: 0, ready: false });
-  const listRef = useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [underline, setUnderline] = useState({ left: 0, width: 0, ready: false });
+  const tabListRef = useRef<HTMLDivElement>(null);
 
-  const activeHref = BRANCHES.find((b) =>
-    b.href === "/" ? pathname === "/" : pathname.startsWith(b.href)
+  const activeHref = TABS.find((t) =>
+    t.href === "/" ? pathname === "/" : pathname.startsWith(t.href)
   )?.href;
 
-  // Move the pill to whatever is checked out.
   useLayoutEffect(() => {
-    const list = listRef.current;
+    const list = tabListRef.current;
     if (!list) return;
     const el = list.querySelector<HTMLElement>(`[data-href="${activeHref}"]`);
     if (!el) return;
-    setPill({ left: el.offsetLeft, width: el.offsetWidth, ready: true });
+    setUnderline({ left: el.offsetLeft, width: el.offsetWidth, ready: true });
   }, [activeHref]);
+
+  // One boolean across a 24px threshold. No rAF wrapper: requestAnimationFrame
+  // is throttled to zero in background and headless contexts, which would pin
+  // the nav in its expanded state. React bails out of the render when the
+  // value is unchanged, so calling this directly on every scroll event is
+  // cheap and stays correct without the frame dependency.
+  useEffect(() => {
+    const onScroll = () => {
+      const next = window.scrollY > 24;
+      setScrolled((prev) => (prev === next ? prev : next));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -52,88 +71,69 @@ export default function Nav() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-border">
-        <div className="sticky-head">
-          <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-            <Link href="/" className="pressable rounded-md" aria-label="Cyber-Security 300L home">
+      <header className="sticky top-0 z-40">
+        {/* Inset only while floating, so the pill can breathe off the edges. */}
+        <div className={cn("transition-[padding] duration-300 ease-out", scrolled && "px-3 pt-3")}>
+          <div
+            className={cn(
+              "flex items-center justify-between transition-all duration-300 ease-out",
+              scrolled
+                ? "h-14 rounded-full border border-border bg-surface/80 px-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.9)] backdrop-blur-xl"
+                : "h-16 border-b border-border bg-surface px-4 sm:px-6 lg:px-8"
+            )}
+          >
+            <Link
+              href="/"
+              className="pressable rounded-md"
+              aria-label="Cyber-Security 300L home"
+            >
               <Wordmark size="md" />
             </Link>
 
-            {/* ---------- Branch switcher ---------- */}
-            <div ref={listRef} className="relative hidden md:block">
-              {/* Sliding indicator */}
+            {/* ---------- Tabs ---------- */}
+            <div ref={tabListRef} className="relative hidden h-full items-stretch md:flex">
               <span
                 aria-hidden="true"
                 className={cn(
-                  "absolute inset-y-0 -z-0 rounded-md bg-accent/12 ring-1 ring-accent/30 transition-[transform,width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
-                  pill.ready ? "opacity-100" : "opacity-0"
+                  "absolute bottom-0 h-0.5 rounded-full bg-accent transition-[transform,width,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                  underline.ready ? "opacity-100" : "opacity-0"
                 )}
                 style={{
-                  transform: `translateX(${pill.left}px)`,
-                  width: pill.width,
+                  transform: `translateX(${underline.left}px)`,
+                  width: underline.width,
                 }}
               />
 
-              <ul className="relative flex items-center">
-                {BRANCHES.map((b) => {
-                  const active = b.href === activeHref;
-                  return (
-                    <li key={b.href}>
-                      <Link
-                        data-href={b.href}
-                        href={b.href}
-                        aria-current={active ? "page" : undefined}
-                        className={cn(
-                          "pressable relative flex items-center gap-1.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors",
-                          active
-                            ? "text-foreground"
-                            : "text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        {/* Branch glyph. main is solid, branches are hollow. */}
-                        <GitBranch
-                          size={13}
-                          strokeWidth={2.2}
-                          className={cn(
-                            "transition-colors",
-                            active ? "text-accent" : "text-muted"
-                          )}
-                        />
-                        <span>{b.label}</span>
-                        {/* The ref name, the way git shows it. */}
-                        <span
-                          className={cn(
-                            "font-mono text-[10px] transition-colors",
-                            active
-                              ? "text-accent/80"
-                              : "text-muted/70 group-hover:text-muted"
-                          )}
-                        >
-                          {b.ref}
-                        </span>
-                        {/* Stem down to the baseline for the checked-out branch. */}
-                        {active && (
-                          <span
-                            aria-hidden="true"
-                            className="absolute -bottom-[9px] left-1/2 h-2 w-px -translate-x-1/2 bg-accent"
-                          />
-                        )}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+              {TABS.map((t) => {
+                const active = t.href === activeHref;
+                return (
+                  <Link
+                    key={t.href}
+                    data-href={t.href}
+                    href={t.href}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "pressable relative flex items-center px-3.5 text-[14px] font-medium transition-colors",
+                      active
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {t.label}
+                  </Link>
+                );
+              })}
             </div>
 
             <button
               onClick={() => setOpen((v) => !v)}
-              className="pressable -mr-1 flex h-10 w-10 items-center justify-center rounded-md text-foreground hover:bg-surface-hover md:hidden"
+              className="pressable -mr-2 flex h-10 w-10 items-center justify-center rounded-md text-foreground hover:bg-surface-hover md:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
             >
               {open ? <X size={20} /> : <Menu size={20} />}
             </button>
-          </nav>
+          </div>
         </div>
       </header>
 
@@ -157,27 +157,20 @@ export default function Nav() {
               </button>
             </div>
             <ul className="mt-5 space-y-1">
-              {BRANCHES.map((b, i) => {
-                const active = b.href === activeHref;
+              {TABS.map((t, i) => {
+                const active = t.href === activeHref;
                 return (
-                  <li key={b.href} className="rise" style={{ animationDelay: `${i * 45}ms` }}>
+                  <li key={t.href} className="rise" style={{ animationDelay: `${i * 45}ms` }}>
                     <Link
-                      href={b.href}
+                      href={t.href}
                       className={cn(
-                        "pressable flex items-center gap-2.5 rounded-md px-3 py-3 text-[15px] font-medium transition-colors",
+                        "pressable flex items-center rounded-md px-3 py-3 text-[15px] font-medium transition-colors",
                         active
                           ? "bg-accent/12 text-foreground"
                           : "text-foreground hover:bg-surface-hover"
                       )}
                     >
-                      <GitBranch
-                        size={16}
-                        className={active ? "text-accent" : "text-muted"}
-                      />
-                      {b.label}
-                      <span className="ml-auto font-mono text-[10px] text-muted">
-                        {b.ref}
-                      </span>
+                      {t.label}
                     </Link>
                   </li>
                 );
