@@ -353,5 +353,9 @@ Deliberately left out, and why:
 - **A news or RSS feed.** Depends on the network at build time and adds nothing
   a student needs to find a lecture note.
 - **Admin CMS.** Needs an auth decision that has not been made.
+- **Attendance.** Blocked on the same auth decision as the CMS, since a student
+  has to be identifiable before anything can be recorded against them. The shape
+  and the open questions are written up in `ROADMAP.md` §9 so the idea survives
+  without needing this file to describe it twice.
 
 Built by [Valor](https://davidowu.tech).
