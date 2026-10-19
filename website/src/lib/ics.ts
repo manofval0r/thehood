@@ -9,7 +9,7 @@ import type { CalendarEvent } from "./calendar";
  * than no subscription at all.
  */
 
-const PRODID = "-//NUTM//Cyber-Security 300L Academic Calendar//EN";
+const PRODID = "-//NUTM//Cybersecurity 300L Academic Calendar//EN";
 
 /** Text values must escape backslash, semicolon, comma and newline. */
 function esc(value: string) {

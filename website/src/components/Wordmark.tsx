@@ -101,7 +101,7 @@ export function Wordmark({
       <NutmMark size={size} />
       <span className="flex flex-col leading-none">
         <span className={cn("font-bold tracking-tight text-foreground", text)}>
-          Cyber-Security 300L
+          Cybersecurity 300L
         </span>
         <span
           className={cn(

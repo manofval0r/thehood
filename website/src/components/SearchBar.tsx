@@ -191,17 +191,28 @@ export default function SearchBar() {
   return (
     <div ref={wrapRef} className="relative w-full">
       {/* ---------- Field ---------- */}
+      {/*
+        Active state: the field lifts and brightens rather than only drawing a
+        green outline. A border colour change is a weak signal on a dark ground
+        and reads like a validation ring. Lift, an inner glow and a brighter
+        surface say "this is the thing you are in" without the alarm.
+      */}
       <div
         className={cn(
-          "group relative flex items-center rounded-lg border bg-surface transition-all duration-200",
+          "group relative flex items-center rounded-xl border bg-surface transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]",
           open || q
-            ? "border-accent/60 shadow-[0_0_0_3px_rgba(34,197,94,0.09)]"
-            : "border-border hover:border-border-strong"
+            ? "border-accent/50 bg-surface-raised shadow-[0_0_0_3px_rgba(34,197,94,0.10),0_10px_30px_-12px_rgba(34,197,94,0.35)]"
+            : "border-border hover:border-border-strong hover:bg-surface-hover"
         )}
       >
         <Search
           size={18}
-          className="pointer-events-none absolute left-4 text-muted-foreground transition-colors group-focus-within:text-accent"
+          className={cn(
+            "pointer-events-none absolute left-4 transition-all duration-200",
+            open || q
+              ? "scale-110 text-accent"
+              : "text-muted-foreground group-hover:text-foreground"
+          )}
         />
 
         <input

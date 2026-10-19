@@ -1,21 +1,20 @@
 import Link from "next/link";
 import { ArrowRight, Download } from "lucide-react";
 import { COURSES } from "@/lib/resources";
-import { sessionStats } from "@/lib/calendar";
 import SearchBar from "@/components/SearchBar";
 import { CourseCard } from "@/components/CourseCard";
 import PixelArt from "@/components/PixelArt";
 import Reveal from "@/components/Reveal";
+import NextClassCountdown from "@/components/NextClassCountdown";
 
-const stats = sessionStats(new Date());
 const totalResources = COURSES.reduce((sum, c) => sum + c.resources.length, 0);
 const totalUnits = COURSES.reduce((sum, c) => sum + c.units, 0);
 const withFiles = COURSES.filter((c) => c.resources.length > 0).length;
 
 export const metadata = {
-  title: "Courses · Cyber-Security 300L",
+  title: "Courses · Cybersecurity 300L",
   description:
-    "All ten registered courses for the Cyber-Security 300 Level programme, with lecture notes, lab manuals and assignments.",
+    "All ten registered courses for the Cybersecurity 300 Level programme, with lecture notes, lab manuals and assignments.",
 };
 
 function Stat({
@@ -61,7 +60,7 @@ export default function Home() {
             <div className="rise flex items-center gap-3" style={{ animationDelay: "0ms" }}>
               <span className="h-px w-8 bg-accent/60" />
               <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
-                Department of Cyber-Security
+                Department of Cybersecurity
               </span>
               <span className="text-[11px] text-muted-foreground">
                 First semester 2026/2027
@@ -83,7 +82,7 @@ export default function Home() {
                   className="rise max-w-[48ch] text-lg leading-relaxed text-muted-foreground"
                   style={{ animationDelay: "160ms" }}
                 >
-                  All ten courses in the Cyber-Security 300 Level programme,
+                  All ten courses in the Cybersecurity 300 Level programme,
                   alongside the week-by-week calendar for 2026/2027. Open a file
                   straight from search, or take a whole course as a zip.
                 </p>
@@ -136,58 +135,9 @@ export default function Home() {
       </section>
 
       {/* ================= SESSION SNAPSHOT ================= */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rise grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
-          <div className="bg-surface p-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Where we are now
-            </p>
-            <p className="mt-2.5 text-xl font-semibold leading-snug text-foreground">
-              {stats.phase}
-            </p>
-            <p className="tnum mt-1.5 text-[13px] text-muted-foreground">
-              Week {stats.weeksIn} of the session
-            </p>
-          </div>
-
-          <Link
-            href="/timeline"
-            className="card-lift group bg-surface p-6 transition-colors hover:bg-surface-hover"
-          >
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Days until first-semester exams
-            </p>
-            <p className="tnum mt-2.5 text-4xl font-bold leading-none tracking-tight text-foreground">
-              {stats.daysUntilExams > 0 ? stats.daysUntilExams : "Passed"}
-            </p>
-            <p className="mt-2 flex items-center gap-1 text-[13px] text-muted-foreground">
-              Open the session timeline
-              <ArrowRight
-                size={13}
-                className="transition-transform group-hover:translate-x-0.5"
-              />
-            </p>
-          </Link>
-
-          <div className="bg-surface p-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Next milestone
-            </p>
-            {stats.nextMilestone ? (
-              <>
-                <p className="mt-2.5 text-[15px] font-medium leading-snug text-foreground">
-                  {stats.nextMilestone.activity}
-                </p>
-                <p className="tnum mt-1.5 text-[13px] text-muted-foreground">
-                  {stats.nextMilestone.date}
-                </p>
-              </>
-            ) : (
-              <p className="mt-2.5 text-[15px] text-muted-foreground">
-                Nothing scheduled
-              </p>
-            )}
-          </div>
+      <section className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+        <div className="rounded-lg border border-border bg-surface px-6 py-12 md:px-10 md:py-16">
+          <NextClassCountdown />
         </div>
       </section>
 

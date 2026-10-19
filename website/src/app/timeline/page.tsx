@@ -10,9 +10,10 @@ import {
 } from "lucide-react";
 import { sessionStats } from "@/lib/calendar";
 import TimelineInteractive from "@/components/TimelineInteractive";
+import TakeawayPills from "@/components/TakeawayPills";
 
 export const metadata = {
-  title: "Academic Calendar · Cyber-Security 300L",
+  title: "Academic Calendar · Cybersecurity 300L",
   description:
     "Unified Academic Calendar 2026/2027. Drag through the session to see where each milestone falls and how long until exams.",
 };
@@ -21,6 +22,23 @@ export const metadata = {
 // down, so the client scrubber never disagrees with the server on "today".
 const serverNow = new Date();
 const stats = sessionStats(serverNow);
+
+/** The published bounds of the 2026/2027 session. */
+const SESSION_START = new Date(2026, 8, 28); // 28 September 2026
+const SESSION_END = new Date(2027, 6, 23); // 23 July 2027
+
+/** How far through the published session we are, as a whole percentage. */
+const sessionPercent = Math.max(
+  0,
+  Math.min(
+    100,
+    Math.round(
+      ((serverNow.getTime() - SESSION_START.getTime()) /
+        (SESSION_END.getTime() - SESSION_START.getTime())) *
+        100
+    )
+  )
+);
 
 export default function TimelinePage() {
   return (
@@ -46,14 +64,64 @@ export default function TimelinePage() {
             </p>
           </div>
 
-          <div className="shrink-0 rounded-lg border border-accent/40 bg-accent/5 px-5 py-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-accent">
-              Right now
-            </p>
-            <p className="mt-1.5 text-xl font-semibold text-foreground">{stats.phase}</p>
-            <p className="tnum mt-1 text-[13px] text-muted-foreground">
-              Week {stats.weeksIn} &middot; day {stats.daysInSession} of the session
-            </p>
+          {/* Session state. The same divided-facts treatment as the course
+              header, with the session's progress shown as a proportion rather
+              than a bare number, so the panel reports state. */}
+          <div className="shrink-0 overflow-hidden rounded-lg border border-border-strong bg-surface">
+            <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+              <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-accent">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                Right now
+              </span>
+              <span className="tnum font-mono text-[11px] text-muted-foreground">
+                {serverNow.toLocaleDateString("default", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+
+            <div className="px-5 py-5">
+              <p className="text-xl font-semibold leading-snug tracking-tight text-foreground">
+                {stats.phase}
+              </p>
+              <p className="tnum mt-2 text-[13px] text-muted-foreground">
+                Week {stats.weeksIn}
+                <span className="mx-1.5 text-muted">/</span>
+                Day {stats.daysInSession}
+              </p>
+
+              <div className="mt-5">
+                <div className="flex items-baseline justify-between text-[11px] text-muted-foreground">
+                  <span>Session elapsed</span>
+                  <span className="tnum font-semibold text-foreground">
+                    {sessionPercent}%
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-hover">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-accent-dim to-accent"
+                    style={{ width: `${sessionPercent}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {stats.nextMilestone && (
+              <div className="border-t border-border px-5 py-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                  Next milestone
+                </p>
+                <p className="mt-2 text-[14px] font-medium leading-snug text-foreground">
+                  {stats.nextMilestone.activity}
+                </p>
+                <p className="tnum mt-1 text-[12.5px] text-muted-foreground">
+                  {stats.nextMilestone.date}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -114,67 +182,11 @@ export default function TimelinePage() {
       <section className="mt-16 border-t border-border pt-10">
         <h2 className="text-xl font-semibold text-foreground">Take it with you</h2>
         <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-          Subscribe to the session in your own calendar, or set the mark as a
-          wallpaper. Both are generated from the same published calendar, so
-          neither can drift from the page above.
+          Both are generated from the same published calendar, so neither can
+          drift from the page above.
         </p>
-
-        <div className="mt-7 grid gap-4 sm:grid-cols-2">
-          <a
-            href="/calendar.ics"
-            download
-            className="card-lift group rounded-lg border border-border bg-surface p-5 transition-colors hover:bg-surface-hover"
-          >
-            <div className="flex items-center gap-2.5">
-              <CalendarPlus size={17} className="text-accent" />
-              <h3 className="text-[14px] font-semibold text-foreground">
-                Add to your calendar
-              </h3>
-            </div>
-            <p className="mt-2.5 text-[13px] leading-relaxed text-muted-foreground">
-              An .ics file with every dated milestone. Import it into Google
-              Calendar, Apple Calendar or Outlook, and the dates update if the
-              department revises them.
-            </p>
-            <p className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-accent">
-              Download .ics
-              <ArrowRight
-                size={13}
-                className="transition-transform group-hover:translate-x-0.5"
-              />
-            </p>
-          </a>
-
-          <div className="rounded-lg border border-border bg-surface p-5">
-            <div className="flex items-center gap-2.5">
-              <ImageIcon size={17} className="text-accent" />
-              <h3 className="text-[14px] font-semibold text-foreground">
-                Wallpapers
-              </h3>
-            </div>
-            <p className="mt-2.5 text-[13px] leading-relaxed text-muted-foreground">
-              The hooded figure at full resolution, rendered straight from the
-              vector source so it stays sharp on any display.
-            </p>
-            <ul className="mt-4 space-y-1.5">
-              {[
-                ["Desktop 1920 x 1080", "/wallpaper-1920x1080.png"],
-                ["Desktop 2560 x 1440", "/wallpaper-2560x1440.png"],
-                ["Phone 1170 x 2532", "/wallpaper-1170x2532.png"],
-              ].map(([label, href]) => (
-                <li key={href}>
-                  <a
-                    href={href}
-                    download
-                    className="inline-flex items-center gap-1.5 rounded py-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    <Download size={13} className="opacity-60" />
-                    {label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="mt-6">
+          <TakeawayPills />
         </div>
       </section>
     </div>

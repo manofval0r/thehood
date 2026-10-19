@@ -5,14 +5,14 @@ import PrintButton from "@/components/PrintButton";
 import { TableFrame, DataTable, Thead, Th, Tr, Td } from "@/components/ui/table";
 
 export const metadata = {
-  title: "Course Registration · Cyber-Security 300L",
-  description: "First Semester 2026/2027 course registration list for the Cyber-Security 300 Level programme.",
+  title: "Course Registration · Cybersecurity 300L",
+  description: "First Semester 2026/2027 course registration list for the Cybersecurity 300 Level programme.",
 };
 
 export default function RegistrationPage() {
   const totalUnits = COURSES.reduce((s, c) => s + c.units, 0);
-  const core = COURSES.filter((c) => c.program === "Cyber-Security");
-  const service = COURSES.filter((c) => c.program !== "Cyber-Security");
+  const core = COURSES.filter((c) => c.program === "Cybersecurity");
+  const service = COURSES.filter((c) => c.program !== "Cybersecurity");
   const coreUnits = core.reduce((s, c) => s + c.units, 0);
   const serviceUnits = service.reduce((s, c) => s + c.units, 0);
 
@@ -24,7 +24,7 @@ export default function RegistrationPage() {
           Nigerian University of Technology and Management
         </p>
         <p className="mt-1 text-[9pt] text-muted-foreground">
-          Department of Cyber-Security &middot; Course Registration &middot; First
+          Department of Cybersecurity &middot; Course Registration &middot; First
           Semester 2026/2027
         </p>
       </div>
@@ -61,7 +61,7 @@ export default function RegistrationPage() {
       >
         <div className="rounded-lg border border-border bg-surface p-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-            Cyber-Security core
+            Cybersecurity core
           </p>
           <p className="tnum mt-2 text-3xl font-bold text-foreground">{coreUnits}</p>
           <p className="mt-1 text-[13px] text-muted-foreground">{core.length} courses</p>
@@ -122,8 +122,8 @@ export default function RegistrationPage() {
                       {c.title}
                     </Td>
                     <Td className="whitespace-nowrap">
-                      {c.program === "Cyber-Security" ? (
-                        <span className="text-foreground">Cyber-Security</span>
+                      {c.program === "Cybersecurity" ? (
+                        <span className="text-foreground">Cybersecurity</span>
                       ) : (
                         c.program
                       )}

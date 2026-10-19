@@ -161,15 +161,18 @@ body {
   transform: scale(0.99);
 }
 
-/* Entrance — staggered rise, transform+opacity only */
+/* Entrance — staggered rise, transform+opacity only.
+   Uses `translate`, not `transform`, for the same reason as .settle: a filled
+   animation on `transform` outranks later declarations and would pin any
+   transform on the same element flat. */
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    translate: 0 14px;
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    translate: 0 0;
   }
 }
 
@@ -178,15 +181,24 @@ body {
   animation: rise var(--dur-slow) var(--ease-out) forwards;
 }
 
-/* Entrance with a touch of scale, for cards that should feel placed not painted */
+/* Entrance with a touch of scale, for cards that should feel placed not painted.
+
+   These animate `translate` and `scale`, NOT `transform`. That is deliberate:
+   the same element also carries .card-tilt, whose `transform` is the 3D tilt.
+   A filled animation's `transform` outranks a normal declaration in the
+   cascade, so an entrance that animates `transform` keeps winning long after
+   it finishes and the tilt is pinned flat forever. `translate` and `scale` are
+   independent properties that compose with `transform`, so the two coexist. */
 @keyframes settle {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.97);
+    translate: 0 18px;
+    scale: 0.97;
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    translate: 0 0;
+    scale: 1;
   }
 }
 
@@ -391,112 +403,93 @@ body {
 }
 
 /* ============================================================
-   SESSION SCRUBBER
-   Draggable pill on a month rail; the event list follows it.
+   SESSION RAIL
+   A sticky vertical scrubber. The handle moves on transform
+   only, so dragging never triggers layout.
    ============================================================ */
 
-.scrub-track {
-  position: relative;
-  height: 4px;
-  border-radius: 99px;
-  background: var(--surface-raised);
-}
-
-.scrub-fill {
-  position: absolute;
-  inset-block: 0;
-  left: 0;
-  width: 100%;
-  border-radius: 99px;
-  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-  transform-origin: left;
-  will-change: transform;
-}
-
-.scrub-thumb {
-  position: absolute;
-  top: 50%;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 99px;
+.rail-handle {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
   background: var(--accent);
   border: 3px solid #000;
   box-shadow:
     0 0 0 1px var(--accent),
-    0 2px 10px rgba(0, 0, 0, 0.7);
+    0 4px 14px rgba(0, 0, 0, 0.8);
   cursor: grab;
   touch-action: none;
   will-change: transform;
-  /* The handle grows under the pointer so grabbing reads as grabbing. */
+  display: grid;
+  place-items: center;
   transition:
     width 180ms var(--ease-out),
     height 180ms var(--ease-out),
     box-shadow 180ms var(--ease-out);
 }
 
-/* Two hairlines so the handle reads as something you can take hold of. */
-.scrub-thumb-grip {
+.rail-handle-grip {
   display: block;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-left: 1.5px solid #04140a;
   border-right: 1.5px solid #04140a;
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
-.scrub-thumb[data-dragging="true"] {
-  width: 28px;
-  height: 28px;
+.rail-handle[data-dragging="true"] {
+  width: 34px;
+  height: 34px;
   cursor: grabbing;
   box-shadow:
     0 0 0 1px var(--accent),
-    0 0 22px rgba(34, 197, 94, 0.55),
-    0 2px 10px rgba(0, 0, 0, 0.7);
+    0 0 26px rgba(34, 197, 94, 0.55),
+    0 4px 14px rgba(0, 0, 0, 0.8);
 }
 
-.scrub-tick {
-  position: absolute;
-  top: 50%;
-  width: 2px;
-  height: 2px;
-  border-radius: 99px;
-  background: var(--border-strong);
-  transform: translate(-50%, -50%);
-  transition:
-    background-color 200ms var(--ease-out),
-    height 200ms var(--ease-out),
-    opacity 200ms var(--ease-out);
-}
-
-.scrub-tick[data-active="true"] {
-  background: var(--accent);
-  height: 9px;
-}
-
-/* Today stays marked even once the handle is well past it. */
-.scrub-tick[data-today="true"] {
-  background: #fff;
-  height: 12px;
-}
-
-.scrub-tick[data-today="true"][data-active="true"] {
-  background: var(--accent);
-  height: 9px;
-}
-
-/* The event row currently under the scrubber thumb. */
-.event-focused {
-  background: var(--surface-raised) !important;
-  border-color: var(--border-strong) !important;
-}
+/* ============================================================
+   SCROLL-LINKED ROW FOCUS
+   Distance from the active row is written to --d as a signed
+   value: negative above (past), positive below (future). CSS
+   owns the fade so the change is a compositor-only transition
+   and nothing jitters.
+   ============================================================ */
 
 .event-row {
+  --d: 0;
+  --dim: 0.06;
+
+  opacity: calc(1 - var(--d) * var(--dim));
+  transform: scale(calc(1 - min(var(--d), 14) * 0.006));
   transition:
+    opacity 380ms var(--ease-out),
+    transform 380ms var(--ease-out),
     background-color 300ms var(--ease-out),
     border-color 300ms var(--ease-out),
-    opacity 300ms var(--ease-out);
+    box-shadow 380ms var(--ease-out);
+  will-change: opacity, transform;
+}
+
+.event-row:hover {
+  opacity: 1 !important;
+}
+
+/* The row the rail is pointing at: lifted out of the plane. */
+.event-row[data-focus="true"] {
+  opacity: 1;
+  transform: scale(1.025);
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  box-shadow:
+    0 18px 40px -18px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(34, 197, 94, 0.28);
+  z-index: 1;
+}
+
+.event-row[data-focus="true"][data-today="true"] {
+  box-shadow:
+    0 18px 40px -18px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(34, 197, 94, 0.55);
 }
 
 /* Today's marker on the calendar */

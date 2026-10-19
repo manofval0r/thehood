@@ -33,96 +33,68 @@ export function AppleCard({
   ...rest
 }: AppleCardProps) {
   const ref = React.useRef<HTMLDivElement>(null);
-  const frame = React.useRef<number | null>(null);
-  const pending = React.useRef<{ x: number; y: number; nx: number; ny: number } | null>(
-    null
-  );
+  const [dragging, setDragging] = React.useState(false);
 
-  const flush = React.useCallback(() => {
-    const el = ref.current;
-    const p = pending.current;
-    frame.current = null;
-    if (!el || !p) return;
-    el.style.setProperty("--mx", `${p.x}%`);
-    el.style.setProperty("--my", `${p.y}%`);
-    el.style.setProperty("--rx", `${(p.ny * -maxTilt).toFixed(2)}deg`);
-    el.style.setProperty("--ry", `${(p.nx * maxTilt).toFixed(2)}deg`);
-  }, [maxTilt]);
+  /**
+   * Writes are synchronous.
+   *
+   * An earlier version coalesced them into requestAnimationFrame, which is
+   * wrong here on two counts. Only the single card under the cursor receives
+   * pointermove events, so the frame budget being saved is about sixty custom
+   * property writes a second, not six hundred. And rAF is throttled to zero in
+   * a background tab, in low power mode and in some headless environments, so
+   * the tilt silently stopped applying whenever the frame loop was not
+   * running. Direct manipulation that depends on a frame is not direct.
+   */
+  const apply = React.useCallback(
+    (clientX: number, clientY: number, moving: boolean) => {
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return;
+
+      const x = (clientX - r.left) / r.width;
+      const y = (clientY - r.top) / r.height;
+
+      el.style.setProperty("--mx", `${x * 100}%`);
+      el.style.setProperty("--my", `${y * 100}%`);
+      // The Y axis is inverted: moving the pointer up pitches the top of the
+      // card away, which is what makes the card appear to lean toward you.
+      el.style.setProperty("--rx", `${((y - 0.5) * -maxTilt).toFixed(2)}deg`);
+      el.style.setProperty("--ry", `${((x - 0.5) * maxTilt).toFixed(2)}deg`);
+      el.dataset.moving = moving ? "true" : "false";
+    },
+    [maxTilt]
+  );
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       // Touch would fight the page scroll, and hover does not exist there.
       if (e.pointerType === "touch") return;
-      const el = ref.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) return;
-
-      const x = e.clientX - r.left;
-      const y = e.clientY - r.top;
-      pending.current = {
-        x: (x / r.width) * 100,
-        y: (y / r.height) * 100,
-        nx: x / r.width - 0.5,
-        ny: y / r.height - 0.5,
-      };
-      // Attribute write, not state: this flips the CSS transition to the
-      // fast tracking curve. A React setState here would re-render the
-      // whole grid on every mousemove.
-      el.dataset.moving = "true";
-      // Coalesce to one style write per frame.
-      if (frame.current === null) frame.current = requestAnimationFrame(flush);
+      apply(e.clientX, e.clientY, true);
     },
-    [flush]
+    [apply]
   );
 
-  const onPointerEnter = React.useCallback(
+  const onPointerLeave = React.useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (e.pointerType === "touch") return;
+      setDragging(false);
+      // Ease back to rest from the light's resting place rather than
+      // mid-gesture, so the spotlight does not streak across the card.
       const el = ref.current;
       if (!el) return;
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) return;
-      // Seed the light where the cursor actually is, so the very first frame
-      // the user sees is lit rather than dark.
-      const x = e.clientX - r.left;
-      const y = e.clientY - r.top;
-      el.style.setProperty("--mx", `${(x / r.width) * 100}%`);
-      el.style.setProperty("--my", `${(y / r.height) * 100}%`);
+      el.style.setProperty("--rx", "0deg");
+      el.style.setProperty("--ry", "0deg");
+      el.dataset.moving = "false";
+      void e;
     },
     []
   );
-
-  const onPointerLeave = React.useCallback(() => {
-    if (frame.current !== null) {
-      cancelAnimationFrame(frame.current);
-      frame.current = null;
-    }
-    pending.current = null;
-    const el = ref.current;
-    if (!el) return;
-    el.dataset.moving = "false";
-    el.style.setProperty("--rx", "0deg");
-    el.style.setProperty("--ry", "0deg");
-  }, []);
-
-  React.useEffect(
-    () => () => {
-      if (frame.current !== null) cancelAnimationFrame(frame.current);
-    },
-    []
-  );
-
-  const handleMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    onPointerEnter(e);
-    onPointerMove(e);
-  };
 
   return (
     <div
       ref={ref}
-      onPointerMove={handleMove}
-      onPointerEnter={onPointerEnter}
+      onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
       data-moving="false"
       className={cn("card-3d", className)}

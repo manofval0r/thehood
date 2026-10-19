@@ -18,6 +18,7 @@ const columns: { heading: string; links: FooterLink[] }[] = [
       { label: "All courses", href: "/" },
       { label: "Timetable", href: "/timetable" },
       { label: "Registration", href: "/registration" },
+      { label: "Study resources", href: "/resources" },
     ],
   },
   {
@@ -61,7 +62,7 @@ export default function Footer() {
           <div className="max-w-md">
             <Wordmark size="lg" />
             <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground">
-              Every lecture deck, lab manual and handout in the Cyber-Security
+              Every lecture deck, lab manual and handout in the Cybersecurity
               300 Level programme. Files come straight from the course
               repository, so what a lecturer uploads is what a student downloads.
             </p>
@@ -154,7 +155,7 @@ export default function Footer() {
         <div className="flex flex-col gap-4 border-t border-border py-7 md:flex-row md:items-center md:justify-between">
           <p className="text-xs leading-relaxed text-muted">
             Nigerian University of Technology and Management &middot;
-            Department of Cyber-Security &middot; First Semester 2026/2027
+            Department of Cybersecurity &middot; First Semester 2026/2027
           </p>
 
           <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">

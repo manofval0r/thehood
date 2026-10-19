@@ -176,7 +176,7 @@ export const COURSES: Course[] = [
     venue: "Cybersecurity Lab",
     day: "Thursday",
     time: "12:30pm - 2:30pm",
-    program: "Cyber-Security",
+    program: "Cybersecurity",
     level: "300",
     timetable: {
       day: "Thursday",
@@ -195,7 +195,7 @@ export const COURSES: Course[] = [
     venue: "Cybersecurity Lab",
     day: "Wednesday",
     time: "3:00pm - 5:00pm",
-    program: "Cyber-Security",
+    program: "Cybersecurity",
     level: "300",
     timetable: {
       day: "Wednesday",
@@ -214,7 +214,7 @@ export const COURSES: Course[] = [
     venue: "Cybersecurity Lab",
     day: "Wednesday",
     time: "12:30pm - 2:30pm",
-    program: "Cyber-Security",
+    program: "Cybersecurity",
     level: "300",
     timetable: {
       day: "Wednesday",
@@ -264,7 +264,7 @@ export const COURSES: Course[] = [
     venue: "Cybersecurity Lab",
     day: "Thursday",
     time: "9:00am - 12:00pm",
-    program: "Cyber-Security",
+    program: "Cybersecurity",
     level: "300",
     timetable: {
       day: "Thursday",
@@ -283,7 +283,7 @@ export const COURSES: Course[] = [
     venue: "Cybersecurity Lab",
     day: "Monday",
     time: "1:00pm - 4:00pm",
-    program: "Cyber-Security",
+    program: "Cybersecurity",
     level: "300",
     timetable: {
       day: "Monday",

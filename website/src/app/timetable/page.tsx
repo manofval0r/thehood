@@ -5,6 +5,7 @@ import { COURSES, resourceUrl, TIMETABLE_PDF } from "@/lib/resources";
 import { TableFrame, DataTable, Thead, Th, Tr, Td, DayGroup } from "@/components/ui/table";
 import NoteArt from "@/components/NoteArt";
 import PrintButton from "@/components/PrintButton";
+import { SlotStatus, TodayHeading } from "@/components/TodayBadge";
 import Reveal from "@/components/Reveal";
 
 const VENUES: [string, number][] = [
@@ -35,15 +36,15 @@ interface Slot {
 }
 
 const SLOTS: Slot[] = [
-  { time: "1:00pm - 4:00pm", code: "NUT-CYB 312", title: "Secure Coding", units: "3", level: "300", program: "Cyber-Security", venue: "Cybersecurity Lab", lecturer: "Dr Faki" },
+  { time: "1:00pm - 4:00pm", code: "NUT-CYB 312", title: "Secure Coding", units: "3", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Faki" },
   { time: "9:00am - 11:00am", code: "NUT-MAN 315", title: "Marketing Management", units: "2", level: "300", program: "COS/CYB", venue: "PG 2", lecturer: "Dr Ebes" },
   { time: "12:00pm - 2:00pm", code: "NUT-CSC 301", title: "Digital Sovereignty", units: "2", level: "300", program: "COS/CYB", venue: "PG 2", lecturer: "Prof Sinjay" },
   { time: "3:00pm - 5:00pm", code: "GST 312", title: "Peace and Conflict Resolution", units: "2", level: "300", program: "COS/CYB", venue: "PG 2", lecturer: "Ikechukwu Alamezie" },
   { time: "9:00am - 12:00pm", code: "NUT-CSC 312", title: "Data Structures", units: "3", level: "300", program: "COS/CYB", venue: "Software Lab", lecturer: "Jeremiah Ocheni" },
-  { time: "12:30pm - 2:30pm", code: "CYB 305", title: "Digital Forensics and Investigation Methods", units: "2", level: "300", program: "Cyber-Security", venue: "Cybersecurity Lab", lecturer: "Dr Segun" },
-  { time: "3:00pm - 5:00pm", code: "CYB 303", title: "Cybersecurity Risks Analysis, Challenges and Mitigation", units: "2", level: "300", program: "Cyber-Security", venue: "Cybersecurity Lab", lecturer: "Dr Faki" },
-  { time: "9:00am - 12:00pm", code: "NUT-CSC 310", title: "Distributed System Security", units: "3", level: "300", program: "Cyber-Security", venue: "Cybersecurity Lab", lecturer: "Pending" },
-  { time: "12:30pm - 2:30pm", code: "CYB 301", title: "Cryptography Techniques, Algorithms and Applications", units: "2", level: "300", program: "Cyber-Security", venue: "Cybersecurity Lab", lecturer: "Dr Steve" },
+  { time: "12:30pm - 2:30pm", code: "CYB 305", title: "Digital Forensics and Investigation Methods", units: "2", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Segun" },
+  { time: "3:00pm - 5:00pm", code: "CYB 303", title: "Cybersecurity Risks Analysis, Challenges and Mitigation", units: "2", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Faki" },
+  { time: "9:00am - 12:00pm", code: "NUT-CSC 310", title: "Distributed System Security", units: "3", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Pending" },
+  { time: "12:30pm - 2:30pm", code: "CYB 301", title: "Cryptography Techniques, Algorithms and Applications", units: "2", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Steve" },
   { time: "3:00pm - 5:00pm", code: "CSC 309", title: "Artificial Intelligence", units: "2", level: "300", program: "COS/CYB", venue: "Cybersecurity Lab", lecturer: "Charles Igah" },
 ];
 
@@ -58,9 +59,30 @@ function slugFor(code: string) {
   return COURSES.find((c) => c.code === code)?.slug;
 }
 
+/** 0 = Sunday, matching Date.getDay(). */
+const DAY_INDEX: Record<string, number> = {
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+  Sunday: 0,
+};
+
+/** "1:00pm - 4:00pm" -> minutes from midnight for either end of the range. */
+function minutes(time: string, end: 0 | 1): number {
+  const part = time.split(/\s*-\s*/)[end] ?? time;
+  const m = part.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+  if (!m) return 0;
+  let hour = Number(m[1]) % 12;
+  if (/pm/i.test(m[3])) hour += 12;
+  return hour * 60 + Number(m[2]);
+}
+
 export const metadata = {
-  title: "Timetable · Cyber-Security 300L",
-  description: "First Semester 2026/2027 weekly timetable for the Cyber-Security 300 Level programme.",
+  title: "Timetable · Cybersecurity 300L",
+  description: "First Semester 2026/2027 weekly timetable for the Cybersecurity 300 Level programme.",
 };
 
 export default function TimetablePage() {
@@ -74,7 +96,7 @@ export default function TimetablePage() {
           Nigerian University of Technology and Management
         </p>
         <p className="mt-1 text-[9pt] text-muted-foreground">
-          Department of Cyber-Security &middot; First Semester 2026/2027
+          Department of Cybersecurity &middot; First Semester 2026/2027
         </p>
       </div>
 
@@ -123,7 +145,12 @@ export default function TimetablePage() {
                 if (!slots) return null;
                 return (
                   <Fragment key={day}>
-                    <DayGroup count={slots.length}>{day}</DayGroup>
+                    <DayGroup count={slots.length}>
+                      <span className="inline-flex items-center">
+                        {day}
+                        <TodayHeading dayIndex={DAY_INDEX[day] ?? -1} />
+                      </span>
+                    </DayGroup>
                     {slots.map((s) => {
                       const slug = slugFor(s.code);
                       return (
@@ -132,18 +159,25 @@ export default function TimetablePage() {
                             {s.time}
                           </Td>
                           <Td>
-                            {slug ? (
-                              <Link
-                                href={`/courses/${slug}`}
-                                className="pressable rounded font-mono text-[12px] font-bold text-accent underline-offset-4 hover:underline"
-                              >
-                                {s.code}
-                              </Link>
-                            ) : (
-                              <span className="font-mono text-[12px] font-bold text-foreground">
-                                {s.code}
-                              </span>
-                            )}
+                            <span className="inline-flex items-center">
+                              {slug ? (
+                                <Link
+                                  href={`/courses/${slug}`}
+                                  className="pressable rounded font-mono text-[12px] font-bold text-accent underline-offset-4 hover:underline"
+                                >
+                                  {s.code}
+                                </Link>
+                              ) : (
+                                <span className="font-mono text-[12px] font-bold text-foreground">
+                                  {s.code}
+                                </span>
+                              )}
+                              <SlotStatus
+                                dayIndex={DAY_INDEX[day] ?? -1}
+                                startMin={minutes(s.time, 0)}
+                                endMin={minutes(s.time, 1)}
+                              />
+                            </span>
                           </Td>
                           <Td strong className="min-w-[16rem]">
                             {s.title}
