@@ -25,24 +25,38 @@ const MONTHS: Record<string, number> = {
 
 /** "October 17 - October 18, 2026" | "October 5, 2026" | "All month" | "TBD" */
 function parseDate(date: string, month: string): { start: Date | null; end: Date | null } {
-  if (!/\d/.test(date) || /^tbd$/i.test(date.trim())) return { start: null, end: null };
-  if (/all month/i.test(date)) return { start: null, end: null };
+  const none = { start: null, end: null };
+  if (!/\d/.test(date) || /^tbd$/i.test(date.trim())) return none;
+  if (/all month/i.test(date)) return none;
 
-  const yrMatch = date.match(/(\d{4})/);
-  if (!yrMatch) return { start: null, end: null };
-  const year = Number(yrMatch[1]);
+  /**
+   * The row's `month` label is authoritative for when it starts. Taking the
+   * year from the date string instead breaks any range that crosses a year
+   * boundary: "December 19 - January 8, 2027" belongs to December 2026, but
+   * the only year in that string is 2027, which parks the Christmas break in
+   * December 2027 and scrambles the order of the entire calendar.
+   */
+  const label = month.match(/([A-Z][a-z]+)\s+(\d{4})/);
+  const labelMonthIdx = label ? MONTHS[label[1]] : undefined;
+  const labelYear = label ? Number(label[2]) : undefined;
 
   // Split on an en dash / hyphen between two month names.
   const spanMatch = date.match(
-    /([A-Z][a-z]+)\s+(\d{1,2})\s*[-\u2013]\s*(?:[A-Z][a-z]+\s+)?(\d{1,2}),\s*(\d{4})/
+    /([A-Z][a-z]+)\s+(\d{1,2})\s*[-\u2013]\s*(?:([A-Z][a-z]+)\s+)?(\d{1,2}),\s*(\d{4})/
   );
   if (spanMatch) {
-    const m1 = MONTHS[spanMatch[1]];
-    const d1 = Number(spanMatch[2]);
-    const d2 = Number(spanMatch[3]);
-    const y2 = Number(spanMatch[4]);
-    if (m1 !== undefined) {
-      return { start: new Date(y2, m1, d1), end: new Date(y2, m1, d2) };
+    const startIdx = labelMonthIdx !== undefined ? labelMonthIdx : MONTHS[spanMatch[1]];
+    const startYear = labelYear !== undefined ? labelYear : Number(spanMatch[5]);
+    if (startIdx !== undefined) {
+      const d1 = Number(spanMatch[2]);
+      const d2 = Number(spanMatch[4]);
+      const endIdx = spanMatch[3] ? MONTHS[spanMatch[3]] : startIdx;
+      // A range that wraps past December ends in the following year.
+      const endYear = endIdx !== undefined && endIdx < startIdx ? startYear + 1 : startYear;
+      return {
+        start: new Date(startYear, startIdx, d1),
+        end: new Date(endYear, endIdx !== undefined ? endIdx : startIdx, d2),
+      };
     }
   }
 
@@ -56,7 +70,7 @@ function parseDate(date: string, month: string): { start: Date | null; end: Date
       return { start: dt, end: dt };
     }
   }
-  return { start: null, end: null };
+  return none;
 }
 
 type RawEvent = Omit<CalendarEvent, "start" | "end">;

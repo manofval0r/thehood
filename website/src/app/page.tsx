@@ -114,9 +114,15 @@ export default function Home() {
                 style={{ animationDelay: "380ms" }}
               >
                 <div className="relative flex justify-center">
+                  {/*
+                    Sized with inset, not scale. A transform here widens the
+                    layout box past the viewport and the whole page scrolls
+                    sideways; a blur filter paints beyond its box without
+                    affecting scroll width.
+                  */}
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 -z-10 scale-125 rounded-full bg-accent/20 blur-3xl"
+                    className="absolute -inset-6 -z-10 rounded-full bg-accent/20 blur-3xl"
                   />
                   <PixelArt
                     title="Pixel art of a hooded figure working at a laptop, lit by the screen"

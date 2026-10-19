@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Flag, TrendingUp } from "lucide-react";
-import { sessionStats, SESSION_ANCHORS, CATEGORY_STYLE, ACADEMIC_CALENDAR_EVENTS } from "@/lib/calendar";
+import { sessionStats } from "@/lib/calendar";
 import TimelineInteractive from "@/components/TimelineInteractive";
 
 export const metadata = {
@@ -13,8 +13,6 @@ export const metadata = {
 // down, so the client scrubber never disagrees with the server on "today".
 const serverNow = new Date();
 const stats = sessionStats(serverNow);
-
-const DATED = ACADEMIC_CALENDAR_EVENTS.filter((e) => e.start);
 
 export default function TimelinePage() {
   return (
@@ -103,20 +101,6 @@ export default function TimelinePage() {
 
       {/* ---------- Interactive session timeline ---------- */}
       <TimelineInteractive todayStamp={serverNow.getTime()} />
-
-      {/* ---------- Legend ---------- */}
-      <section className="rise mt-16 flex flex-wrap gap-x-6 gap-y-2.5" style={{ animationDelay: "140ms" }}>
-        {Object.keys(CATEGORY_STYLE).map((cat) => (
-          <span key={cat} className="flex items-center gap-2 text-[12px] text-muted-foreground">
-            <span className={cnDot(CATEGORY_STYLE[cat as keyof typeof CATEGORY_STYLE].dot)} />
-            {cat}
-          </span>
-        ))}
-      </section>
     </div>
   );
-}
-
-function cnDot(cls: string) {
-  return `h-2.5 w-2.5 rounded-full ${cls}`;
 }
