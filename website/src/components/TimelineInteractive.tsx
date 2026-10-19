@@ -97,7 +97,7 @@ export default function TimelineInteractive({ todayStamp }: { todayStamp: number
     <section>
       {/* Remounting on filter change resets the handle to the new list's
           position instead of leaving it pointing past the last row. */}
-      <div className="mb-10">
+      <div className="print-hide mb-10">
         <SessionScrubber
           key={filter}
           points={points}
@@ -107,7 +107,7 @@ export default function TimelineInteractive({ todayStamp }: { todayStamp: number
       </div>
 
       {/* ---------- Filter ---------- */}
-      <div className="mb-8 flex flex-wrap items-center gap-2">
+      <div className="print-hide mb-8 flex flex-wrap items-center gap-2">
         <FilterChip
           active={filter === "All"}
           onClick={() => setFilter("All")}

@@ -607,3 +607,131 @@ body {
     animation: none;
   }
 }
+
+/* ============================================================
+   PRINT
+   The timetable and the registration list are the two pages
+   people actually put on a desk, so they get a real print
+   treatment: black on white, no chrome, no art, and a header
+   that identifies the sheet once it is loose from the site.
+   ============================================================ */
+
+/* Visible on screen only to carry the print header. */
+.print-only {
+  display: none;
+}
+
+@media print {
+  /* Paper is white and ink is expensive. Re-point the tokens rather than
+     overriding a hundred utilities. */
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --surface: #ffffff;
+    --surface-hover: #ffffff;
+    --surface-raised: #ffffff;
+    --border: #c9c9c9;
+    --border-strong: #8a8a8a;
+    --muted: #6b6b6b;
+    --muted-foreground: #3d3d3d;
+    --accent: #15803d;
+    --accent-dim: #15803d;
+    --accent-foreground: #ffffff;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  /* Chrome and decoration have no business on paper. */
+  header,
+  footer,
+  nav,
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Entrance and scroll-reveal animations would otherwise freeze content at
+     opacity 0, because they only resolve once JavaScript runs. */
+  .rise,
+  .settle,
+  .reveal,
+  .modal-in {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  /* Cards flatten: on paper there is no elevation, only rules. */
+  .card-lift,
+  .card-tilt,
+  .card-3d {
+    transform: none !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .card-cast,
+  .card-accent-glow,
+  .card-bevel,
+  .card-spotlight {
+    display: none !important;
+  }
+
+  /* Keep a heading with the rows that belong to it. */
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  table {
+    break-inside: auto;
+    width: 100% !important;
+  }
+
+  tr {
+    break-inside: avoid;
+    break-after: auto;
+  }
+
+  thead {
+    /* Repeat the column headings on every printed page. */
+    display: table-header-group;
+  }
+
+  /* Links have no address bar on paper, so show where they pointed. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #555;
+  }
+
+  /* Tables are the point of these pages: give them real rules. */
+  table,
+  th,
+  td {
+    border-color: #c9c9c9 !important;
+  }
+
+  th {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

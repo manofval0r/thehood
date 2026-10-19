@@ -13,16 +13,17 @@ import { cn } from "@/lib/utils";
  * described as geometry and the rim is derived from a light direction. Editing
  * the rows by hand is how the silhouette goes ragged.
  */
+// <generated>
 const COLORS: Record<string, string> = {
-  h: "#171717", // hood, mid tone
-  H: "#2a2a2a", // hood, catching light from the screen
-  K: "#0a0a0a", // deepest interior, keeps the form reading as a silhouette
-  B: "#121212", // torso
-  b: "#1f1f1f", // shoulder catch light
-  S: "#14532d", // screen spill on the wall
-  G: "#22c55e", // rim light
-  g: "#4ade80", // rim hotspot
-  w: "#a7f3c4", // lit lip of the laptop
+  h: "#171717",
+  H: "#2a2a2a",
+  G: "#22c55e",
+  g: "#4ade80",
+  K: "#0a0a0a",
+  S: "#14532d",
+  B: "#121212",
+  b: "#1f1f1f",
+  w: "#a7f3c4",
 };
 
 const GRID = [
@@ -40,36 +41,38 @@ const GRID = [
   ".................gHhHHHHHHHHHHHKKhhhhhhh................",
   ".................GHhHHHHHHHHHHHKKKhhhhhh................",
   "................gGHhhhHHHHHHHKKKKKKhhhhhh...............",
-  "................gGHhhhhKKHKKKKKKKKKKhhhhh...............",
-  "................gGHhhhhKKKKKKKKKKKKKhhhhh...............",
-  "................gGHhhhhKKKKKKKKKKKKKhhhhh...............",
-  "................gGHHhhhKKKKKKKKKKKKKhhhhh...............",
-  "................gGGHhhKKKKKKKKKKKKKKKhhhh...............",
-  "................ggGHhhhKKKKKKKKKKKKKhhhhh...............",
-  ".................gGHHhhKKKKKKKKKKKKKhhhh................",
-  ".................gGGHHhKKKKKKKKKKKKKhhhhS...............",
-  ".................ggHHhhKKKKKKKKKKKKKhhhh................",
-  "..................HHhhhhKKKKKKKKKKKhhhh.................",
-  "...................hhhhhhKKKKKKKKKhhhhS.................",
-  "................SSShhhhhhhKKKKKKKhhhhhSSSSSS............",
-  "...............SSSSSShhhhhhhhKhhhhhhSSSSSSSSS...........",
-  "..............BBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSSS.........",
-  ".............BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSSS........",
-  "............BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSS.......",
-  "...........BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSSS.....",
-  ".........SBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSSS....",
-  "........SBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSS...",
-  ".......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSSS.",
-  "......HbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSSSSS",
-  ".....GHbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSSS",
-  "....gGHbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSS",
-  "....gGHbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSS",
-  "....wwwbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSS",
-  "....wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "....wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-  "....gggggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "................gGHhhhhKKHHHKKKKKKKKhhhhh...............",
+  "................gGHhhhhKKHHHKKKKKKKKhhhhh...............",
+  "................gGHhhhhKKHHHKKKKKKKKhhhhh...............",
+  "................gGHHhhhKKHHHKKKKKKKKhhhhh...............",
+  "................gGGHhhKKKHHHKKKKKKKKKhhhh...............",
+  "................ggGHhhhKKHHHKKKKKKKKhhhhh...............",
+  ".................gGHHhhKKHHHKKKKKKKKhhhh................",
+  ".................gGGHHhKKHHHKKKKKKKKhhhhS...............",
+  ".................ggGGhhKKHHHKKKKKKKKhhhh................",
+  "..................gghhhhKHHHKKKKKKKhhhh.................",
+  "...................hhhhhhHHHKKKKKKhhhhS.................",
+  "..................ShhhhhhHHHKKKKKhhhhhSSSSS.............",
+  ".................SSSShhhhHHHhKhhhhhhSSSSSSS.............",
+  "...............gHBBBBBBBBBBBBBBBBBBBBBBBBSSS............",
+  "...............GBBBBBBBBBBBBBBBBBBBBBBBBBSSSS...........",
+  "..............gBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSS..........",
+  "..............HBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSS.........",
+  ".............GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSS........",
+  "............GBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSS.......",
+  "............BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBSSSS......",
+  "...........bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSSSS.....",
+  ".......gGHSbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSSS.....",
+  ".......gGHbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSS.....",
+  ".......gGHHHbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSS.....",
+  ".......wwwwwbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbSS.....",
+  ".......wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.....",
+  ".........wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww.....",
+  ".........gggggggggggggggggggggggggggggggggggggggggg.....",
 ];
+// </generated>
 
+// Outside the generated block: regenerating the grid must not remove it.
 const COLS = GRID[0].length;
 
 export default function PixelArt({

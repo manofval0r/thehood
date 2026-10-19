@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import { COURSES, resourceUrl, TIMETABLE_PDF } from "@/lib/resources";
 import { TableFrame, DataTable, Thead, Th, Tr, Td, DayGroup } from "@/components/ui/table";
 import NoteArt from "@/components/NoteArt";
+import PrintButton from "@/components/PrintButton";
 import Reveal from "@/components/Reveal";
 
 const VENUES: [string, number][] = [
@@ -67,6 +68,16 @@ export default function TimetablePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Identifies the sheet once it is loose from the site. */}
+      <div className="print-only mb-6 border-b border-border pb-4">
+        <p className="text-[10pt] font-bold uppercase tracking-[0.12em]">
+          Nigerian University of Technology and Management
+        </p>
+        <p className="mt-1 text-[9pt] text-muted-foreground">
+          Department of Cyber-Security &middot; First Semester 2026/2027
+        </p>
+      </div>
+
       {/* Header */}
       <section className="rise pb-8 pt-14 md:pt-20">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -78,14 +89,17 @@ export default function TimetablePage() {
               2026/2027 session. Every course code links to its resources page.
             </p>
           </div>
-          <a
-            href={resourceUrl(TIMETABLE_PDF)}
-            download
-            className="pressable inline-flex shrink-0 items-center gap-2 self-start rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
-          >
-            <Download size={15} />
-            Download PDF
-          </a>
+          <div className="flex shrink-0 flex-col gap-2.5 self-start">
+            <a
+              href={resourceUrl(TIMETABLE_PDF)}
+              download
+              className="print-hide pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
+            >
+              <Download size={15} />
+              Download PDF
+            </a>
+            <PrintButton />
+          </div>
         </div>
       </section>
 
