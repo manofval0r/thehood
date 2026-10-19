@@ -226,10 +226,42 @@ node tools/pixelart-gen.js --write   # regenerate the grid in PixelArt.tsx
 node tools/pixel-motifs.js           # regenerate the resource motifs
 node tools/gen-wallpapers.js         # render the hood wallpapers
 node tools/gen-timetable-wallpapers.js  # render the timetable wallpapers
-node tools/gen-icons.js              # render favicon + apple-touch-icon
+node tools/gen-icons.js              # render the favicon set
+node tools/check-icons.js           # assert every declared icon exists and matches
 node tools/check-calendar.js         # assert the calendar parses and sorts correctly
 node tools/preview-motifs.js         # print the motifs as terminal ASCII
+node tools/preview-png.js public/favicon-32.png   # print any PNG as ASCII
 ```
+
+## Icons
+
+The hood, cropped to the head and shoulders and lifted so it reads on both
+light and dark surfaces. `tools/gen-icons.js` writes the whole set from the
+grid in `PixelArt.tsx`:
+
+```
+favicon.ico      16/32/48, as PNG frames
+favicon-16..512  the modern set the browser picks from
+favicon.png      64, for anything that hardcodes the path
+apple-touch-icon 180
+site.webmanifest
+```
+
+Two things that were wrong and are now guarded:
+
+- The layout declared `sizes="48x48"` for a **64x64** file. Nothing threw and
+  the page rendered fine; only reading the two numbers against each other showed
+  it. `tools/check-icons.js` now parses the layout's link tags and compares
+  every `sizes` against the file's real IHDR dimensions. It immediately caught
+  the manifest pointing at a `favicon-512.png` that had never been generated.
+- There was **no `/favicon.ico` at all**. A browser told nothing probes that
+  path, so it was a 404 in the tab strip rather than the artwork.
+
+The small sizes need a smaller crop, not a smaller scale. Pixel art cannot be
+scaled fractionally, and the hood is 34 rows tall, so on a 16px tile the integer
+scale lands on 1 and a 30x34 crop does not fit. It was drawing the top-left
+corner of the artwork. Sizes 16, 32 and 48 now crop tighter onto the dome of
+the hood, which is the part that still reads at 16 pixels.
 
 `check-calendar.js` exists because a date range crossing a year boundary once
 parsed to the wrong year and silently sorted to the wrong part of the session.

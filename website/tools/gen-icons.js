@@ -1,10 +1,24 @@
 /**
- * Renders the hero pixel grid to the favicon set.
+ * Writes the favicon set.
  *
- * Reads the grid out of PixelArt.tsx, the same way gen-wallpapers does, so the
- * icon and the artwork cannot drift apart. A 16px favicon cannot show a whole
- * figure: at that size only the hood silhouette survives, so the icon crops to
- * the head and shoulder region and brightens it. Anything busier turns to mud.
+ * Reads the grid out of PixelArt.tsx, the same way gen-wallpapers does, so
+ * the icon and the artwork cannot drift apart. A 16px favicon cannot show a
+ * whole figure: at that size only the hood silhouette survives, so the icon
+ * crops to the head and shoulder region and brightens it. Anything busier
+ * turns to mud.
+ *
+ * Outputs, and why each exists:
+ *   favicon.ico      16/32/48. A browser told nothing still probes
+ *                    /favicon.ico, and a 404 there is a broken tab strip
+ *                    rather than a default one.
+ *   favicon-<n>.png  a modern set, so the browser picks a size instead of
+ *                    resampling whichever single file happened to ship.
+ *   apple-touch-icon 180, the size Apple crops to, and it does not mask.
+ *   icon-192/512     for the web manifest, which is what an installed app and
+ *                    an Android home screen read.
+ *
+ * The `sizes` attribute in the layout must match these files exactly. It was
+ * declaring 48x48 for a 64x64 file, and browsers are entitled to act on it.
  *
  * Run: node tools/gen-icons.js
  */
@@ -97,6 +111,26 @@ const CROP = { x: 13, y: 1, w: 30, h: 34 };
 const PAD = 2;
 
 /**
+ * Crops for the small sizes.
+ *
+ * The hood is 34 rows tall, so on a 16px or 32px tile the integer scale lands
+ * on 1 and a 30x34 crop does not fit: it was being drawn at scale 1 into a
+ * 16px square, which shows the top-left corner of the artwork rather than the
+ * artwork. Pixel art cannot be scaled fractionally, so the region has to get
+ * smaller instead. These tighten onto the dome of the hood, which is the one
+ * part that still reads at 16 pixels.
+ */
+const SMALL_CROPS = {
+  16: { x: 21, y: 7, w: 12, h: 12 },
+  32: { x: 14, y: 2, w: 26, h: 28 },
+  48: { x: 13, y: 1, w: 30, h: 34 },
+};
+
+function cropFor(size) {
+  return SMALL_CROPS[size] || CROP;
+}
+
+/**
  * At icon sizes the artwork is lifted so it reads on both light and dark
  * surfaces: the ground goes mid-grey rather than black, because a black square
  * is invisible in a dark tab bar, and the silhouette goes lighter.
@@ -127,11 +161,12 @@ function rgbaFor(ch) {
 }
 
 function renderIcon(size) {
+  const crop = cropFor(size);
   // Largest whole-pixel scale that fits the crop inside the tile with padding.
   const inner = size - PAD * 2;
-  const scale = Math.max(1, Math.floor(inner / Math.max(CROP.w, CROP.h)));
-  const artW = CROP.w * scale;
-  const artH = CROP.h * scale;
+  const scale = Math.max(1, Math.floor(inner / Math.max(crop.w, crop.h)));
+  const artW = crop.w * scale;
+  const artH = crop.h * scale;
   const ox = Math.round((size - artW) / 2);
   const oy = Math.round((size - artH) / 2);
 
@@ -157,10 +192,10 @@ function renderIcon(size) {
     }
   }
 
-  for (let gy = 0; gy < CROP.h; gy++) {
-    const row = GRID[CROP.y + gy] || "";
-    for (let gx = 0; gx < CROP.w; gx++) {
-      const ch = row[CROP.x + gx];
+  for (let gy = 0; gy < crop.h; gy++) {
+    const row = GRID[crop.y + gy] || "";
+    for (let gx = 0; gx < crop.w; gx++) {
+      const ch = row[crop.x + gx];
       if (!ch) continue;
       const c = rgbaFor(ch);
       const px = ox + gx * scale;
@@ -174,11 +209,80 @@ function renderIcon(size) {
   return encodePNG(size, size, buf);
 }
 
-for (const [name, size] of [
-  ["favicon.png", 64],
-  ["apple-touch-icon.png", 180],
-]) {
-  const png = renderIcon(size);
-  fs.writeFileSync(path.join(ROOT, "public", name), png);
-  console.log(`${name}  ${size}x${size}  ${Math.round(png.length / 1024)} KB`);
+/**
+ * Packs PNG frames into a single .ico.
+ *
+ * Windows still reads the directory entries, but every browser that has
+ * mattered for years will take a PNG frame verbatim, so this is a real ICO
+ * header around real PNGs rather than a BMP encoder nobody needs.
+ */
+function buildICO(frames) {
+  const dir = Buffer.alloc(6);
+  dir.writeUInt16LE(0, 0); // reserved
+  dir.writeUInt16LE(1, 2); // type: icon
+  dir.writeUInt16LE(frames.length, 4);
+
+  const entries = [];
+  let offset = 6 + frames.length * 16;
+  for (const f of frames) {
+    const e = Buffer.alloc(16);
+    e[0] = f.size >= 256 ? 0 : f.size; // 0 means 256
+    e[1] = f.size >= 256 ? 0 : f.size;
+    e[2] = 0; // palette size
+    e[3] = 0; // reserved
+    e.writeUInt16LE(1, 4); // colour planes
+    e.writeUInt16LE(32, 6); // bits per pixel
+    e.writeUInt32LE(f.png.length, 8);
+    e.writeUInt32LE(offset, 12);
+    entries.push(e);
+    offset += f.png.length;
+  }
+
+  return Buffer.concat([dir, ...entries, ...frames.map((f) => f.png)]);
 }
+
+const PNG_SIZES = [16, 32, 48, 64, 96, 128, 192, 256, 512];
+
+const rendered = new Map();
+for (const size of [...new Set([...PNG_SIZES, 180])]) {
+  const png = renderIcon(size);
+  rendered.set(size, png);
+  const name = size === 180 ? "apple-touch-icon.png" : `favicon-${size}.png`;
+  fs.writeFileSync(path.join(ROOT, "public", name), png);
+}
+
+// The single file, kept for anything that hardcodes /favicon.png.
+fs.writeFileSync(path.join(ROOT, "public", "favicon.png"), rendered.get(64));
+
+fs.writeFileSync(
+  path.join(ROOT, "public", "favicon.ico"),
+  buildICO([16, 32, 48].map((size) => ({ size, png: rendered.get(size) })))
+);
+
+fs.writeFileSync(
+  path.join(ROOT, "public", "site.webmanifest"),
+  JSON.stringify(
+    {
+      name: "Cybersecurity 300L Course Resources",
+      short_name: "Cyb 300L",
+      description:
+        "Lecture notes, lab manuals, timetables and the academic calendar for the Cybersecurity 300 Level programme.",
+      start_url: "/",
+      display: "standalone",
+      background_color: "#000000",
+      theme_color: "#000000",
+      icons: [
+        { src: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/favicon-256.png", sizes: "256x256", type: "image/png" },
+        { src: "/favicon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      ],
+    },
+    null,
+    2
+  ) + "\n"
+);
+
+const written = PNG_SIZES.map((s) => `favicon-${s}.png(${rendered.get(s).length}b)`);
+written.push(`apple-touch-icon.png(${rendered.get(180).length}b)`);
+console.log(written.join(" "));
+console.log("favicon.ico(16/32/48), favicon.png(64), site.webmanifest");

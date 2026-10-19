@@ -38,8 +38,26 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>
       <body className="min-h-full flex flex-col overflow-x-clip">
-        <link rel="icon" href="/favicon.png" sizes="48x48" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/*
+          Icons. Every `sizes` here must match a file that actually exists;
+          a browser is entitled to act on a wrong one. This set was
+          declaring sizes="48x48" for a 64x64 file and shipping no .ico at
+          all, so anything that ignores the link tags fell back to the
+          default globe.
+
+          favicon.ico comes first because it is what a browser reaches for
+          when it is told nothing at all, and it is the only declaration that
+          covers a client too old to read PNG frames.
+        */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+        <link rel="icon" type="image/png" sizes="256x256" href="/favicon-256.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         {/*
           The entrance and reveal utilities (.rise, .settle, .reveal) all start
           at opacity:0 and are switched on by JavaScript. Without scripting
