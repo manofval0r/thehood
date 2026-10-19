@@ -1,82 +1,71 @@
 "use client";
 
 import Link from "next/link";
-import { Download, Eye, FileText, Presentation, Tablet, FileCode } from "lucide-react";
-import { resourceUrl } from "@/lib/resources";
+import { Download, Eye } from "lucide-react";
 import AppleCard from "@/components/AppleCard";
+import DocMark, { DOC_STYLE, type DocType } from "@/components/DocMark";
 import { cn } from "@/lib/utils";
-
-const TYPE_ICON: Record<string, React.ElementType> = {
-  pdf: FileText,
-  pptx: Presentation,
-  xlsx: Tablet,
-  doc: FileCode,
-  other: FileText,
-};
-
-const TYPE_LABEL: Record<string, string> = {
-  pdf: "PDF",
-  pptx: "Slides",
-  xlsx: "Sheet",
-  doc: "Document",
-  other: "File",
-};
-
-const TYPE_TONE: Record<string, string> = {
-  pdf: "text-tone-exams",
-  pptx: "text-tone-ceremony",
-  xlsx: "text-tone-academic",
-  doc: "text-tone-statutory",
-  other: "text-muted-foreground",
-};
 
 interface ResourceCardProps {
   resource: { id: string; title: string; type: string; url: string; size?: string };
+  href: string;
   onPreview?: (id: string) => void;
   index?: number;
 }
 
+/**
+ * Resource card.
+ *
+ * The mark is drawn per file type rather than pulled from an icon set, so the
+ * card reads as the thing it is at a glance. The tile is large enough to carry
+ * that: a 16px glyph in the corner was decoration, not information.
+ */
 export default function ResourceCard({
   resource,
+  href,
   onPreview,
   index = 0,
 }: ResourceCardProps) {
-  const Icon = TYPE_ICON[resource.type] || FileText;
-  const canPreview = resource.type === "pdf" && !!onPreview;
-  const href = resourceUrl(resource.url);
+  const type = (resource.type as DocType) ?? "other";
+  const style = DOC_STYLE[type] ?? DOC_STYLE.other;
+  const canPreview = type === "pdf" && !!onPreview;
 
   return (
     <AppleCard maxTilt={5} className="h-full">
       <div
-        className={cn(
-          // No overflow-hidden: it forces transform-style flat.
-          "card-tilt settle relative flex h-full flex-col rounded-lg border border-border bg-surface p-5"
-        )}
+        className="card-tilt settle relative flex h-full flex-col rounded-lg border border-border bg-surface p-5"
         style={{ animationDelay: `${Math.min(index * 55, 330)}ms` }}
       >
         <span className="card-cast" aria-hidden="true" />
         <span className="card-accent-glow" aria-hidden="true" />
         <span className="card-bevel" aria-hidden="true" />
 
-        <div className="card-depth flex items-start justify-between gap-3" style={{ "--depth": "12px" } as React.CSSProperties}>
+        <div className="card-depth flex items-start justify-between gap-4" style={{ "--depth": "14px" } as React.CSSProperties}>
+          {/* Type tile */}
           <span
-            className={cn(
-              "font-mono text-[11px] font-bold uppercase tracking-[0.08em]",
-              TYPE_TONE[resource.type]
-            )}
+            className="relative flex h-14 w-12 shrink-0 items-center justify-center rounded-lg"
+            style={{ background: style.bg }}
           >
-            {TYPE_LABEL[resource.type]}
+            <span className="h-8 w-7">
+              <DocMark type={type} />
+            </span>
+            <span
+              className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded px-1 font-mono text-[8px] font-bold tracking-tight"
+              style={{ background: style.fg, color: "#0a0a0a" }}
+            >
+              {style.short}
+            </span>
           </span>
-          <Icon
-            size={17}
-            strokeWidth={1.75}
-            className="card-depth shrink-0 text-muted"
-            style={{ "--depth": "22px" } as React.CSSProperties}
-          />
+
+          {canPreview && (
+            <span className="mt-1 shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+              Preview
+            </span>
+          )}
         </div>
 
         <h4
-          className="card-depth mt-3.5 text-[14px] font-medium leading-snug text-foreground"
+          className="card-depth mt-4 text-[14px] font-medium leading-snug text-foreground"
           style={{ "--depth": "30px" } as React.CSSProperties}
         >
           {resource.title}

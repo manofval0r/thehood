@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { ThemeProvider, THEME_BOOTSTRAP } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,7 +20,22 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      // Matches the provider's server-side default so the first client render
+      // never disagrees with the markup it hydrated.
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${geistSans.variable} h-full antialiased`}
+    >
+      <head>
+        {/*
+          Sets the theme before first paint. Deferred, this would flash dark on
+          every navigation to a light-mode reader. Inlined rather than bundled
+          because a separate chunk is, by definition, a later chunk.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
       <body className="min-h-full flex flex-col overflow-x-clip">
         <link rel="icon" href="/favicon.png" sizes="48x48" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -37,12 +53,14 @@ export default function RootLayout({
             }
           `}</style>
         </noscript>
-        <Nav />
-        {/* pb keeps the last element of any page clear of the footer. Without
-            it, whichever page forgets its own bottom padding sits flush against
-            the footer's top border. */}
-        <main className="flex-1 pb-16">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <Nav />
+          {/* pb keeps the last element of any page clear of the footer. Without
+              it, whichever page forgets its own bottom padding sits flush against
+              the footer's top border. */}
+          <main className="flex-1 pb-16">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

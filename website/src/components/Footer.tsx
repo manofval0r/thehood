@@ -19,6 +19,7 @@ const columns: { heading: string; links: FooterLink[] }[] = [
       { label: "Timetable", href: "/timetable" },
       { label: "Registration", href: "/registration" },
       { label: "Study resources", href: "/resources" },
+      { label: "Contact the reps", href: "/contact" },
     ],
   },
   {

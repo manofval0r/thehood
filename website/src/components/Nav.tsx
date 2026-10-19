@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Menu, X } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
@@ -103,7 +104,7 @@ export default function Nav() {
               "flex h-12 w-full items-center justify-between rounded-full pl-4 pr-2",
               "transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
               scrolled
-                ? "border border-border-strong bg-surface/80 shadow-[0_8px_28px_-10px_rgba(0,0,0,0.9)] backdrop-blur-xl"
+                ? "border border-border-strong bg-surface/80 shadow-lift backdrop-blur-xl"
                 : "border border-transparent"
             )}
           >
@@ -162,6 +163,9 @@ export default function Nav() {
                 );
               })}
             </div>
+
+            {/* ---------- Light / dark ---------- */}
+            <ThemeToggle className="ml-3" />
 
             {/* ---------- Countdown to the next class ---------- */}
             {next && (
@@ -234,7 +238,7 @@ export default function Nav() {
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/80"
+            className="absolute inset-0 bg-[var(--scrim)]"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />

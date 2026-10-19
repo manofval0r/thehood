@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, FileText, MapPin, User, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, FileText, MapPin, User, Calendar, Clock, Mail } from "lucide-react";
 import type { Course } from "@/lib/resources";
+import { resourceUrl } from "@/lib/resources";
+import { repAddress, repFirstName } from "@/lib/contact";
 import ResourceCard from "@/components/ResourceCard";
 import ResourceModal from "@/components/ResourceModal";
 import BatchDownload from "@/components/BatchDownload";
@@ -103,6 +105,22 @@ export default function CourseClient({ course }: { course: Course }) {
             ))}
           </dl>
         </div>
+
+        {/* One action, placed under the facts it refers to. Nothing renders
+            unless an address exists AND a lecturer has been assigned, so
+            there is never a mail link that goes nowhere and never a button
+            inviting you to write to "Pending". */}
+        {repAddress(course.code) && repFirstName(course.lecturer) && (
+          <a
+            href={`mailto:${repAddress(course.code)}?subject=${encodeURIComponent(
+              `${course.code} — ${course.title}`
+            )}`}
+            className="pressable mt-6 inline-flex w-fit items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+          >
+            <Mail size={14} className="text-accent" />
+            Contact {repFirstName(course.lecturer)}, the course rep
+          </a>
+        )}
       </section>
 
       {/* ---------- Resources ---------- */}
@@ -158,13 +176,13 @@ export default function CourseClient({ course }: { course: Course }) {
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((r, i) => (
-              <div
+              <ResourceCard
                 key={r.id}
-                className="rise"
-                style={{ animationDelay: `${Math.min(i * 45, 300)}ms` }}
-              >
-                <ResourceCard resource={r} onPreview={setPreviewId} />
-              </div>
+                resource={r}
+                href={resourceUrl(r.url)}
+                onPreview={setPreviewId}
+                index={i}
+              />
             ))}
           </div>
         )}

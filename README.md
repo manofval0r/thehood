@@ -55,6 +55,7 @@ npm start        # serve the build
 | `/registration` | The registration list, printable |
 | `/timeline` | Academic calendar with a draggable session rail, category filters, `.ics` download |
 | `/resources` | Papers, lecture channels, practice platforms and tools |
+| `/contact` | Who teaches each course, when and where, and how to reach them |
 | `/calendar.ics` | The whole session as an importable calendar file |
 | `/sitemap.xml`, `/robots.txt` | Generated from `src/app/` |
 
@@ -91,11 +92,15 @@ would write to the same data rather than replace the shape of it.
 
 ## Design
 
-Black ground, one green accent, white ink. Supporting tones exist because the
-academic calendar has five categories that must be distinguishable.
+Dark is the brand and the default. Light mode re-points the tokens rather than
+overriding utilities one at a time, so a new component is theme-correct for
+free by using the tokens and nothing else.
 
 - **Ground** `#000000`, **surface** `#0a0a0a`, **accent** `#22c55e`
 - **Type** Geist Sans throughout
+- The accent becomes `#15803d` in light mode. `#22c55e` is legible on black
+  and fails contrast on white, so one accent cannot serve both grounds. The
+  five category tones are darkened for the same reason.
 - **Cards** carry a cursor-tracked 3D tilt and spotlight. This needs two
   structural rules that are easy to break: the tilt element must be the direct
   child of the perspective wrapper, and it must not set `overflow`, because any
@@ -103,6 +108,24 @@ academic calendar has five categories that must be distinguishable.
 - **Entrance animations use `translate` and `scale`, never `transform`.** A
   filled animation on `transform` outranks later declarations in the cascade
   and would pin the card flat forever.
+- The theme is applied by an inline script in `<head>`, before first paint, so
+  a light-mode reader never sees a flash of dark.
+
+## Contacting the reps
+
+`website/src/lib/contact.ts` holds the only thing the manifest cannot know:
+the email addresses. It ships with both fields empty, and the site behaves
+correctly while they are:
+
+- `/contact` lists every course with its lecturer, day, time and venue, read
+  from the same manifest as the timetable, and says plainly that no address is
+  published yet.
+- Courses whose lecturer is not assigned show "Lecturer to be announced"
+  rather than the raw `Pending` in the data.
+- No mail link renders until an address exists.
+
+To switch it on, set `REPS_EMAIL` to a shared inbox, and/or add per-rep
+addresses to `REP_EMAILS` keyed by course code. Nothing else changes.
 
 ## Artwork
 
