@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Download } from "lucide-react";
 import { COURSES, resourceUrl, REGISTRATION_PDF } from "@/lib/resources";
 import PrintButton from "@/components/PrintButton";
+import AppleCard from "@/components/AppleCard";
+import { cn } from "@/lib/utils";
 import { TableFrame, DataTable, Thead, Th, Tr, Td } from "@/components/ui/table";
 
 export const metadata = {
@@ -54,34 +56,65 @@ export default function RegistrationPage() {
         </div>
       </section>
 
-      {/* Unit summary */}
+      {/* Unit summary. These tilt like the course cards do; the tilt is the
+          one motion the whole site shares, so the same gesture means the same
+          thing wherever a card appears. The registration table below stays
+          flat on purpose: a data grid that leans is a grid you cannot scan. */}
       <section
         className="rise mb-8 grid gap-4 sm:grid-cols-3"
         style={{ animationDelay: "60ms" }}
       >
-        <div className="rounded-lg border border-border bg-surface p-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-            Cybersecurity core
-          </p>
-          <p className="tnum mt-2 text-3xl font-bold text-foreground">{coreUnits}</p>
-          <p className="mt-1 text-[13px] text-muted-foreground">{core.length} courses</p>
-        </div>
-        <div className="rounded-lg border border-border bg-surface p-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-            COS/CYB service
-          </p>
-          <p className="tnum mt-2 text-3xl font-bold text-foreground">{serviceUnits}</p>
-          <p className="mt-1 text-[13px] text-muted-foreground">{service.length} courses</p>
-        </div>
-        <div className="rounded-lg border border-accent/40 bg-accent/5 p-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-accent">
-            Total load
-          </p>
-          <p className="tnum mt-2 text-3xl font-bold text-foreground">{totalUnits}</p>
-          <p className="mt-1 text-[13px] text-muted-foreground">
-            units this semester
-          </p>
-        </div>
+        {[
+          {
+            label: "Cybersecurity core",
+            value: coreUnits,
+            note: `${core.length} courses`,
+            tone: "",
+          },
+          {
+            label: "COS/CYB service",
+            value: serviceUnits,
+            note: `${service.length} courses`,
+            tone: "",
+          },
+          {
+            label: "Total load",
+            value: totalUnits,
+            note: "units this semester",
+            tone: "border-accent/40 bg-accent/5",
+          },
+        ].map((stat) => (
+          <AppleCard key={stat.label} maxTilt={5} className="h-full">
+            <div
+              className={`card-tilt settle h-full rounded-lg border border-border bg-surface p-5 ${stat.tone}`}
+            >
+              <span className="card-cast" aria-hidden="true" />
+              <span className="card-accent-glow" aria-hidden="true" />
+              <span className="card-bevel" aria-hidden="true" />
+
+              <p
+                className={cn(
+                  "card-depth text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground",
+                  stat.tone && "text-accent"
+                )}
+              >
+                {stat.label}
+              </p>
+              <p
+                className="card-depth tnum mt-2 text-3xl font-bold text-foreground"
+                style={{ "--depth": "26px" } as React.CSSProperties}
+              >
+                {stat.value}
+              </p>
+              <p
+                className="card-depth mt-1 text-[13px] text-muted-foreground"
+                style={{ "--depth": "14px" } as React.CSSProperties}
+              >
+                {stat.note}
+              </p>
+            </div>
+          </AppleCard>
+        ))}
       </section>
 
       {/* Table */}

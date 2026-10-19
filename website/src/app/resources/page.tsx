@@ -10,6 +10,7 @@ import {
   Radio,
 } from "lucide-react";
 import { COURSES } from "@/lib/resources";
+import AppleCard from "@/components/AppleCard";
 
 export const metadata: Metadata = {
   title: "Study Resources · Cybersecurity 300L",
@@ -251,26 +252,35 @@ export default function ResourcesPage() {
 
             <ul className="mt-7 grid gap-3 sm:grid-cols-2">
               {section.items.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="card-lift group flex h-full flex-col rounded-lg border border-border bg-surface p-5 transition-colors hover:bg-surface-hover"
-                  >
-                    <span className="flex items-start justify-between gap-3">
-                      <span className="text-[15px] font-semibold text-foreground">
-                        {item.label}
+                <li key={item.href} className="h-full">
+                  <AppleCard maxTilt={5} className="h-full">
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="card-tilt settle group flex h-full flex-col rounded-lg border border-border bg-surface p-5 transition-colors hover:border-border-strong hover:bg-surface-hover"
+                    >
+                      <span className="card-cast" aria-hidden="true" />
+                      <span className="card-accent-glow" aria-hidden="true" />
+                      <span className="card-bevel" aria-hidden="true" />
+
+                      <span className="card-depth flex items-start justify-between gap-3">
+                        <span className="text-[15px] font-semibold text-foreground">
+                          {item.label}
+                        </span>
+                        <ArrowUpRight
+                          size={15}
+                          className="mt-0.5 shrink-0 text-muted transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+                        />
                       </span>
-                      <ArrowUpRight
-                        size={15}
-                        className="mt-0.5 shrink-0 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
-                      />
-                    </span>
-                    <span className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                      {item.note}
-                    </span>
-                  </a>
+                      <span
+                        className="card-depth mt-2 text-[13px] leading-relaxed text-muted-foreground"
+                        style={{ "--depth": "22px" } as React.CSSProperties}
+                      >
+                        {item.note}
+                      </span>
+                    </a>
+                  </AppleCard>
                 </li>
               ))}
             </ul>

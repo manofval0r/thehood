@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import ThemeToggle from "@/components/ThemeToggle";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import FlipClock from "@/components/FlipClock";
 import { Menu, X } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
@@ -38,15 +38,15 @@ export default function Nav() {
   const tabListRef = useRef<HTMLDivElement>(null);
 
   const countdown = useCountdown();
-  const measureRef = useRef<HTMLSpanElement>(null);
 
-  // Measure the collapsed title once per course so the reveal animates to a
-  // width that actually fits it.
-  const [revealWidth, setRevealWidth] = useState<number | null>(null);
-  useLayoutEffect(() => {
-    const el = measureRef.current;
-    if (el) setRevealWidth(Math.ceil(el.getBoundingClientRect().width) + 14);
-  }, [countdown.next?.course.code, countdown.ready]);
+  // Milliseconds for the flip clock. Derived from the same formatted string
+  // the label uses, so the two can never disagree about what time it is.
+  const [ms, setMs] = useState(0);
+  useEffect(() => {
+    if (!countdown.ready) return;
+    const [h, m, s] = countdown.text.split(":").map(Number);
+    setMs(((h || 0) * 3600 + (m || 0) * 60 + (s || 0)) * 1000);
+  }, [countdown.text, countdown.ready]);
 
   const activeHref = TABS.find((t) =>
     t.href === "/" ? pathname === "/" : pathname.startsWith(t.href)
@@ -119,7 +119,7 @@ export default function Nav() {
             {/* ---------- Tabs ---------- */}
             <div
               ref={tabListRef}
-              className="relative hidden h-full items-center md:flex"
+              className="relative hidden h-full items-center lg:flex"
             >
               {/* Sits exactly on the active link's measured box. rounded-lg,
                   not rounded-full: a full pill on a 32px row reads as a
@@ -164,67 +164,43 @@ export default function Nav() {
               })}
             </div>
 
-            {/* ---------- Light / dark ---------- */}
-            <ThemeToggle className="ml-3" />
-
-            {/* ---------- Countdown to the next class ---------- */}
+                        {/* ---------- Countdown to the next class ----------
+                The room this needs is why the theme switch moved out of the
+                bar and floats below it. The compact flaps carry the digits;
+                the course is always named rather than hidden behind a hover,
+                because a countdown you cannot read at a glance is decoration. */}
             {next && (
               <Link
                 href="/timetable"
-                className="pressable group/cd hidden shrink-0 items-center gap-2.5 overflow-hidden rounded-full border border-border py-1 pl-3 pr-3.5 transition-colors hover:border-border-strong hover:bg-surface-hover lg:flex"
-                aria-label={`Next class: ${next.course.title} in ${countdown.text}`}
+                className="pressable group/cd hidden shrink-0 items-center gap-2 rounded-full border border-border bg-surface py-1 pl-2.5 pr-3 transition-colors hover:border-border-strong hover:bg-surface-hover md:flex"
+                aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
               >
                 <span
                   className={cn(
                     "h-1.5 w-1.5 shrink-0 rounded-full",
                     next.inProgress ? "bg-accent" : "bg-muted"
                   )}
-                />
-                <span className="text-[12px] text-muted-foreground">
-                  {next.inProgress ? "In progress" : "Next class"}
-                </span>
-                <span className="tnum font-mono text-[13px] font-semibold tracking-tight text-foreground">
-                  {countdown.ready ? countdown.text : "--:--:--"}
-                </span>
-                {/* Reveals the course on hover by animating max-width.
-
-                    A 0fr -> 1fr grid column cannot do this here: the grid is
-                    a flex item, so fr resolves against flex sizing and stays
-                    zero. Measuring is only possible from an unclipped copy,
-                    so one is rendered hidden and its width drives the
-                    transition. That keeps the pill sized to the actual title
-                    instead of a guessed constant that would clip or gap. */}
-                <span
-                  className="grid overflow-hidden transition-[max-width] duration-[280ms] ease-[cubic-bezier(0.23,1,0.32,1)] max-w-0 group-hover/cd:max-w-[var(--reveal,20rem)] motion-reduce:transition-none"
                   aria-hidden="true"
-                  style={{ "--reveal": `${revealWidth ?? 320}px` } as CSSProperties}
-                >
-                  <span className="block whitespace-nowrap pl-2.5 text-[12.5px] text-foreground">
-                    <span className="font-mono font-bold text-accent">
-                      {next.course.code}
-                    </span>
-                    <span className="mx-1.5 text-muted">/</span>
+                />
+                <FlipClock ms={ms} size="nav" className="shrink-0" />
+                {/* The course name needs about 150px that the tab row may not
+                    have. Below that width the flaps alone still say what time
+                    it is, and the label carries the rest, so the control is
+                    never dropped entirely to save space. */}
+                <span className="hidden min-w-0 xl:block">
+                  <span className="block truncate text-[11.5px] font-medium leading-tight text-foreground">
                     {next.course.title}
                   </span>
-                </span>
-                {/* Off-screen twin used only for measurement. */}
-                <span
-                  ref={measureRef}
-                  aria-hidden="true"
-                  className="pointer-events-none invisible absolute whitespace-nowrap text-[12.5px]"
-                >
-                  <span className="font-mono font-bold">
+                  <span className="block font-mono text-[10px] leading-tight text-muted">
                     {next.course.code}
                   </span>
-                  <span className="mx-1.5">/</span>
-                  {next.course.title}
                 </span>
               </Link>
             )}
 
             <button
               onClick={() => setOpen((v) => !v)}
-              className="pressable -mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover md:hidden"
+              className="pressable -mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-hover lg:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
             >
@@ -236,7 +212,7 @@ export default function Nav() {
 
       {/* ---------- Mobile ---------- */}
       {open && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="absolute inset-0 bg-[var(--scrim)]"
             onClick={() => setOpen(false)}

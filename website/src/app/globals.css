@@ -8,6 +8,10 @@
    ============================================================ */
 
 :root {
+  /* Header height. The floating theme pill positions itself from this, so
+     the two can never disagree about where the bar ends. */
+  --nav-h: 4rem;
+
   /* Ground + ink */
   --background: #000000;
   --foreground: #ffffff;
@@ -510,108 +514,177 @@ body {
 
 /* ============================================================
    SPLIT-FLAP COUNTDOWN
-   Two stacked halves per unit. On a change the outgoing top half
-   rotates down around the fold line while the incoming bottom
-   half rotates down behind it, each for half the duration, so
-   the two never overlap. A static layer underneath holds the
-   incoming value and fills the seam between them.
+
+   One flap per digit. The flap is nearly square so a single
+   digit can fill it, which is what lets the fold bisect the
+   glyph instead of crossing empty card.
+
+   Geometry, from the loaded font's own metrics (0.663em digit
+   advance, 0.73em cap height):
+     flap-h        full card height
+     line-height   = flap-h   centres the digit in the card
+     font-size     = flap-h * 1.18  gives a cap height of
+                    flap-h * 0.86, so the digit is inset 7%
+                    top and bottom and the fold at exactly
+                    50% cuts it through the middle
+     flap-w        = flap-h * 0.92, sized to the 0.91 digit
+                    aspect plus a little side bearing
    ============================================================ */
 
 .flip-clock {
+  --flap-h: clamp(2.9rem, 7.2vw, 4.6rem);
+  --flap-w: calc(var(--flap-h) * 0.92);
+  --flip-gap: clamp(0.2rem, 0.9vw, 0.4rem);
+  --flip-half: calc(var(--flap-h) / 2);
+
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: clamp(0.375rem, 1.4vw, 0.75rem);
 }
 
-.flip-unit {
+.flip-clock-nav {
+  --flap-h: 1.7rem;
+  --flap-w: calc(var(--flap-h) * 0.92);
+  --flip-gap: 1.5px;
+}
+
+.flip-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.flip-unit-label {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 10px;
+.flip-group-flap {
+  display: flex;
+  gap: var(--flip-gap);
+}
+
+.flip-group-label {
+  margin-top: 0.45rem;
+  font-family: var(--font-sans);
+  font-size: 9.5px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.flip {
-  position: relative;
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  width: clamp(2.75rem, 7.5vw, 4.5rem);
-  height: clamp(4rem, 11vw, 6.5rem);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-weight: 700;
-  font-size: clamp(2rem, 6vw, 3.5rem);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  color: var(--foreground);
-  perspective: 340px;
-  border-radius: 10px;
-  box-shadow:
-    var(--flip-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  background: var(--surface);
+.flip-clock-nav .flip-group-label {
+  display: none;
 }
 
+.flip-colon {
+  display: flex;
+  align-items: center;
+  height: var(--flap-h);
+  padding: 0 clamp(0.1rem, 0.4vw, 0.25rem);
+  font-family: var(--font-sans);
+  font-size: calc(var(--flap-h) * 0.42);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--muted);
+  /* Optically centred on the fold rather than on the card, which is
+     where the eye reads the colon as sitting. */
+  transform: translateY(calc(var(--flip-half) * 0.5 - 50%));
+}
+
+/* ---------- the flap ---------- */
+
+.flip {
+  position: relative;
+  display: block;
+  width: var(--flap-w);
+  height: var(--flap-h);
+  font-family: var(--font-sans);
+  font-size: calc(var(--flap-h) * 1.18);
+  font-weight: 700;
+  line-height: var(--flap-h);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  background: var(--surface);
+  border-radius: calc(var(--flap-h) * 0.13);
+  perspective: calc(var(--flap-h) * 3.2);
+  box-shadow:
+    var(--flip-shadow),
+    inset 0 1px 0 color-mix(in srgb, var(--foreground) 6%, transparent);
+  /* Keeps the digit optically centred in the flap. */
+  text-align: center;
+}
+
+/* Each half is a window onto the same glyph. */
 .flip-half,
 .leaf-top,
 .leaf-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   overflow: hidden;
+  background: var(--surface);
 }
 
-/* Both halves sit flat on the same surface. The fold is a hairline, not a
-   gradient: lightening each half toward the seam put the brightest pixels of
-   the whole card on the join, which is where a split-flap card is darkest. */
-.flip-half.flip-top,
+.flip-half {
+  width: 100%;
+  height: var(--flip-half);
+}
+
+.flip-top,
 .leaf-top {
-  align-items: flex-end;
-  border-radius: 10px 10px 0 0;
-  background: var(--surface);
+  border-radius: calc(var(--flap-h) * 0.13) calc(var(--flap-h) * 0.13) 0 0;
   box-shadow: inset 0 -1px 0 var(--fold-line);
 }
 
-.flip-half.flip-bottom,
+.flip-bottom,
 .leaf-bottom {
-  align-items: flex-start;
-  border-radius: 0 0 10px 10px;
-  background: var(--surface);
+  border-radius: 0 0 calc(var(--flap-h) * 0.13) calc(var(--flap-h) * 0.13);
   box-shadow: inset 0 1px 0 var(--fold-line);
 }
+
+/* The glyph is a block exactly one flap tall, so shifting it up by half its
+   height shows the lower half of the character. This is the whole split. */
+.flip-glyph {
+  display: block;
+  height: var(--flap-h);
+  line-height: var(--flap-h);
+  text-align: center;
+}
+
+.flip-glyph-low {
+  transform: translateY(-50%);
+}
+
+/* ---------- the turning halves ---------- */
 
 .flip-leaf {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: 1fr 1fr;
+  display: block;
   pointer-events: none;
+  backface-visibility: hidden;
 }
 
 .leaf-top {
-  grid-row: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--flip-half);
   transform-origin: bottom center;
-  animation: flip-top-away var(--flip-ms, 320ms) cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: flip-top-away var(--flip-ms, 300ms) cubic-bezier(0.4, 0, 1, 1)
+    forwards;
   z-index: 2;
 }
 
-/* Delayed by half a duration so the two halves move in sequence rather than
-   together. The static layer underneath carries the incoming value, and it is
-   what fills the gap while this half is still waiting to turn. */
+/* Held at 90 degrees by the delay and its backwards fill until the top half
+   has cleared. The resting card underneath carries the incoming digit, so
+   the gap during the wait shows the right value rather than a hole. */
 .leaf-bottom {
-  grid-row: 2;
+  position: absolute;
+  top: var(--flip-half);
+  left: 0;
+  width: 100%;
+  height: var(--flip-half);
   transform-origin: top center;
-  animation: flip-bottom-in var(--flip-ms, 320ms) cubic-bezier(0, 0, 0.2, 1)
-    var(--flip-ms, 320ms) backwards;
+  animation: flip-bottom-in var(--flip-ms, 300ms) cubic-bezier(0, 0, 0.2, 1)
+    var(--flip-ms, 300ms) backwards;
   z-index: 1;
 }
 
@@ -622,16 +695,16 @@ body {
   }
   to {
     transform: rotateX(-90deg);
-    /* Darkens as it turns away from the light. This is most of what sells
-       the rotation; without it the card reads as a flat wipe. */
-    filter: brightness(0.62);
+    /* Falls into shadow as it turns away. Without this the card reads as a
+       flat wipe rather than a card being turned. */
+    filter: brightness(0.55);
   }
 }
 
 @keyframes flip-bottom-in {
   from {
     transform: rotateX(90deg);
-    filter: brightness(0.62);
+    filter: brightness(0.55);
   }
   to {
     transform: rotateX(0deg);
@@ -645,7 +718,6 @@ body {
     animation: none;
   }
 }
-
 /* ============================================================
    CUSTOM SCROLLBAR
    Thin, rounded, and quiet until the pointer is over it. Kept on

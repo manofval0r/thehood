@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarClock, MapPin } from "lucide-react";
+import { ArrowRight, CalendarDays, MapPin } from "lucide-react";
 import { useCountdown } from "@/hooks/useCountdown";
 import { FlipClock } from "@/components/FlipClock";
+import AppleCard from "@/components/AppleCard";
 import { cn } from "@/lib/utils";
 
 /**
@@ -71,40 +72,60 @@ export default function NextClassCountdown({ className }: { className?: string }
         {running ? "until this class ends" : "until it starts"}
       </p>
 
-      {/* The course. Accent lives on the code chip only; a green border, green
-          text and a green mark at once made the whole block read as an alarm
-          rather than as information. */}
-      <Link
-        href="/timetable"
-        className="pressable group relative mt-8 flex w-full max-w-xl items-center gap-4 overflow-hidden rounded-xl border border-border bg-surface px-5 py-4 transition-colors hover:border-border-strong hover:bg-surface-hover"
-      >
-        <span
-          aria-hidden="true"
-          className="absolute inset-y-0 left-0 w-0.5 bg-accent"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[16px] font-semibold text-foreground">
-            {course.title}
+      {/* The class itself.
+
+          This is the one thing on the page the student came for, so it is a
+          real card rather than a line of text: it tilts and catches the
+          pointer like every other card on the site, and it carries the code,
+          the day and the room.
+
+          Accent is rationed to the code chip and the leading rule. The earlier
+          version put a green border, green label, green glyph and green glow
+          on one block, which stopped being information and started being an
+          alarm. */}
+      <AppleCard maxTilt={5} className="mt-8 w-full max-w-xl">
+        <Link
+          href="/timetable"
+          className="card-tilt settle group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border border-border bg-surface px-5 py-4 transition-colors hover:border-border-strong hover:bg-surface-hover"
+        >
+          <span className="card-cast" aria-hidden="true" />
+          <span className="card-accent-glow" aria-hidden="true" />
+          <span className="card-bevel" aria-hidden="true" />
+
+          <span
+            aria-hidden="true"
+            className="card-depth absolute inset-y-0 left-0 w-0.5 bg-accent"
+          />
+
+          <span className="card-depth min-w-0 flex-1">
+            <span className="flex items-center gap-2">
+              <span className="truncate text-[16px] font-semibold tracking-tight text-foreground">
+                {course.title}
+              </span>
+            </span>
+            <span className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12.5px] text-muted-foreground">
+              <span className="rounded bg-accent/12 px-1.5 py-0.5 font-mono text-[11px] font-bold text-accent">
+                {course.code}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CalendarDays size={12} className="opacity-60" />
+                {course.dayName}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MapPin size={12} className="opacity-60" />
+                {course.venue}
+              </span>
+            </span>
           </span>
-          <span className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12.5px] text-muted-foreground">
-            <span className="rounded bg-accent/12 px-1.5 py-0.5 font-mono text-[11px] font-bold text-accent">
-              {course.code}
-            </span>
-            <span className="flex items-center gap-1">
-              <CalendarClock size={12} className="opacity-60" />
-              {course.dayName}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin size={12} className="opacity-60" />
-              {course.venue}
-            </span>
-          </span>
-        </span>
-        <ArrowRight
-          size={16}
-          className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
-        />
-      </Link>
+
+          <ArrowRight
+            size={17}
+            aria-hidden="true"
+            className="card-depth shrink-0 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground"
+            style={{ "--depth": "20px" } as React.CSSProperties}
+          />
+        </Link>
+      </AppleCard>
 
       <p className="mt-3 text-[12px] text-muted">
         {running ? "Ends" : "Starts"} {ready ? text : "--:--:--"} ·{" "}

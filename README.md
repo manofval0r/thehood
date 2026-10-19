@@ -101,15 +101,22 @@ free by using the tokens and nothing else.
 - The accent becomes `#15803d` in light mode. `#22c55e` is legible on black
   and fails contrast on white, so one accent cannot serve both grounds. The
   five category tones are darkened for the same reason.
-- **Cards** carry a cursor-tracked 3D tilt and spotlight. This needs two
-  structural rules that are easy to break: the tilt element must be the direct
-  child of the perspective wrapper, and it must not set `overflow`, because any
-  overflow makes the browser flatten `transform-style` and collapse the depth.
+- **Cards** carry a cursor-tracked 3D tilt and spotlight wherever they appear:
+  the course grid, resource cards, the contact directory, the registration
+  summary tiles and the study resources page. The registration and timetable
+  tables stay flat on purpose; a data grid that leans is a grid you cannot
+  scan. Two structural rules are easy to break: the tilt element must be the
+  direct child of the perspective wrapper, and it must not set `overflow`,
+  because any overflow makes the browser flatten `transform-style` and collapse
+  the depth.
 - **Entrance animations use `translate` and `scale`, never `transform`.** A
   filled animation on `transform` outranks later declarations in the cascade
   and would pin the card flat forever.
 - The theme is applied by an inline script in `<head>`, before first paint, so
   a light-mode reader never sees a flash of dark.
+- The light/dark switch floats below the header rather than sitting inside it.
+  The navbar was already carrying six things, and a fixed control outside the
+  bar cannot change the bar's geometry as the page scrolls.
 
 ## Contacting the reps
 
@@ -145,6 +152,35 @@ node tools/check-calendar.js         # assert the calendar parses and sorts corr
 parsed to the wrong year and silently sorted to the wrong part of the session.
 Nothing threw and the row count stayed correct; it was only visible by reading
 the rendered order.
+
+## The countdown
+
+A split-flap clock, in the navbar and on the homepage.
+
+One flap per digit, which is the only way the effect reads correctly. Measured
+on the loaded font, a Geist digit is `0.663em` wide by `0.73em` tall — wider
+than it is tall, so two digits side by side are about 1.83× the height of one.
+Any card wide enough for both is far wider than tall, the digits end up small
+in the middle of it, and the fold line crosses empty space. The first version
+did exactly that and read as two numbers flipping up and down.
+
+Giving each digit its own flap makes the flap nearly square, which lets the
+digit fill it. Geometry, all derived from those metrics:
+
+```
+flap-h        the card height
+line-height   = flap-h            centres the digit in the card
+font-size     = flap-h * 1.18     cap height of flap-h * 0.86
+flap-w        = flap-h * 0.92     the 0.91 digit aspect plus side bearing
+```
+
+The bottom half is the same glyph shifted up by half its height, which is what
+shows the lower half of the character. The two turning halves are offset by
+half a duration so they move in sequence, and both darken as they turn, which
+is most of what makes the rotation read as a rotation.
+
+The days group is omitted below 24 hours. A leading `00` reads as a real
+quantity and makes an afternoon feel like a deadline.
 
 ## Data sources
 
