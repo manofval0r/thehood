@@ -114,7 +114,7 @@ stray paragraph, no grouping. After:
 | --- | --- | --- |
 | P0 | Courses, search, resources, batch ZIP, PDF preview | Done |
 | P1 | **Academic calendar timeline** | Done — countdown strip, session progress rail with a today marker, month rail, category colour spine, per-event status (Done / Today / In Nd) |
-| P2 | Cybersecurity news via open RSS | Next — parse server-side with `fast-xml-parser` (already installed), `revalidate` hourly, no API keys |
+| P2 | Cybersecurity news via open RSS | **Done** — `/news` parses eight feeds server-side with `fast-xml-parser`, caches hourly via `cacheLife`, never breaks on a dead feed, no third-party requests from the reader |
 | P3 | Certification deals, competitions, role pathways | Next — curated static cards; CTFtime and cert-vendor feeds where licences allow |
 | P4 | Prospective-role resources | Next — link each role to the courses that feed it |
 | P5 | Events feed | Planned |

@@ -27,6 +27,7 @@ const TABS = [
   { href: "/timeline", label: "Calendar" },
   { href: "/registration", label: "Registration" },
   { href: "/resources", label: "Resources" },
+  { href: "/news", label: "News" },
 ];
 
 export default function Nav() {

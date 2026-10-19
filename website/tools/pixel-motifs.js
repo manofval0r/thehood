@@ -181,6 +181,73 @@ const MOTIFS = {
     rect(g, 13, 4, 2, 7, "a");
     rect(g, 13, 10, 2, 2, "b");
   },
+
+  /** Threat: an alert triangle with a mark. */
+  threat(g) {
+    for (let i = 0; i <= 9; i++) rect(g, 9 - i, 3 + i, 1 + i * 2, 1, "d");
+    rect(g, 9, 5, 1, 5, "a");
+    rect(g, 9, 11, 1, 1, "a");
+  },
+
+  /** Advisory: a shield with a check. */
+  advisory(g) {
+    rect(g, 4, 3, 12, 12, "d");
+    rect(g, 4, 3, 12, 1, "m");
+    rect(g, 4, 14, 12, 1, "d");
+    for (let y = 14; y < 16; y++) {
+      put(g, 5 + (15 - y), y, "m");
+      put(g, 15 - (15 - y), y, "m");
+    }
+    line(g, 7, 9, 9, 12, "a");
+    line(g, 9, 12, 14, 6, "a");
+  },
+
+  /** Breach: an open padlock, shackle floating above the body. */
+  breach(g) {
+    rect(g, 4, 10, 12, 6, "d");
+    rect(g, 4, 10, 12, 1, "m");
+    rect(g, 4, 15, 12, 1, "m");
+    rect(g, 9, 12, 2, 3, "a");
+    disc(g, 10, 15, 1.3, "a");
+    for (let x = 7; x <= 13; x++) put(g, x, 4, "m");
+    for (let y = 5; y <= 7; y++) {
+      put(g, 7, y, "m");
+      put(g, 13, y, "m");
+    }
+  },
+
+  /** Research: a flask with reagent in the bulb. */
+  research(g) {
+    rect(g, 9, 2, 2, 6, "m");
+    line(g, 9, 4, 7, 8, "m");
+    line(g, 11, 4, 13, 8, "m");
+    disc(g, 10, 13, 6, "m");
+    disc(g, 10, 14, 5, "d");
+    disc(g, 10, 16, 4, "a");
+    rect(g, 6, 12, 8, 1, "d");
+  },
+
+  /** Region: a map pin with a pointed foot. */
+  region(g) {
+    disc(g, 10, 7, 5, "m");
+    disc(g, 10, 7, 4, "d");
+    disc(g, 10, 7, 2, "a");
+    for (let i = 0; i <= 4; i++) {
+      const w = 5 - i;
+      rect(g, 10 - Math.floor(w / 2), 13 + i, w, 1, "m");
+    }
+    rect(g, 10, 16, 1, 1, "m");
+  },
+
+  /** Industry: a server rack with a lit slot. */
+  industry(g) {
+    rect(g, 4, 3, 12, 14, "d");
+    rect(g, 4, 3, 12, 1, "m");
+    rect(g, 4, 16, 12, 1, "m");
+    for (let i = 0; i < 4; i++) rect(g, 6, 6 + i * 3, 8, 2, "m");
+    rect(g, 6, 6, 8, 2, "a");
+    put(g, 15, 9, "a");
+  },
 };
 
 /* ---------------- emit ---------------- */
@@ -202,6 +269,12 @@ const ACCENTS = {
   notebook: ["#f472b6", "#be185d"],
   tool: ["#2dd4bf", "#0f766e"],
   reference: ["#94a3b8", "#475569"],
+  threat: ["#fbbf24", "#b45309"],
+  advisory: ["#22c55e", "#15803d"],
+  breach: ["#f87171", "#b91c1c"],
+  research: ["#c084fc", "#7e22ce"],
+  region: ["#38bdf8", "#0369a1"],
+  industry: ["#94a3b8", "#475569"],
 };
 
 const entries = Object.keys(MOTIFS);

@@ -55,6 +55,7 @@ npm start        # serve the build
 | `/registration` | The registration list, printable |
 | `/timeline` | Academic calendar with a draggable session rail, category filters, `.ics` download |
 | `/resources` | Papers, lecture channels, practice platforms and tools |
+| `/news` | Security headlines from eight feeds, fetched server-side and reissued hourly |
 | `/contact` | Who teaches each course, when and where, and how to reach them |
 | `/calendar.ics` | The whole session as an importable calendar file |
 | `/sitemap.xml`, `/robots.txt` | Generated from `src/app/` |
@@ -297,6 +298,39 @@ is most of what makes the rotation read as a rotation.
 The days group is omitted below 24 hours. A leading `00` reads as a real
 quantity and makes an afternoon feel like a deadline.
 
+## News
+
+`/news` shows security headlines from eight feeds. The details of how, because
+it is easy to get each one wrong and each one has a consequence:
+
+- **Fetched server-side, never from the browser.** The reader's browser talks to
+  this site once and to no feed. There are no third-party images, so a feed
+  that wants to be read by tracking pixels gets nothing. That is the same
+  privacy rule as the study-resource motifs (which replaced drawn icons partly
+  because they were making external requests).
+- **Hourly revalidation.** The whole route is cached with `cacheLife("hours")`
+  (1h stale, 1d expire). `src/lib/news.ts` parses both RSS and Atom with
+  `fast-xml-parser` and normalises them to one `NewsItem` shape.
+- **A dead feed never breaks the page.** Every feed is fetched with a 12s
+  timeout through `Promise.allSettled`; nothing throws. If a single blog is
+  down the page just shows the rest, and if every feed is down it renders an
+  honest empty state rather than an error.
+- **Dedup by normalised title.** Feeds echo each other, so the same breach
+  would otherwise appear five times. A title is a duplicate if it shares its
+  first forty letters with one already kept.
+- **`Date.now()` cannot run during prerender.** Cache Components refuses
+  unstable values, and `Date.now()` is the textbook one. The grouping and the
+  "2h ago" stamps therefore live in a client component (`NewsStream.tsx`) that
+  computes them only after mount, so the labels are also accurate while the
+  reader is actually looking.
+- **The sources manifest (`src/lib/news-sources.ts`) is a claim about the
+  network.** Every URL was checked by `tools/probe-feeds.js` before being
+  trusted. Delete a feed (don't merely let it break silently) and re-run that
+  probe first.
+
+Run `node tools/probe-feeds.js` to re-check every candidate feed against the
+live network before editing `news-sources.ts`.
+
 ## Data sources
 
 - `src/lib/resources.ts` — courses, their weekly sessions and their files. The
@@ -350,8 +384,6 @@ Deliberately left out, and why:
 - **Recurring weekly lectures in the `.ics`.** Would require inventing term
   start and end dates. A subscription that ignores exam week and public
   holidays is worse than no subscription.
-- **A news or RSS feed.** Depends on the network at build time and adds nothing
-  a student needs to find a lecture note.
 - **Admin CMS.** Needs an auth decision that has not been made.
 - **Attendance.** Blocked on the same auth decision as the CMS, since a student
   has to be identifiable before anything can be recorded against them. The shape
