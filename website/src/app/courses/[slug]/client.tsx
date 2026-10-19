@@ -113,7 +113,7 @@ export default function CourseClient({ course }: { course: Course }) {
         {repAddress(course.code) && repFirstName(course.lecturer) && (
           <a
             href={`mailto:${repAddress(course.code)}?subject=${encodeURIComponent(
-              `${course.code} — ${course.title}`
+              `${course.code} - ${course.title}`
             )}`}
             className="pressable mt-6 inline-flex w-fit items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
           >

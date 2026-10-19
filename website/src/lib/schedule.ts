@@ -13,12 +13,15 @@ export interface ScheduledCourse {
   title: string;
   venue: string;
   lecturer: string;
+  units: number;
   /** 0 = Sunday, matching Date.getDay(). */
   dayIndex: number;
   dayName: string;
   /** Minutes from midnight. */
   startMin: number;
   endMin: number;
+  /** True for an additional meeting of a course that has a primary slot. */
+  isExtraSession?: boolean;
 }
 
 const DAY_INDEX: Record<string, number> = {
@@ -42,29 +45,66 @@ function parseClock(value: string, fallback: number): number {
 
 function buildSchedule(): ScheduledCourse[] {
   const out: ScheduledCourse[] = [];
-  for (const c of COURSES) {
-    const dayIndex = DAY_INDEX[c.day];
-    if (dayIndex === undefined) continue;
-    // The timetable stores the range as "1:00pm - 4:00pm".
-    const [from, to] = c.time.split(/\s*-\s*/);
+
+  /** Turns one "day / 1:00pm - 4:00pm / venue" triple into a scheduled slot. */
+  const push = (
+    c: (typeof COURSES)[number],
+    day: string,
+    time: string,
+    venue: string,
+    isExtraSession?: boolean
+  ) => {
+    const dayIndex = DAY_INDEX[day];
+    if (dayIndex === undefined) return;
+    // The manifest stores the range as "1:00pm - 4:00pm".
+    const [from, to] = time.split(/\s*-\s*/);
     const startMin = parseClock(from ?? "", 9 * 60);
     const endMin = parseClock(to ?? "", startMin + 120);
     out.push({
       slug: c.slug,
       code: c.code,
       title: c.title,
-      venue: c.venue,
+      venue,
       lecturer: c.lecturer,
+      units: c.units,
       dayIndex,
-      dayName: c.day,
+      dayName: day,
       startMin,
       endMin,
+      isExtraSession,
     });
+  };
+
+  for (const c of COURSES) {
+    push(c, c.day, c.time, c.venue);
+    // A course that meets twice a week must not be counted once, or the
+    // countdown will skip past a class the student is expected to attend.
+    for (const extra of c.extraSessions ?? []) {
+      push(c, extra.day, extra.time, extra.venue, true);
+    }
   }
+
   return out.sort((a, b) => a.dayIndex - b.dayIndex || a.startMin - b.startMin);
 }
 
 export const SCHEDULE: ScheduledCourse[] = buildSchedule();
+
+/**
+ * Minutes from midnight back to the "1:00pm - 4:00pm" the manifest stores.
+ *
+ * The schedule is held in minutes because that is what the countdown and the
+ * status badges compare against. Formatting happens here, once, so a time can
+ * never be written two slightly different ways in two places.
+ */
+export function formatRange(startMin: number, endMin: number): string {
+  const clock = (m: number) => {
+    const h24 = Math.floor(m / 60) % 24;
+    const mm = String(m % 60).padStart(2, "0");
+    const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+    return `${h12}:${mm}${h24 < 12 ? "am" : "pm"}`;
+  };
+  return `${clock(startMin)} - ${clock(endMin)}`;
+}
 
 /** Teaching days, in week order. */
 export const TEACHING_DAYS = [...new Set(SCHEDULE.map((s) => s.dayIndex))].sort(

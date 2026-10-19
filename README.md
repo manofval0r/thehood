@@ -51,7 +51,7 @@ npm start        # serve the build
 |---|---|
 | `/` | All ten courses, live countdown to the next class, search across courses **and files** |
 | `/courses/<slug>` | Course detail, resource type filters, PDF preview dialog, batch download |
-| `/timetable` | Weekly timetable, today marked, running class marked, printable |
+| `/timetable` | Weekly timetable, today marked, running class marked, printable. Grid or Perspective view |
 | `/registration` | The registration list, printable |
 | `/timeline` | Academic calendar with a draggable session rail, category filters, `.ics` download |
 | `/resources` | Papers, lecture channels, practice platforms and tools |
@@ -80,6 +80,48 @@ There is no admin interface yet, so resources are added in the manifest.
 
 `resources.ts` is the single source of truth the site reads. A future admin CMS
 would write to the same data rather than replace the shape of it.
+
+### A course that meets twice
+
+Give the course an `extraSessions` entry. Do not add it on the timetable page:
+
+```ts
+extraSessions: [{ day: "Monday", time: "10:00am - 12:00pm", venue: "PG 2" }],
+```
+
+The timetable used to carry its own copy of every slot, which meant a session
+could exist in one place and not the other. CYB 303 meets on Wednesday, and
+adding Monday 10:00am only to the timetable would have left the countdown, the
+navbar clock and the venue counts all believing that class does not happen.
+Everything now derives from the manifest: `SCHEDULE` in `src/lib/schedule.ts`
+emits both the primary slot and any extras, and the timetable, the countdowns
+and the "how many sessions in this room" figures all read it.
+
+## The timetable, two ways
+
+**Grid** is a real table, because a week of teaching is a lookup and a lookup
+wants aligned columns. It is the default and it is what prints.
+
+**Perspective** reuses the academic calendar's depth language on a different
+axis. There, `--d` is distance from whatever the rail is pointing at, and
+opacity and scale fall off with it. On the timetable `--d` is hours from the
+nearest session in the week, so the class that is running or next holds full
+strength and the rest recede behind it.
+
+Two details that are load-bearing:
+
+- **The code column is sized, not wrapped.** A status chip appears and
+  disappears with the day, and a column that reflows when it does is a grid
+  whose rows shift under the reader mid-schedule.
+- **The depth rows use `.settle-move`, not `.settle`.** A filled animation on
+  `opacity` pins it at its final keyframe forever, outranking every later
+  declaration, so a card using `.settle` could never be faded by the depth rule
+  no matter what that rule said. `.settle-move` is the same entrance without
+  the fade.
+
+The choice is remembered in `localStorage` and restored after mount, never
+read during render, or every reader who picked a view would see a flash of the
+other one.
 
 ## Deploy to Vercel
 
@@ -184,11 +226,21 @@ quantity and makes an afternoon feel like a deadline.
 
 ## Data sources
 
-- `src/lib/resources.ts` — courses and their files. The manifest.
+- `src/lib/resources.ts` — courses, their weekly sessions and their files. The
+  manifest.
 - `src/lib/calendar.ts` — the academic calendar, parsed from the Registrar's
   published Unified Academic Calendar. `tools/check-calendar.js` validates it.
-- `src/lib/schedule.ts` — the weekly teaching timetable, derived from the same
-  course records, and used by the countdowns.
+- `src/lib/schedule.ts` — the teaching timetable, derived from the same course
+  records, and used by the countdowns and by the timetable page.
+
+## Study resources marks
+
+The marks on `/resources` are drawn per kind rather than fetched from each
+site's favicon. Twenty-odd favicon requests would tell every one of those sites
+who was reading, and would break the page for anyone offline or behind a
+captive portal. Drawing them also says more: not "this is arXiv" but "this is
+where you read papers", which is the distinction the reader is actually making
+while scanning.
 
 ## Not implemented
 

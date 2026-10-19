@@ -15,6 +15,13 @@ export interface CourseTimetable {
   lecturer: string;
 }
 
+export interface CourseSession {
+  day: string;
+  /** "1:00pm - 4:00pm". */
+  time: string;
+  venue: string;
+}
+
 export interface Course {
   code: string;
   slug: string;
@@ -27,6 +34,17 @@ export interface Course {
   program: string;
   level: string;
   timetable: CourseTimetable;
+  /**
+   * Further weekly meetings of the same course, for a course that meets more
+   * than once a week.
+   *
+   * The primary day/time/venue above is the one the course is known by. These
+   * are additional sessions and must be added here rather than on the
+   * timetable page, because the timetable is derived from the manifest and the
+   * countdown reads the same manifest. A session typed only into the timetable
+   * page is a class the site believes does not happen.
+   */
+  extraSessions?: CourseSession[];
   resources: Resource[];
 }
 
@@ -197,6 +215,9 @@ export const COURSES: Course[] = [
     time: "3:00pm - 5:00pm",
     program: "Cybersecurity",
     level: "300",
+    // A second weekly meeting, Monday mornings in PG 2. Declared here so the
+    // timetable and the countdown both know about it.
+    extraSessions: [{ day: "Monday", time: "10:00am - 12:00pm", venue: "PG 2" }],
     timetable: {
       day: "Wednesday",
       time: "3:00pm - 5:00pm",

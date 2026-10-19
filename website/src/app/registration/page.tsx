@@ -165,10 +165,14 @@ export default function RegistrationPage() {
                       {c.units}
                     </Td>
                     <Td numeric align="right">
+                      {/* A muted 0, not a dash. In a right-aligned numeric
+                          column a dash reads as "not applicable" when it
+                          plainly means "none yet", and this column is
+                          always applicable. */}
                       {count > 0 ? (
                         <span className="text-foreground">{count}</span>
                       ) : (
-                        <span className="text-muted">&mdash;</span>
+                        <span className="text-muted">0</span>
                       )}
                     </Td>
                   </Tr>

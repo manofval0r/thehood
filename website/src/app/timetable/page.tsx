@@ -1,18 +1,34 @@
-import { Fragment } from "react";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { COURSES, resourceUrl, TIMETABLE_PDF } from "@/lib/resources";
-import { TableFrame, DataTable, Thead, Th, Tr, Td, DayGroup } from "@/components/ui/table";
+import { SCHEDULE, type ScheduledCourse } from "@/lib/schedule";
 import NoteArt from "@/components/NoteArt";
 import PrintButton from "@/components/PrintButton";
-import { SlotStatus, TodayHeading } from "@/components/TodayBadge";
 import Reveal from "@/components/Reveal";
+import TimetableBoard from "@/components/TimetableBoard";
 
-const VENUES: [string, number][] = [
-  ["Cybersecurity Lab", 5],
-  ["PG 2", 3],
-  ["Software Lab", 1],
-];
+/**
+ * How many weekly sessions each room runs.
+ *
+ * Counted from SCHEDULE rather than written down. These were hardcoded, so
+ * adding the Monday CYB 303 session would have left the header claiming PG 2
+ * runs three times a week while the table below it showed four, and the two
+ * numbers would have agreed on nothing.
+ */
+const VENUES: [string, number][] = (() => {
+  const counts = new Map<string, number>();
+  for (const s of SCHEDULE) {
+    counts.set(s.venue, (counts.get(s.venue) ?? 0) + 1);
+  }
+  // Busiest first, so the largest number leads and the row has a shape.
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([name, n]) => [name, n] as [string, number]);
+})();
+
+/** Weekly sessions in total. Exceeds the course count when a course meets
+ *  more than once a week, which is why it is not just COURSES.length. */
+const WEEKLY_SESSIONS = SCHEDULE.length;
 
 const DAY_ORDER = [
   "Monday",
@@ -24,61 +40,22 @@ const DAY_ORDER = [
   "Sunday",
 ];
 
-interface Slot {
-  time: string;
-  code: string;
-  title: string;
-  units: string;
-  level: string;
-  program: string;
-  venue: string;
-  lecturer: string;
-}
-
-const SLOTS: Slot[] = [
-  { time: "1:00pm - 4:00pm", code: "NUT-CYB 312", title: "Secure Coding", units: "3", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Faki" },
-  { time: "9:00am - 11:00am", code: "NUT-MAN 315", title: "Marketing Management", units: "2", level: "300", program: "COS/CYB", venue: "PG 2", lecturer: "Dr Ebes" },
-  { time: "12:00pm - 2:00pm", code: "NUT-CSC 301", title: "Digital Sovereignty", units: "2", level: "300", program: "COS/CYB", venue: "PG 2", lecturer: "Prof Sinjay" },
-  { time: "3:00pm - 5:00pm", code: "GST 312", title: "Peace and Conflict Resolution", units: "2", level: "300", program: "COS/CYB", venue: "PG 2", lecturer: "Ikechukwu Alamezie" },
-  { time: "9:00am - 12:00pm", code: "NUT-CSC 312", title: "Data Structures", units: "3", level: "300", program: "COS/CYB", venue: "Software Lab", lecturer: "Jeremiah Ocheni" },
-  { time: "12:30pm - 2:30pm", code: "CYB 305", title: "Digital Forensics and Investigation Methods", units: "2", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Segun" },
-  { time: "3:00pm - 5:00pm", code: "CYB 303", title: "Cybersecurity Risks Analysis, Challenges and Mitigation", units: "2", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Faki" },
-  { time: "9:00am - 12:00pm", code: "NUT-CSC 310", title: "Distributed System Security", units: "3", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Pending" },
-  { time: "12:30pm - 2:30pm", code: "CYB 301", title: "Cryptography Techniques, Algorithms and Applications", units: "2", level: "300", program: "Cybersecurity", venue: "Cybersecurity Lab", lecturer: "Dr Steve" },
-  { time: "3:00pm - 5:00pm", code: "CSC 309", title: "Artificial Intelligence", units: "2", level: "300", program: "COS/CYB", venue: "Cybersecurity Lab", lecturer: "Charles Igah" },
-];
-
-const ORDERED: Record<string, Slot[]> = {
-  Monday: [SLOTS[0]],
-  Tuesday: [SLOTS[1], SLOTS[2], SLOTS[3]],
-  Wednesday: [SLOTS[4], SLOTS[5], SLOTS[6]],
-  Thursday: [SLOTS[7], SLOTS[8], SLOTS[9]],
-};
-
-function slugFor(code: string) {
-  return COURSES.find((c) => c.code === code)?.slug;
-}
-
-/** 0 = Sunday, matching Date.getDay(). */
-const DAY_INDEX: Record<string, number> = {
-  Monday: 1,
-  Tuesday: 2,
-  Wednesday: 3,
-  Thursday: 4,
-  Friday: 5,
-  Saturday: 6,
-  Sunday: 0,
-};
-
-/** "1:00pm - 4:00pm" -> minutes from midnight for either end of the range. */
-function minutes(time: string, end: 0 | 1): number {
-  const part = time.split(/\s*-\s*/)[end] ?? time;
-  const m = part.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
-  if (!m) return 0;
-  let hour = Number(m[1]) % 12;
-  if (/pm/i.test(m[3])) hour += 12;
-  return hour * 60 + Number(m[2]);
-}
+/**
+ * The grid, grouped by day.
+ *
+ * Derived from SCHEDULE rather than typed out here. This page used to carry
+ * its own copy of every slot, which meant a session could exist in one place
+ * and not the other: adding Monday 10:00am CYB 303 to this array would have
+ * left the countdown, which reads the manifest, believing that class does not
+ * happen. One source, two readers.
+ */
+const ORDERED: Record<string, ScheduledCourse[]> = (() => {
+  const byDay: Record<string, ScheduledCourse[]> = {};
+  for (const slot of SCHEDULE) {
+    (byDay[slot.dayName] ??= []).push(slot);
+  }
+  return byDay;
+})();
 
 export const metadata = {
   title: "Timetable · Cybersecurity 300L",
@@ -125,89 +102,12 @@ export default function TimetablePage() {
         </div>
       </section>
 
-      {/* Table */}
-      <section className="rise" style={{ animationDelay: "80ms" }}>
-        <TableFrame>
-          <DataTable>
-            <Thead>
-              <Th width="8rem">Time</Th>
-              <Th width="9rem">Code</Th>
-              <Th>Course</Th>
-              <Th width="5rem" align="right">
-                Units
-              </Th>
-              <Th width="9rem">Venue</Th>
-              <Th width="9rem">Lecturer</Th>
-            </Thead>
-            <tbody>
-              {DAY_ORDER.map((day) => {
-                const slots = ORDERED[day];
-                if (!slots) return null;
-                return (
-                  <Fragment key={day}>
-                    <DayGroup count={slots.length}>
-                      <span className="inline-flex items-center">
-                        {day}
-                        <TodayHeading dayIndex={DAY_INDEX[day] ?? -1} />
-                      </span>
-                    </DayGroup>
-                    {slots.map((s) => {
-                      const slug = slugFor(s.code);
-                      return (
-                        <Tr key={s.code}>
-                          <Td numeric className="whitespace-nowrap font-medium text-foreground">
-                            {s.time}
-                          </Td>
-                          <Td>
-                            <span className="inline-flex items-center">
-                              {slug ? (
-                                <Link
-                                  href={`/courses/${slug}`}
-                                  className="pressable rounded font-mono text-[12px] font-bold text-accent underline-offset-4 hover:underline"
-                                >
-                                  {s.code}
-                                </Link>
-                              ) : (
-                                <span className="font-mono text-[12px] font-bold text-foreground">
-                                  {s.code}
-                                </span>
-                              )}
-                              <SlotStatus
-                                dayIndex={DAY_INDEX[day] ?? -1}
-                                startMin={minutes(s.time, 0)}
-                                endMin={minutes(s.time, 1)}
-                              />
-                            </span>
-                          </Td>
-                          <Td strong className="min-w-[16rem]">
-                            {s.title}
-                          </Td>
-                          <Td numeric align="right">
-                            {s.units}
-                          </Td>
-                          <Td className="whitespace-nowrap">{s.venue}</Td>
-                          <Td className="whitespace-nowrap">{s.lecturer}</Td>
-                        </Tr>
-                      );
-                    })}
-                  </Fragment>
-                );
-              })}
-              <tr className="border-t border-border-strong bg-surface-raised">
-                <td colSpan={3} className="px-4 py-3.5 text-[12px] font-medium uppercase tracking-[0.12em] text-foreground">
-                  Total registered
-                </td>
-                <Td numeric align="right" strong>
-                  {totalUnits}
-                </Td>
-                <td colSpan={2} className="px-4 py-3.5 text-[12px] text-muted-foreground">
-                  units across {COURSES.length} courses
-                </td>
-              </tr>
-            </tbody>
-          </DataTable>
-        </TableFrame>
-      </section>
+      <TimetableBoard
+        byDay={ORDERED}
+        totalUnits={totalUnits}
+        courseCount={COURSES.length}
+        weeklySessions={WEEKLY_SESSIONS}
+      />
 
       {/* ---------- Notes, each with its own illustration ---------- */}
       <section className="grid gap-5 py-20 md:grid-cols-3">
@@ -218,8 +118,8 @@ export default function TimetablePage() {
         />
         <NoteCard
           variant="plan"
-          title="Three venues"
-          body="Every class is in the Cybersecurity Lab, the Software Lab, or PG 2."
+          title={`${VENUES.length} venues`}
+          body={`Every class is held in the ${VENUES.map(([n]) => n).join(", the ")}.`}
         >
           <dl className="mt-5 space-y-2 border-t border-border pt-4 text-[13px]">
             {VENUES.map(([name, n]) => (

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   TOKENS — Cyber-Security 300L
+   TOKENS — Cybersecurity 300L
    Black ground, green accent, white ink.
    Supporting tones exist because the academic calendar has
    five real categories that must be distinguishable.
@@ -315,6 +315,27 @@ body {
 .settle {
   opacity: 0;
   animation: settle 480ms var(--ease-out) forwards;
+}
+
+/* The same entrance without the opacity fade.
+
+   For elements whose opacity is driven by something else. A filled animation
+   on `opacity` pins it at the final keyframe for good, which outranks every
+   later declaration, so a card using .settle could never be faded by a depth
+   rule no matter what that rule said. This variant moves only. */
+@keyframes settle-move {
+  from {
+    translate: 0 18px;
+    scale: 0.97;
+  }
+  to {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.settle-move {
+  animation: settle-move 480ms var(--ease-out) both;
 }
 
 /* Dialog entry. Deliberately a class and not an inline style: an inline
@@ -718,6 +739,57 @@ body {
     animation: none;
   }
 }
+/* ============================================================
+   TIMETABLE, PERSPECTIVE VIEW
+
+   The same depth language as the calendar above, on a different
+   axis. --d is distance from the nearest session in the week, so
+   the class that is running or next holds full strength and the
+   rest recede behind it.
+   ============================================================ */
+
+.depth-row {
+  --d: 0;
+  /* Hovering one row pulls the others back. Multiplied rather than
+     replacing, so a faded row that is not hovered still fades. */
+  --hover-dim: 1;
+
+  opacity: calc((1 - min(var(--d), 6) * 0.09) * var(--hover-dim));
+  transform: scale(calc(1 - min(var(--d), 6) * 0.004));
+  transition:
+    opacity 380ms var(--ease-out),
+    transform 380ms var(--ease-out),
+    border-color 300ms var(--ease-out),
+    background-color 300ms var(--ease-out),
+    box-shadow 380ms var(--ease-out);
+  will-change: opacity, transform;
+}
+
+.depth-row:hover,
+.depth-row:focus-visible {
+  --hover-dim: 1;
+  opacity: 1;
+}
+
+/* The nearest session, lifted out of the plane like the calendar's focused
+   row. */
+.depth-row[data-nearest="true"] {
+  opacity: 1;
+  transform: none;
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  box-shadow:
+    var(--pop-shadow),
+    0 0 0 1px rgba(34, 197, 94, 0.28);
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .depth-row {
+    transform: none;
+  }
+}
+
 /* ============================================================
    CUSTOM SCROLLBAR
    Thin, rounded, and quiet until the pointer is over it. Kept on

@@ -131,7 +131,7 @@ export default function ContactPage() {
                         {address && !isUnassigned(course.lecturer) && (
                           <a
                             href={`mailto:${address}?subject=${encodeURIComponent(
-                              `${course.code} — ${course.title}`
+                              `${course.code} - ${course.title}`
                             )}`}
                             className="pressable card-depth mt-3 inline-flex w-fit items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11.5px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
                             style={{ "--depth": "6px" } as React.CSSProperties}
