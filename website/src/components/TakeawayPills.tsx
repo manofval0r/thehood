@@ -15,13 +15,18 @@ import { cn } from "@/lib/utils";
  * "1920 x 1080" is a number the reader has to interpret; a laptop outline is
  * something they already understand. The dimensions stay as the label under
  * each glyph for anyone who does want them.
+ *
+ * The wallpaper is the timetable, not the hooded figure. What a student pins
+ * to a laptop for a whole semester is the thing they will look at every day,
+ * which is when and where they are meant to be. The artwork already has the
+ * favicon and the 404; it does not need a third job.
  */
 
 const WALLPAPERS = [
-  { icon: Monitor, label: "Desktop", size: "1920 × 1080", href: "/wallpaper-1920x1080.png" },
-  { icon: Monitor, label: "Large", size: "2560 × 1440", href: "/wallpaper-2560x1440.png" },
-  { icon: Tablet, label: "Tablet", size: "iPad sized", href: "/wallpaper-2560x1440.png" },
-  { icon: Smartphone, label: "Phone", size: "1170 × 2532", href: "/wallpaper-1170x2532.png" },
+  { icon: Monitor, label: "Desktop", size: "1920 x 1080", href: "/timetable-wallpaper-1920x1080.png" },
+  { icon: Monitor, label: "Large", size: "2560 x 1440", href: "/timetable-wallpaper-2560x1440.png" },
+  { icon: Tablet, label: "Tablet", size: "portrait", href: "/timetable-wallpaper-1170x2532.png" },
+  { icon: Smartphone, label: "Phone", size: "1170 x 2532", href: "/timetable-wallpaper-1170x2532.png" },
 ];
 
 export default function TakeawayPills() {
@@ -93,7 +98,12 @@ export default function TakeawayPills() {
           )}
         >
           <p className="text-[13px] leading-relaxed text-foreground">
-            The hooded figure, at the size your screen wants.
+            Your week, as a wall.
+          </p>
+          <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
+            The whole timetable drawn in pixel type, with today marked and the
+            class that is running picked out. Generated from the same schedule
+            the page is showing, so it cannot go out of date.
           </p>
           <ul className="mt-3 grid grid-cols-2 gap-2">
             {WALLPAPERS.map((w) => (

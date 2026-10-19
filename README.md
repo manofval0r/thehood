@@ -185,9 +185,12 @@ is generated from them, so the two cannot drift.
 ```bash
 cd website
 node tools/pixelart-gen.js --write   # regenerate the grid in PixelArt.tsx
-node tools/gen-wallpapers.js         # render wallpaper PNGs
+node tools/pixel-motifs.js           # regenerate the resource motifs
+node tools/gen-wallpapers.js         # render the hood wallpapers
+node tools/gen-timetable-wallpapers.js  # render the timetable wallpapers
 node tools/gen-icons.js              # render favicon + apple-touch-icon
 node tools/check-calendar.js         # assert the calendar parses and sorts correctly
+node tools/preview-motifs.js         # print the motifs as terminal ASCII
 ```
 
 `check-calendar.js` exists because a date range crossing a year boundary once
@@ -235,12 +238,40 @@ quantity and makes an afternoon feel like a deadline.
 
 ## Study resources marks
 
-The marks on `/resources` are drawn per kind rather than fetched from each
-site's favicon. Twenty-odd favicon requests would tell every one of those sites
-who was reading, and would break the page for anyone offline or behind a
-captive portal. Drawing them also says more: not "this is arXiv" but "this is
-where you read papers", which is the distinction the reader is actually making
-while scanning.
+The marks on `/resources` are pixel motifs drawn per kind, not fetched favicons
+and not stroked line icons.
+
+Favicons would mean twenty-odd third-party requests on one page load, which
+tells every one of those sites who is reading and breaks the page for anyone
+offline or behind a captive portal. Stroked icons were tried first and failed
+for a different reason: a 1.7px line at card size reads as a smudge, and
+twenty-two of them look identical. A pixel motif has a silhouette, which is
+what makes a page scannable.
+
+`tools/pixel-motifs.js` describes each motif as geometry and rasterises it into
+`src/components/PixelMotif.tsx`, so the grid cannot drift from the shapes that
+produced it. `tools/preview-motifs.js` prints each one as terminal ASCII, which
+is how you check a silhouette without opening a browser:
+
+```
+node tools/preview-motifs.js
+```
+
+## Wallpapers
+
+The "Add as wallpaper" control downloads **the timetable**, not the artwork.
+What a student pins to a laptop for a whole semester is the thing they will
+look at every day, which is when and where they are meant to be.
+
+`tools/gen-timetable-wallpapers.js` renders it: a weekly board with day rows, an
+hour axis, and each session positioned by time, drawn with a 5x7 pixel font so
+the course codes are actually readable. Today is marked, and the class that is
+running is picked out. The schedule is read out of the manifest source, so the
+wallpaper cannot show a week the site does not believe in.
+
+```
+node tools/gen-timetable-wallpapers.js
+```
 
 ## Not implemented
 

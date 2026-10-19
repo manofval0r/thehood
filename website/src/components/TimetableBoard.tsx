@@ -210,28 +210,51 @@ function ViewSlicer({
   view: View;
   onChange: (v: View) => void;
 }) {
+  const listRef = React.useRef<HTMLDivElement>(null);
+  const [thumb, setThumb] = React.useState({ x: 0, w: 0, ready: false });
+
+  /**
+   * The thumb is measured from the buttons rather than derived from a
+   * fraction of the container.
+   *
+   * Both labels are different lengths, so a thumb sized as a fixed fraction
+   * covers "Grid" and clips "Perspective". Measuring the actual button means
+   * the pill always covers its label and its icon, whatever the text is, and
+   * a longer view name cannot break it.
+   */
+  React.useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const el = list.querySelector<HTMLElement>(`[data-view="${view}"]`);
+    if (!el) return;
+    setThumb({ x: el.offsetLeft, w: el.offsetWidth, ready: true });
+  }, [view]);
+
   const options: Array<{ id: View; label: string; icon: typeof Rows3 }> = [
     { id: "grid", label: "Grid", icon: Rows3 },
     { id: "perspective", label: "Perspective", icon: LayoutGrid },
   ];
-  const index = options.findIndex((o) => o.id === view);
 
   return (
     <div
+      ref={listRef}
       role="tablist"
       aria-label="Timetable view"
       className="relative inline-flex items-center rounded-full border border-border bg-surface p-1"
     >
-      {/* One sliding thumb rather than two independently toggled buttons, so
-          the current view is always visible under the cursor. Transform only:
-          a width transition would reflow the two labels every frame. */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-1 top-1 h-[calc(100%-0.5rem)] rounded-full bg-accent/14 ring-1 ring-inset ring-accent/30"
+        className={cn(
+          "pointer-events-none absolute left-0 top-1 h-[calc(100%-0.5rem)] rounded-full",
+          "bg-accent/14 ring-1 ring-inset ring-accent/30",
+          // A critically damped ease rather than a linear or bouncy curve: the
+          // thumb is being thrown between two places, not flicked at one.
+          "transition-[transform,width] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
+          thumb.ready ? "opacity-100" : "opacity-0"
+        )}
         style={{
-          width: `calc((100% - 0.5rem) / ${options.length})`,
-          transform: `translateX(calc(${index} * 100%))`,
-          transition: "transform 420ms cubic-bezier(0.23, 1, 0.32, 1)",
+          width: thumb.w,
+          transform: `translate3d(${thumb.x}px, 0, 0)`,
         }}
       />
       {options.map((o) => {
@@ -239,15 +262,22 @@ function ViewSlicer({
         return (
           <button
             key={o.id}
+            data-view={o.id}
             role="tab"
             aria-selected={active}
             onClick={() => onChange(o.id)}
             className={cn(
-              "pressable relative z-10 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12.5px] font-medium transition-colors duration-300",
+              "pressable relative z-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-medium transition-colors duration-300",
               active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <o.icon size={13} className={active ? "text-accent" : ""} />
+            <o.icon
+              size={14}
+              className={cn(
+                "transition-colors duration-300",
+                active ? "text-accent" : "text-muted-foreground"
+              )}
+            />
             {o.label}
           </button>
         );
@@ -307,108 +337,239 @@ function PerspectiveView({
   const distance = useDistances(byDay);
   const [hovered, setHovered] = React.useState<string | null>(null);
 
-  const flat = days
-    .map((d) => byDay[d])
-    .flat()
-    .sort(
-      (a, b) => (distance.get(a) ?? 0) - (distance.get(b) ?? 0)
-    );
+  const flat = React.useMemo(
+    () =>
+      days
+        .map((d) => byDay[d])
+        .flat()
+        .sort((a, b) => (distance.get(a) ?? 0) - (distance.get(b) ?? 0)),
+    [days, byDay, distance]
+  );
+
+  /**
+   * Where a session sits relative to this moment, in words.
+   *
+   * Sorting by distance alone gives the right order but no way to read it: a
+   * number that means "in four hours" and one that means "in four days" sort
+   * identically. Naming the gap is what makes a receding list usable rather
+   * than decorative.
+   */
+  const bandOf = (s: ScheduledCourse) => {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    if (s.dayIndex === now.getDay()) {
+      if (nowMin >= s.startMin && nowMin < s.endMin) return "running";
+      if (s.startMin > nowMin) return "today";
+      return "past";
+    }
+    let delta = s.dayIndex - now.getDay();
+    if (delta < 0) delta += 7;
+    if (delta === 1) return "tomorrow";
+    if (delta <= 3) return "soon";
+    return "later";
+  };
+
+  const BAND_LABEL: Record<string, string> = {
+    running: "Running now",
+    today: "Later today",
+    tomorrow: "Tomorrow",
+    soon: "This week",
+    later: "Later in the week",
+    past: "Already finished today",
+  };
+  const BAND_ORDER = [
+    "running",
+    "today",
+    "tomorrow",
+    "soon",
+    "later",
+    "past",
+  ];
+
+  const bands = BAND_ORDER.map((id) => ({
+    id,
+    label: BAND_LABEL[id],
+    slots: flat.filter((s) => bandOf(s) === id),
+  })).filter((b) => b.slots.length > 0);
 
   const nearest = flat[0];
 
   return (
-    <div className="space-y-3">
-      {flat.map((s) => {
-        const key = `${s.dayName}-${s.startMin}-${s.code}`;
-        const d = distance.get(s) ?? 0;
-        const isNearest = s === nearest;
+    <div className="relative">
+      {/*
+        The spine. A 1px axis the cards hang off, with a mark at the position
+        of now, so the depth is something the eye can locate rather than only
+        infer from how faint something has gone.
+      */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-3 left-[7px] top-3 w-px bg-border"
+      />
 
-        return (
-          <AppleCard key={key} maxTilt={4} className="h-full">
-            <Link
-              href={`/courses/${s.slug}`}
-              onMouseEnter={() => setHovered(key)}
-              onMouseLeave={() => setHovered(null)}
-              onFocus={() => setHovered(key)}
-              onBlur={() => setHovered(null)}
-              /* The same depth language as the academic calendar: distance
-                 drives opacity and a slight scale-down, and the nearest
-                 session is lifted out of the plane. The class computes both
-                 from --d, so this element sets a number rather than a style. */
-              data-nearest={isNearest ? "true" : undefined}
-              style={
-                {
-                  "--d": d.toFixed(2),
-                  "--hover-dim": hovered && hovered !== key ? "0.42" : "1",
-                } as React.CSSProperties
-              }
-              className={cn(
-                // settle-move, not settle: the entrance here must not touch
-                // opacity, or the filled animation pins every row at full
-                // strength and the depth fade has nothing left to do.
-                "depth-row card-tilt settle-move group relative block rounded-lg border border-border bg-surface px-5 py-4",
-                "hover:border-border-strong focus-visible:border-border-strong"
-              )}
-            >
-              <span className="card-cast" aria-hidden="true" />
-              <span className="card-accent-glow" aria-hidden="true" />
-              <span className="card-bevel" aria-hidden="true" />
+      <div className="space-y-8">
+        {bands.map((band) => {
+          // The mark sits at the top of whichever band contains "now".
+          const isNowBand = band.id === "running" || band.id === "today";
 
-              <div className="card-depth flex flex-wrap items-center gap-x-4 gap-y-2">
-                {/* Time, set apart as the thing you scan for first. */}
-                <span className="tnum w-[8.5rem] shrink-0 font-mono text-[12.5px] font-semibold text-foreground">
-                  {s.dayName.slice(0, 3)} {formatRange(s.startMin, s.endMin)}
-                </span>
-
-                <span className="flex min-w-0 flex-1 items-center gap-2">
-                  <span className="shrink-0 rounded bg-accent/12 px-1.5 py-0.5 font-mono text-[11px] font-bold text-accent">
-                    {s.code}
-                  </span>
-                  {s.isExtraSession && (
-                    <span
-                      title="An additional weekly meeting of this course"
-                      className="shrink-0 rounded bg-surface-hover px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wide text-muted-foreground"
-                    >
-                      +1
-                    </span>
+          return (
+            <section key={band.id} className="relative">
+              <div className="relative flex items-center gap-3 pb-3 pl-7">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute left-0 top-1/2 h-[15px] w-[15px] -translate-y-1/2 rounded-full border-2",
+                    isNowBand ? "border-accent bg-accent" : "border-border bg-background"
                   )}
-                  <span className="truncate text-[14px] font-medium text-foreground">
-                    {s.title}
-                  </span>
-                </span>
-
-                <span className="flex shrink-0 items-center gap-4 text-[12px] text-muted-foreground">
-                  <span className="tnum">{s.units} units</span>
-                  <span className="flex items-center gap-1 whitespace-nowrap">
-                    <MapPin size={12} className="opacity-60" />
-                    {s.venue}
-                  </span>
-                  <span className="flex items-center gap-1 whitespace-nowrap">
-                    <User size={12} className="opacity-60" />
-                    {s.lecturer}
-                  </span>
+                />
+                <h3
+                  className={cn(
+                    "text-[13px] font-semibold tracking-tight",
+                    isNowBand ? "text-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  {band.label}
+                </h3>
+                <span className="tnum text-[12px] text-muted">
+                  {band.slots.length}
                 </span>
               </div>
 
-              {/* Status sits on the row rather than in a column, so this view
-                  has no cells to misalign when a chip appears. */}
-              <span className="card-depth mt-2 flex items-center gap-2">
-                <SlotStatus
-                  dayIndex={s.dayIndex}
-                  startMin={s.startMin}
-                  endMin={s.endMin}
-                />
-                {isNearest && (
-                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <Clock size={11} className="opacity-60" />
-                    closest to now
-                  </span>
-                )}
-              </span>
-            </Link>
-          </AppleCard>
-        );
-      })}
+              <div className="space-y-2.5 pl-7">
+                {band.slots.map((s) => {
+                  const key = `${s.dayName}-${s.startMin}-${s.code}`;
+                  const d = distance.get(s) ?? 0;
+                  const isNearest = s === nearest;
+                  const isRunning = band.id === "running";
+
+                  return (
+                    <AppleCard key={key} maxTilt={4} className="h-full">
+                      <Link
+                        href={`/courses/${s.slug}`}
+                        onMouseEnter={() => setHovered(key)}
+                        onMouseLeave={() => setHovered(null)}
+                        onFocus={() => setHovered(key)}
+                        onBlur={() => setHovered(null)}
+                        /* The class computes opacity and scale from --d, so
+                           this element sets a number rather than a style. */
+                        data-nearest={isNearest ? "true" : undefined}
+                        style={
+                          {
+                            "--d": d.toFixed(2),
+                            "--hover-dim": hovered && hovered !== key ? "0.42" : "1",
+                          } as React.CSSProperties
+                        }
+                        className={cn(
+                          // settle-move, not settle: an entrance that touches
+                          // opacity would, once filled, pin every row at full
+                          // strength and the depth fade would have nothing to
+                          // do.
+                          "depth-row card-tilt settle-move group relative block rounded-lg border border-border bg-surface transition-colors",
+                          "hover:border-border-strong focus-visible:border-border-strong",
+                          isNearest ? "px-6 py-5" : "px-5 py-4"
+                        )}
+                      >
+                        <span className="card-cast" aria-hidden="true" />
+                        <span className="card-bevel" aria-hidden="true" />
+
+                        <div
+                          className={cn(
+                            "card-depth flex flex-wrap items-center gap-x-4 gap-y-2",
+                            isNearest ? "gap-y-3" : "gap-y-2"
+                          )}
+                        >
+                          {/* When, set apart: it is the thing being scanned
+                              for, and it is what orders the whole view. */}
+                          <span className="w-full shrink-0 sm:w-[10rem]">
+                            <span
+                              className={cn(
+                                "tnum block font-mono font-semibold",
+                                isNearest ? "text-[14px]" : "text-[12.5px]",
+                                isRunning
+                                  ? "text-accent"
+                                  : isNearest
+                                    ? "text-foreground"
+                                    : "text-muted-foreground"
+                              )}
+                            >
+                              {s.dayName.slice(0, 3)} {formatRange(s.startMin, s.endMin)}
+                            </span>
+                            {!isNearest && (
+                              <span className="block text-[10.5px] text-muted">
+                                {s.venue}
+                              </span>
+                            )}
+                          </span>
+
+                          <span className="flex min-w-0 flex-1 items-center gap-2">
+                            <span className="shrink-0 rounded bg-accent/12 px-1.5 py-0.5 font-mono text-[11px] font-bold text-accent">
+                              {s.code}
+                            </span>
+                            {s.isExtraSession && (
+                              <span
+                                title="An additional weekly meeting of this course"
+                                className="shrink-0 rounded bg-surface-hover px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wide text-muted-foreground"
+                              >
+                                +1
+                              </span>
+                            )}
+                            <span
+                              className={cn(
+                                "truncate",
+                                isNearest
+                                  ? "text-[16px] font-medium"
+                                  : "text-[14px] font-medium",
+                                "text-foreground"
+                              )}
+                            >
+                              {s.title}
+                            </span>
+                          </span>
+
+                          <span
+                            className={cn(
+                              "flex shrink-0 items-center gap-4",
+                              isNearest
+                                ? "text-[12.5px] text-muted-foreground"
+                                : "text-[12px] text-muted-foreground"
+                            )}
+                          >
+                            <span className="tnum">{s.units} units</span>
+                            <span className="flex items-center gap-1 whitespace-nowrap">
+                              <MapPin size={12} className="opacity-60" />
+                              {s.venue}
+                            </span>
+                            <span className="flex items-center gap-1 whitespace-nowrap">
+                              <User size={12} className="opacity-60" />
+                              {s.lecturer}
+                            </span>
+                          </span>
+                        </div>
+
+                        {/* Status sits on the row rather than in a column, so
+                            this view has no cells to misalign when a chip
+                            appears. */}
+                        <span className="card-depth mt-2.5 flex items-center gap-2">
+                          <SlotStatus
+                            dayIndex={s.dayIndex}
+                            startMin={s.startMin}
+                            endMin={s.endMin}
+                          />
+                          {isNearest && (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                              <Clock size={11} className="opacity-60" />
+                              {isRunning ? "you are here" : "closest to now"}
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </AppleCard>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 }

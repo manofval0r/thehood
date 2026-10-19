@@ -1,17 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  BookOpen,
-  FileText,
-  GraduationCap,
-  Laptop,
-  PlaySquare,
-  Radio,
-} from "lucide-react";
 import { COURSES } from "@/lib/resources";
 import AppleCard from "@/components/AppleCard";
-import ResourceMark, { KIND_STYLE, domainOf, type Kind } from "@/components/ResourceMark";
+import PixelMotif from "@/components/PixelMotif";
+import { KIND_STYLE, domainOf, type Kind } from "@/lib/resource-kinds";
 
 export const metadata: Metadata = {
   title: "Study Resources · Cybersecurity 300L",
@@ -41,7 +33,6 @@ interface Section {
   id: string;
   title: string;
   blurb: string;
-  icon: typeof BookOpen;
   /** One of the calendar's category tones, so the five sections are told
    *  apart by a glance down the page rather than by reading their headings. */
   tone: "academic" | "exams" | "holiday" | "statutory" | "ceremony";
@@ -54,7 +45,6 @@ const SECTIONS: Section[] = [
     title: "Research papers and reading",
     blurb:
       "Primary sources. Reading one paper well beats skimming ten, and these are the ones the field keeps citing.",
-    icon: FileText,
     tone: "academic",
     items: [
       {
@@ -88,7 +78,6 @@ const SECTIONS: Section[] = [
     title: "Lecture channels",
     blurb:
       "Recorded material for the concepts that are hard to pick up from a slide alone.",
-    icon: PlaySquare,
     tone: "ceremony",
     items: [
       {
@@ -128,7 +117,6 @@ const SECTIONS: Section[] = [
     title: "Practice platforms",
     blurb:
       "Where the work actually happens. These are free or have a usable free tier.",
-    icon: Laptop,
     tone: "exams",
     items: [
       {
@@ -168,7 +156,6 @@ const SECTIONS: Section[] = [
     title: "Tools and platforms",
     blurb:
       "Software the labs assume you already have, plus the ones worth learning now.",
-    icon: Radio,
     tone: "statutory",
     items: [
       {
@@ -208,7 +195,6 @@ const SECTIONS: Section[] = [
     title: "After the degree",
     blurb:
       "Only if you are curious now. Nothing here is needed for any course.",
-    icon: GraduationCap,
     tone: "holiday",
     items: [
       {
@@ -264,20 +250,23 @@ export default function ResourcesPage() {
 
         {/* What kind of thing each entry is, before any of them. A reader
             arrives with a question rather than a subject, and this is the one
-            line that answers "which of these do I want". */}
-        <dl className="mt-10 flex flex-wrap gap-x-8 gap-y-5">
+            line that answers "which of these do I want". The motifs are the
+            same ones on the cards, at a size you can name from across the
+            room. */}
+        <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
           {(Object.keys(byKind) as Kind[]).map((k) => (
-            <div key={k} className="flex items-center gap-3">
+            <div
+              key={k}
+              className="flex items-center gap-3"
+            >
               <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                style={{ background: KIND_STYLE[k].bg }}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg p-1.5"
+                style={{ background: KIND_STYLE[k].surface }}
               >
-                <span className="h-[20px] w-[20px]">
-                  <ResourceMark kind={k} />
-                </span>
+                <PixelMotif kind={k} title={KIND_STYLE[k].motif} />
               </span>
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-foreground">
+              <div className="min-w-0">
+                <dt className="truncate text-[12px] font-semibold text-foreground">
                   {KIND_STYLE[k].label}
                 </dt>
                 <dd className="tnum text-[12px] text-muted-foreground">
@@ -310,22 +299,16 @@ export default function ResourcesPage() {
       <div className="space-y-24 pb-24">
         {SECTIONS.map((section) => (
           <section key={section.id} id={section.id} className="scroll-mt-24">
-            {/* The section's tone runs down its left edge, so the page reads
-                as five bands rather than one long undifferentiated list. */}
-            <div
-              className="border-l-2 pl-6"
-              style={{ borderColor: `var(--tone-${section.tone})` }}
-            >
-              <div className="flex flex-wrap items-center gap-3">
-                <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                  style={{
-                    background: `color-mix(in srgb, var(--tone-${section.tone}) 15%, transparent)`,
-                    color: `var(--tone-${section.tone})`,
-                  }}
-                >
-                  <section.icon size={17} />
-                </span>
+            {/* The section's tone runs as a rule above its heading. A thick
+                coloured edge down the side was tried here and reads as a
+                callout on every section at once, which is a shout. */}
+            <div>
+              <span
+                className="block h-px w-11 rounded-full"
+                style={{ background: `var(--tone-${section.tone})` }}
+                aria-hidden="true"
+              />
+              <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   {section.title}
                 </h2>
@@ -353,47 +336,45 @@ export default function ResourcesPage() {
                         <span className="card-cast" aria-hidden="true" />
                         <span className="card-bevel" aria-hidden="true" />
 
-                        {/* The mark sits in a tinted tile rather than loose in a
-                            corner, so twenty-odd cards stay tellable apart at
-                            a glance instead of reading as one texture. */}
-                        <span className="card-depth flex items-start justify-between gap-3">
+                        {/* The motif is the lead, not a glyph in the corner.
+                            A line icon at this size is a smudge and every card
+                            looks the same; a sprite has a silhouette, and
+                            twenty-two of them make a page you can scan. */}
+                        <span
+                          className="card-depth relative flex h-24 items-center justify-center overflow-hidden rounded-lg"
+                          style={{ background: kind.surface }}
+                        >
                           <span
-                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
-                            style={{ background: kind.bg }}
+                            className="h-[72px] w-[72px] transition-transform duration-300 group-hover:scale-[1.06]"
+                            style={{ imageRendering: "pixelated" }}
                           >
-                            <span className="h-6 w-6">
-                              <ResourceMark kind={item.kind} />
-                            </span>
-                          </span>
-                          <span
-                            className="rounded px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.1em]"
-                            style={{ background: kind.bg, color: kind.fg }}
-                          >
-                            {kind.label}
+                            <PixelMotif kind={item.kind} title={kind.motif} />
                           </span>
                         </span>
 
-                        <span className="card-depth mt-4 text-[15px] font-semibold leading-snug text-foreground">
-                          {item.label}
+                        {/* The name, and the domain. The domain is the whole signal that this leaves
+                            the site, so it replaces the external-link arrow
+                            rather than sitting beside it: two cues for one
+                            fact is clutter, and the arrow was the only stroked
+                            icon left on the page. */}
+                        <span className="card-depth mt-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                          <span className="text-[15px] font-semibold leading-snug text-foreground">
+                            {item.label}
+                          </span>
+                          <span className="shrink-0 font-mono text-[11px] text-muted">
+                            {domainOf(item.href)}
+                          </span>
+                        </span>
+
+                        <span className="card-depth mt-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                          {kind.label}
                         </span>
 
                         <span
-                          className="card-depth mt-2 flex-1 text-[13px] leading-relaxed text-muted-foreground"
+                          className="card-depth mt-2.5 flex-1 text-[13px] leading-relaxed text-muted-foreground"
                           style={{ "--depth": "24px" } as React.CSSProperties}
                         >
                           {item.note}
-                        </span>
-
-                        {/* The domain, so it is obvious at a glance that every
-                            one of these leaves the site. */}
-                        <span className="card-depth mt-5 flex items-center justify-between gap-2 border-t border-border pt-3.5">
-                          <span className="truncate font-mono text-[11px] text-muted">
-                            {domainOf(item.href)}
-                          </span>
-                          <ArrowUpRight
-                            size={14}
-                            className="shrink-0 text-muted transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
-                          />
                         </span>
                       </a>
                     </AppleCard>
