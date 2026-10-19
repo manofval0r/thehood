@@ -566,17 +566,25 @@ body {
 .flip-clock-nav {
   /* Responsive because the navbar clock competes for horizontal space with
      five links and a wordmark. At 1.7rem the six flaps alone were 150px, which
-     is most of a phone's width. Scaled by viewport it stays legible on a
-     laptop and leaves the links room on a handset. */
-  --flap-h: clamp(1.15rem, 2.9vw, 1.7rem);
+     is most of a phone's width. The floor is 1rem rather than 1.15rem because
+     at 320px the difference between 141px and 134px of clock is the
+     difference between the first link fitting in the rail and no link fitting
+     at all. */
+  --flap-h: clamp(1rem, 2.9vw, 1.7rem);
   --flap-w: calc(var(--flap-h) * 0.92);
   --flip-gap: 1px;
 }
 
-/* The colon is punctuation between groups. At navbar size the space it needs
-   costs more than it explains. */
+/* The separators between HOURS, MINUTES and SECONDS. Kept, because without
+   them six digits in a row read as one long number. Tighter than the hero
+   version: in the navbar every pixel is competing with the link rail, so the
+   colon is set small and dim rather than dropped, which is what an earlier
+   pass did at the cost of the clock being unreadable at a glance. */
 .flip-clock-nav .flip-colon {
-  display: none;
+  display: flex;
+  padding: 0 1.5px;
+  font-size: calc(var(--flap-h) * 0.38);
+  opacity: 0.55;
 }
 
 .flip-group {

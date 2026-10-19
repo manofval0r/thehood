@@ -90,7 +90,7 @@ export default function Nav() {
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           <div
             className={cn(
-              "flex h-12 w-full items-center justify-between rounded-full pl-4 pr-2",
+              "relative flex h-12 w-full items-center justify-between rounded-full pl-4 pr-2",
               "transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
               scrolled
                 ? "border border-border-strong bg-surface/80 shadow-lift backdrop-blur-xl"
@@ -138,7 +138,21 @@ export default function Nav() {
                 be scrolled off. It is the reason a student checks the bar, and
                 "scroll to find out when your class is" is not a good trade
                 for "it is always there". */}
-            <div className="min-w-[4.5rem] flex-1 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div
+              className={cn(
+                // Phone: a rail that takes the leftover width and scrolls.
+                "min-w-[4.5rem] flex-1 overflow-x-auto overscroll-x-contain",
+                "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                // Desktop: taken out of the flex flow and centred on the bar.
+                // Inside a flex-1 slot the links sat immediately after the
+                // wordmark, so they looked shoved right: they were centred in
+                // whatever was left, and the countdown was wider than the
+                // wordmark. Centring on the bar is what the eye is actually
+                // judging, and it also stops the links drifting as the
+                // wordmark collapses on scroll.
+                "lg:absolute lg:left-1/2 lg:top-0 lg:h-full lg:w-max lg:max-w-none lg:flex-none lg:-translate-x-1/2 lg:overflow-visible"
+              )}
+            >
               <div
                 ref={tabListRef}
                 className="relative flex h-full w-max items-center"
@@ -192,7 +206,7 @@ export default function Nav() {
             {next && (
               <Link
                 href="/timetable"
-                className="pressable group/cd ml-2 flex shrink-0 items-center gap-2 rounded-full border border-border bg-surface py-1 pl-2.5 pr-3 transition-colors hover:border-border-strong hover:bg-surface-hover"
+                className="pressable group/cd ml-1.5 flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface py-1 pl-2 pr-2.5 transition-colors hover:border-border-strong hover:bg-surface-hover sm:ml-2 sm:gap-2 sm:pl-2.5 sm:pr-3"
                 aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
               >
                 {/* The live-dot only earns its width once there is room for
