@@ -1,0 +1,14 @@
+event_id,timestamp_utc,client_ip_field,proxy_ip,account_field,session_id,method,path,http_status,request_id
+WEB-001,2026-10-12T08:04:45Z,198.51.100.61,198.51.100.25,it.support,sess-it31,GET,/admin/banner,200,req-a100
+WEB-002,2026-10-12T08:08:10Z,198.51.100.61,198.51.100.25,bursary.ops,sess-b812,GET,/admin/payment-settings,200,req-a103
+WEB-003,2026-10-12T08:10:03Z,198.51.100.61,198.51.100.25,it.support,sess-it31,POST,/admin/banner,200,req-a107
+WEB-004,2026-10-12T08:11:39Z,203.0.113.45,198.51.100.25,bursary.ops,,POST,/login,401,req-login2
+WEB-005,2026-10-12T08:14:09Z,203.0.113.45,198.51.100.25,bursary.ops,sess-b927,GET,/admin,200,req-b101
+WEB-006,2026-10-12T08:16:02Z,203.0.113.45,198.51.100.25,bursary.ops,sess-b927,GET,/admin/payment-settings,200,req-b105
+WEB-007,2026-10-12T08:17:28Z,203.0.113.45,198.51.100.25,bursary.ops,sess-b927,POST,/admin/payment-settings/beneficiary,200,req-f7a1
+WEB-008,2026-10-12T08:18:14Z,203.0.113.45,198.51.100.25,bursary.ops,sess-b927,GET,/admin/payment-settings,200,req-b109
+WEB-009,2026-10-12T08:19:54Z,198.51.100.61,198.51.100.25,it.support,sess-it32,GET,/admin/banner,200,req-c011
+WEB-010,2026-10-12T08:20:05Z,198.51.100.63,198.51.100.25,finance.audit,sess-fa55,GET,/admin/reports,200,req-c021
+WEB-011,2026-10-12T08:22:10Z,203.0.113.45,198.51.100.25,bursary.ops,sess-b927,GET,/admin/payment-settings,200,req-b121
+WEB-012,2026-10-12T08:29:02Z,192.0.2.82,198.51.100.25,student.demo,sess-st11,GET,/tuition,200,req-t033
+WEB-013,2026-10-12T08:36:51Z,198.51.100.61,198.51.100.25,it.support,sess-it32,GET,/admin/payment-settings,200,req-c067

@@ -1,0 +1,148 @@
+import Link from "next/link";
+import { Download } from "lucide-react";
+import { COURSES, resourceUrl, REGISTRATION_PDF } from "@/lib/resources";
+import { TableFrame, DataTable, Thead, Th, Tr, Td } from "@/components/ui/table";
+
+export const metadata = {
+  title: "Course Registration · Cyber-Security 300L",
+  description: "First Semester 2026/2027 course registration list for the Cyber-Security 300 Level programme.",
+};
+
+export default function RegistrationPage() {
+  const totalUnits = COURSES.reduce((s, c) => s + c.units, 0);
+  const core = COURSES.filter((c) => c.program === "Cyber-Security");
+  const service = COURSES.filter((c) => c.program !== "Cyber-Security");
+  const coreUnits = core.reduce((s, c) => s + c.units, 0);
+  const serviceUnits = service.reduce((s, c) => s + c.units, 0);
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      {/* Header */}
+      <section className="rise pb-8 pt-14 md:pt-20">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-5xl">
+              Course Registration
+            </h1>
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">
+              First Semester 2026/2027 &middot; {totalUnits} units across {COURSES.length} courses.
+            </p>
+          </div>
+          <a
+            href={resourceUrl(REGISTRATION_PDF)}
+            download
+            className="pressable inline-flex shrink-0 items-center gap-2 self-start rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
+          >
+            <Download size={15} />
+            Download PDF
+          </a>
+        </div>
+      </section>
+
+      {/* Unit summary */}
+      <section
+        className="rise mb-8 grid gap-4 sm:grid-cols-3"
+        style={{ animationDelay: "60ms" }}
+      >
+        <div className="rounded-lg border border-border bg-surface p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            Cyber-Security core
+          </p>
+          <p className="tnum mt-2 text-3xl font-bold text-foreground">{coreUnits}</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{core.length} courses</p>
+        </div>
+        <div className="rounded-lg border border-border bg-surface p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            COS/CYB service
+          </p>
+          <p className="tnum mt-2 text-3xl font-bold text-foreground">{serviceUnits}</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{service.length} courses</p>
+        </div>
+        <div className="rounded-lg border border-accent/40 bg-accent/5 p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-accent">
+            Total load
+          </p>
+          <p className="tnum mt-2 text-3xl font-bold text-foreground">{totalUnits}</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            units this semester
+          </p>
+        </div>
+      </section>
+
+      {/* Table */}
+      <section className="rise" style={{ animationDelay: "120ms" }}>
+        <TableFrame>
+          <DataTable>
+            <Thead>
+              <Th width="3.5rem" align="right">
+                #
+              </Th>
+              <Th width="9rem">Code</Th>
+              <Th>Course title</Th>
+              <Th width="6rem">Programme</Th>
+              <Th width="5rem" align="right">
+                Units
+              </Th>
+              <Th width="7rem" align="right">
+                Files
+              </Th>
+            </Thead>
+            <tbody>
+              {COURSES.map((c, i) => {
+                const count = c.resources.length;
+                return (
+                  <Tr key={c.code}>
+                    <Td numeric align="right" className="text-muted">
+                      {i + 1}
+                    </Td>
+                    <Td>
+                      <Link
+                        href={`/courses/${c.slug}`}
+                        className="pressable rounded font-mono text-[12px] font-bold text-accent underline-offset-4 hover:underline"
+                      >
+                        {c.code}
+                      </Link>
+                    </Td>
+                    <Td strong className="min-w-[18rem]">
+                      {c.title}
+                    </Td>
+                    <Td className="whitespace-nowrap">
+                      {c.program === "Cyber-Security" ? (
+                        <span className="text-foreground">Cyber-Security</span>
+                      ) : (
+                        c.program
+                      )}
+                    </Td>
+                    <Td numeric align="right" strong>
+                      {c.units}
+                    </Td>
+                    <Td numeric align="right">
+                      {count > 0 ? (
+                        <span className="text-foreground">{count}</span>
+                      ) : (
+                        <span className="text-muted">&mdash;</span>
+                      )}
+                    </Td>
+                  </Tr>
+                );
+              })}
+              <tr className="border-t border-border-strong bg-surface-raised">
+                <td colSpan={4} className="px-4 py-3.5 text-[12px] font-medium uppercase tracking-[0.12em] text-foreground">
+                  Total
+                </td>
+                <Td numeric align="right" strong>
+                  {totalUnits}
+                </Td>
+                <td />
+              </tr>
+            </tbody>
+          </DataTable>
+        </TableFrame>
+        <p className="mt-4 text-[13px] text-muted-foreground">
+          Course codes link to that course&rsquo;s resource page. A dash in the
+          files column means a lecturer hasn&rsquo;t uploaded anything yet.
+        </p>
+      </section>
+    </div>
+  );
+}

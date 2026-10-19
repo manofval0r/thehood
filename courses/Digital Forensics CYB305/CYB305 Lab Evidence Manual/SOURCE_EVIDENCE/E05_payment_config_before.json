@@ -1,0 +1,10 @@
+{
+  "case_id": "CYB305-001",
+  "snapshot": "before",
+  "captured_at_wat": "2026-10-12T08:55:00+01:00",
+  "portal": "student-tuition-demo",
+  "payment_gateway": "https://gateway.example/pay",
+  "banner_text": "Pay via student portal",
+  "beneficiary_reference": "PAYEE-REF-UNIV-110",
+  "config_version": 40
+}

@@ -1,0 +1,7 @@
+event_id,timestamp_wat,message_id,sender_domain,recipient,action,spf_result,dmarc_result,note
+MAIL-001,2026-10-12T09:19:30+01:00,msg-811,registrar.example.org,student001@example.org,DELIVERED,PASS,PASS,Ordinary administrative message
+MAIL-002,2026-10-12T09:24:12+01:00,msg-843,fees-notice.example,student001@example.org,ACCEPTED,FAIL,FAIL,Sender domain authentication check recorded
+MAIL-003,2026-10-12T09:24:16+01:00,msg-843,fees-notice.example,student001@example.org,DELIVERED,FAIL,FAIL,Delivered to training mailbox
+MAIL-004,2026-10-12T09:24:20+01:00,msg-844,fees-notice.example,student002@example.org,QUARANTINED,FAIL,FAIL,Different message not released
+MAIL-005,2026-10-12T09:26:10+01:00,msg-852,registry.example.org,student003@example.org,DELIVERED,PASS,PASS,Ordinary administrative message
+MAIL-006,2026-10-12T09:37:05+01:00,msg-843,fees-notice.example,student001@example.org,USER_REPORTED,FAIL,FAIL,Suspicious message reported by recipient

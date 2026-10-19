@@ -1,0 +1,4 @@
+event_id,timestamp_wat,from_custodian,to_custodian,item,action,receiving_ack,storage_location,notes
+CUST-001,2026-10-12T10:04:00+01:00,ICT Operator,ICT Triage,SOURCE_EVIDENCE set,INITIAL_RECEIPT,RT,ICT triage locker,Synthetic export assembled
+CUST-002,2026-10-12T10:19:00+01:00,ICT Triage,Forensic Desk,SOURCE_EVIDENCE set,TRANSFER,,Forensic staging,
+CUST-003,2026-10-12T10:25:00+01:00,Forensic Desk,Secure Store,SOURCE_EVIDENCE set,STORAGE,FS,Secure store shelf S2,Access restrictions recorded

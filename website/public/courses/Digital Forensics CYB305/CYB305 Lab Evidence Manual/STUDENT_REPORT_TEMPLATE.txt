@@ -1,0 +1,24 @@
+CYB305-001 - STUDENT PRELIMINARY FORENSIC REPORT
+Student ID:                         Date/time of review (WAT):
+
+1. Integrity checks
+Evidence ID | Source SHA-256 | Working SHA-256 | Match? | Action
+
+2. Key observations (cite event IDs and records)
+A.
+B.
+C.
+
+3. Event timeline (all times WAT)
+Time | Observed action | Corroborating source IDs and event IDs
+
+4. Findings and limits (2-4 sentences)
+Observed facts:
+Alternative explanation or uncertainty:
+Additional evidence needed:
+
+5. Evidence handling and recommendations
+Custody/documentation issue:
+Immediate preservation action:
+Forensic readiness improvement:
+Legal or ethical safeguard (Nigeria):

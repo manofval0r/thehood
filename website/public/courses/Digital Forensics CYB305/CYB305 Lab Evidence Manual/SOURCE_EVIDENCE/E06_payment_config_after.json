@@ -1,0 +1,10 @@
+{
+  "case_id": "CYB305-001",
+  "snapshot": "after",
+  "captured_at_wat": "2026-10-12T09:17:30+01:00",
+  "portal": "student-tuition-demo",
+  "payment_gateway": "https://gateway.example/pay",
+  "banner_text": "Use approved student gateway",
+  "beneficiary_reference": "PAYEE-REF-ALT-909",
+  "config_version": 42
+}

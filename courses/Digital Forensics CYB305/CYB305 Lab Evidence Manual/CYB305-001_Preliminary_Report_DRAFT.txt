@@ -1,0 +1,41 @@
+CYB305-001 - STUDENT PRELIMINARY FORENSIC REPORT
+Case: CYB305-001, Westbridge University tuition portal (fictional training case)
+Student ID: 242321019            Date/time of review (WAT): 2026-10-14 14:21 WAT
+Examiner working from verified WORKING_COPIES. SOURCE_EVIDENCE left read-only.
+
+1. Integrity checks
+Method: SHA-256 over file bytes, same as CyberChef SHA2 256. Compared to SHA256_SOURCE_MANIFEST.csv.
+
+Evidence ID | Source SHA-256 | Working SHA-256 before fix | Match? | Action
+E05 before config | c579b7f49ce75244a63d4310efb35bfc179158c22c7d410941a5af887b4d5423 | c579b7f49ce75244a63d4310efb35bfc179158c22c7d410941a5af887b4d5423 | YES | Verified, used for analysis.
+E06 after config | bf7d9d8d480548dcd35302bb78555b1d7a366e512f86a2c50bf032ae644c06e4 | 0194e13b29951bbc681fe68895194735475f6d78a0f8edc0fba12c6a46e926be | NO on receipt | Hashed SOURCE_EVIDENCE E06, confirmed match to manifest, replaced working copy, re-hashed to bf7d9d8d, now verified.
+
+Note: Initial working E06 showed beneficiary PAYEE-REF-UNIV-110 while verified source shows PAYEE-REF-ALT-909. All Task B to D findings below use the verified source version. A mismatch proves bytes differ only. It does not prove cause, intent, authorship, or admissibility.
+
+2. Key observations (cite event IDs and records)
+A. Approved scope: E07 CHG-217, window 2026-10-12 09:00 to 09:30 WAT. Approved: banner Pay via student portal to Use approved student gateway. Out of scope: do not change gateway or beneficiary reference. Any beneficiary change needs separate authorisation. Ticket notes it does not prove who did later actions.
+B. Config change: Verified E05 to verified E06. banner_text changed as approved. beneficiary_reference changed PAYEE-REF-UNIV-110 to PAYEE-REF-ALT-909. payment_gateway unchanged. version 40 to 42. captured 08:55:00 WAT to 09:17:30 WAT.
+C. Beneficiary edit session: E03 PORT-006 at 09:17:28 WAT, bursary.ops, sess-b927, UPDATE_BENEFICIARY_REFERENCE, req-f7a1, CHG-217, OK. Exact corroboration in E04 WEB-007 at 08:17:28 UTC, same session and req, POST /admin/payment-settings/beneficiary 200. Context: E02 AUTH-004 and AUTH-005 FAILs at 08:10:55Z and 08:11:39Z for bursary.ops from 203.0.113.45, then AUTH-006 SUCCESS at 08:14:03Z same account and IP sess-b927. Related views PORT-005 and WEB-006 before, PORT-007 and WEB-008 after.
+D. Banner edit contrast: E03 PORT-003 at 09:10:03 WAT, it.support sess-it31 UPDATE_BANNER req-a107 CHG-217 OK, corroborated by E04 WEB-003 same req POST /admin/banner 200. This is the authorised part.
+E. Email: E01 msg-843 from Student Accounts <bursary@fees-notice.example> dated 12 Oct 09:24:11 +0100, link to fees-notice.example, headers spf=fail dkim=none dmarc=fail. E08 MAIL-002 ACCEPTED 09:24:12 WAT and MAIL-003 DELIVERED 09:24:16 WAT same msg, SPF FAIL DMARC FAIL, plus MAIL-006 USER_REPORTED 09:37:05 WAT. No session, request, or account link to sess-b927. Finding is temporal association only, about 7 min after beneficiary edit, not proof of common operator.
+
+3. Event timeline (all times WAT, UTC plus 1 hour)
+09:10:03 WAT | Banner update to approved text, it.support sess-it31 | E03 PORT-003, corroborated E04 WEB-003 req-a107
+09:14:03 WAT (08:14:03Z) | bursary.ops login success sess-b927 from 203.0.113.45 after two fails | E02 AUTH-006, prior AUTH-004 AUTH-005, related E04 WEB-005 req-b101
+09:17:28 WAT (08:17:28Z) | Beneficiary update UNIV-110 to ALT-909, bursary.ops sess-b927 req-f7a1 | E03 PORT-006, corroborated E04 WEB-007
+09:17:30 WAT | After snapshot shows ALT-909 v42, before E05 08:55 WAT showed UNIV-110 v40 | Verified E06 and E05
+09:24:12 to 09:24:16 WAT | Suspect msg-843 accepted and delivered, SPF FAIL DMARC FAIL | E08 MAIL-002 MAIL-003 plus E01
+09:37:05 WAT | Recipient report of msg-843 | E08 MAIL-006, matches brief 09:37 report
+
+Limits: clocks unvalidated, session and account names are not identity proof, client IP seen via proxy 198.51.100.25, 203.0.113.45 may be NAT or shared, E02 mfa_status_recorded is NOT_CAPTURED throughout.
+
+4. Findings and limits (2-4 sentences expanded)
+Observed facts: Records support two portal changes on 12 Oct: an authorised banner change under CHG-217, and a recorded beneficiary change to ALT-909 in the same ticket number that E07 expressly excludes without separate approval. No separate approval is supplied. The suspect email followed shortly after but is not technically linked to the edit session.
+Alternative explanation or uncertainty: Authorisation record may be incomplete, or credential sharing, misuse after the failed logins, or admin error is possible. Without a transaction ledger, full mail server image, proxy NAT logs, endpoint data, and complete change history, authorship, intent, and loss cannot be established.
+Additional evidence needed: change-control signatures and ALT-909 approval, full auth and MFA logs, proxy logs for 203.0.113.45, portal and mail server forensic images, transaction ledger, and witness accounts.
+
+5. Evidence handling and recommendations
+Custody/documentation issue: E09 CUST-002 transfer ICT Triage to Forensic Desk at 10:19 WAT has blank receiving_ack. CUST-001 has RT and CUST-003 has FS. The missing receipt breaks continuity. Needed: receiver name, time, hash check, signature.
+Immediate preservation action: Freeze portal config read-only, preserve all logs, ledger, mail spool, proxy logs, and take forensic images. Limit admin access to controlled handling.
+Forensic readiness improvement: Central tamper-evident logging with synced time, enforce and log MFA, system block for out-of-scope edits, auto hash manifest at collection.
+Legal or ethical safeguard (Nigeria): Evidence Act 2011 as amended on reliability of electronic records, Cybercrimes Act 2015 as amended on unauthorised access and preservation, Nigeria Data Protection Act 2023 to minimise personal data and use lawful basis. Technical hash match alone does not establish admissibility, authorship, or lawful acquisition.

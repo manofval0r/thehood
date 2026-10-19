@@ -1,0 +1,20 @@
+CHANGE TICKET: CHG-217
+Organisation: Fictional Westbridge University, Nigeria
+Raised: 2026-10-11 16:42 WAT
+Approved: 2026-10-11 17:00 WAT
+Approved maintenance window: 2026-10-12 09:00 to 09:30 WAT
+Requester: Finance Operations Team (training role)
+Authoriser: ICT Change Coordinator (training role)
+
+APPROVED SCOPE
+Update the student tuition portal banner from
+"Pay via student portal" to "Use approved student gateway".
+
+OUT OF SCOPE
+Do not change the payment gateway endpoint or beneficiary reference.
+Any change to the beneficiary reference requires separate authorisation.
+
+NOTES
+This export contains a ticket record, not an independently verified
+signature or a complete change-control history. The existence of this
+ticket does not establish who performed subsequent system actions.

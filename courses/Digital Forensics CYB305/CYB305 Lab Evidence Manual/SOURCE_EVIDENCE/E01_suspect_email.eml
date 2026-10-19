@@ -1,0 +1,19 @@
+From: "Student Accounts" <bursary@fees-notice.example>
+Reply-To: <help@portal-fees.example>
+To: <student001@example.org>
+Date: Mon, 12 Oct 2026 09:24:11 +0100
+Message-ID: <msg-843@fees-notice.example>
+Subject: Payment instructions for tuition registration
+Return-Path: <outbound@fees-notice.example>
+Received: from outbound.fees-notice.example ([192.0.2.62]) by mail.training.example with ESMTP; Mon, 12 Oct 2026 09:24:12 +0100
+Authentication-Results: mail.training.example; spf=fail smtp.mailfrom=fees-notice.example; dkim=none; dmarc=fail header.from=fees-notice.example
+Content-Type: text/plain; charset=UTF-8
+
+Dear Student,
+The student payment route has been updated. Please verify your account
+at https://fees-notice.example/student/confirm before 11:30 WAT today.
+Do not use the previous payment instructions until verification ends.
+
+Student Accounts
+
+[Classroom simulation: header fields were created for teaching and are not independently authenticated.]

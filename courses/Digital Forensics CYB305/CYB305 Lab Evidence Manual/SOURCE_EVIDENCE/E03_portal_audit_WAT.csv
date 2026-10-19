@@ -1,0 +1,14 @@
+event_id,timestamp_wat,account,session_id,action,old_value,new_value,request_id,ticket_ref,outcome
+PORT-001,2026-10-12T09:04:45+01:00,it.support,sess-it31,VIEW_BANNER,,,req-a100,CHG-217,OK
+PORT-002,2026-10-12T09:08:10+01:00,bursary.ops,sess-b812,VIEW_PAYMENT_SETTINGS,,,req-a103,,OK
+PORT-003,2026-10-12T09:10:03+01:00,it.support,sess-it31,UPDATE_BANNER,Pay via student portal,Use approved student gateway,req-a107,CHG-217,OK
+PORT-004,2026-10-12T09:14:09+01:00,bursary.ops,sess-b927,OPEN_ADMIN_DASHBOARD,,,req-b101,,OK
+PORT-005,2026-10-12T09:16:02+01:00,bursary.ops,sess-b927,VIEW_PAYMENT_SETTINGS,,,req-b105,,OK
+PORT-006,2026-10-12T09:17:28+01:00,bursary.ops,sess-b927,UPDATE_BENEFICIARY_REFERENCE,PAYEE-REF-UNIV-110,PAYEE-REF-ALT-909,req-f7a1,CHG-217,OK
+PORT-007,2026-10-12T09:18:14+01:00,bursary.ops,sess-b927,VIEW_PAYMENT_SETTINGS,,,req-b109,,OK
+PORT-008,2026-10-12T09:19:54+01:00,it.support,sess-it32,VIEW_BANNER,,,req-c011,,OK
+PORT-009,2026-10-12T09:20:05+01:00,finance.audit,sess-fa55,EXPORT_REPORT,,,req-c021,,OK
+PORT-010,2026-10-12T09:22:10+01:00,bursary.ops,sess-b927,VIEW_PAYMENT_SETTINGS,,,req-b121,,OK
+PORT-011,2026-10-12T09:29:02+01:00,student.demo,sess-st11,TUITION_PAGE_VIEW,,,req-t033,,OK
+PORT-012,2026-10-12T09:36:51+01:00,it.support,sess-it32,VIEW_PAYMENT_SETTINGS,,,req-c067,,OK
+PORT-013,2026-10-12T09:44:40+01:00,it.support,sess-it32,FLAG_PAYMENT_REVIEW,,,req-c091,,OK
