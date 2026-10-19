@@ -99,7 +99,14 @@ export function Wordmark({
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
       <NutmMark size={size} />
-      <span className="flex flex-col leading-none">
+      {/*
+        data-wordmark-text is a stable hook for callers that want to drop the
+        words and keep the mark. It cannot be done with a bare descendant
+        selector: this component's root element is itself a span, so
+        `[&_span]` matches the whole wordmark and hides everything, the mark
+        included.
+      */}
+      <span data-wordmark-text className="flex flex-col leading-none">
         <span className={cn("font-bold tracking-tight text-foreground", text)}>
           Cybersecurity 300L
         </span>

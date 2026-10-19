@@ -97,6 +97,44 @@ Everything now derives from the manifest: `SCHEDULE` in `src/lib/schedule.ts`
 emits both the primary slot and any extras, and the timetable, the countdowns
 and the "how many sessions in this room" figures all read it.
 
+## Mobile
+
+Two things measured on a real 375px viewport that are worth keeping:
+
+**The navbar has no hamburger.** The links and the countdown are inline, in one
+horizontally scrolling rail, at every width. A phone that hides five links and
+a live countdown behind a tap is a phone you have to operate before it can
+navigate.
+
+The countdown is pinned outside that rail so it can never be scrolled off: it
+is the reason a student checks the bar, and "scroll to find out when your class
+is" is a bad trade for "it is always there". On scroll the wordmark collapses
+and the links slide into the space it frees.
+
+The arithmetic behind that, at 375px with 307px of usable bar:
+
+```
+wordmark lockup   170px   with the countdown that is 298 of 307,
+countdown         128px   which left a one-pixel gap for five links
+NUTM mark alone    30px   leaves 141px of rail at the top, 171px scrolled
+```
+
+So below `sm` the wordmark shows only the NUTM mark and the words return at
+640px. That is the same text that collapses on scroll, just starting earlier,
+because a phone has no room for it at any point. The hook is
+`data-wordmark-text`, because the Wordmark's own root element is a span and a
+bare `[&_span]` selector hides the whole thing including the mark.
+
+The navbar flip clock is `clamp(1.15rem, 2.9vw, 1.7rem)`. At a fixed 1.7rem the
+six flaps alone were 150px, most of a phone's width.
+
+**Wide tables scroll, and say so.** `TableFrame` tracks its own overflow and
+puts a fade on whichever edge has more content past it, plus a line of
+instruction while that is true. `overflow-x-auto` alone is invisible: a table
+wider than the screen looks exactly like a table that has been cut off. The
+registration list also lost its serial-number column, which cost 3.5rem on a
+phone, and the code column took that width instead so no course code wraps.
+
 ## The timetable, two ways
 
 **Grid** is a real table, because a week of teaching is a lookup and a lookup

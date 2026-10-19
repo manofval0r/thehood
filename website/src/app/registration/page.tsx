@@ -122,10 +122,12 @@ export default function RegistrationPage() {
         <TableFrame>
           <DataTable>
             <Thead>
-              <Th width="3.5rem" align="right">
-                #
-              </Th>
-              <Th width="9rem">Code</Th>
+              {/* No serial-number column. It was costing 3.5rem on a phone,
+                  which is exactly the width the course code needed: at 375px
+                  the code was the one cell that had to wrap, and a code that
+                  wraps cannot be read aloud or copied. Nothing is lost by
+                  dropping it, because the list is short and sorted. */}
+              <Th width="11rem">Code</Th>
               <Th>Course title</Th>
               <Th width="6rem">Programme</Th>
               <Th width="5rem" align="right">
@@ -136,17 +138,14 @@ export default function RegistrationPage() {
               </Th>
             </Thead>
             <tbody>
-              {COURSES.map((c, i) => {
+              {COURSES.map((c) => {
                 const count = c.resources.length;
                 return (
                   <Tr key={c.code}>
-                    <Td numeric align="right" className="text-muted">
-                      {i + 1}
-                    </Td>
-                    <Td>
+                    <Td className="whitespace-nowrap">
                       <Link
                         href={`/courses/${c.slug}`}
-                        className="pressable rounded font-mono text-[12px] font-bold text-accent underline-offset-4 hover:underline"
+                        className="pressable rounded font-mono text-[13px] font-bold text-accent underline-offset-4 hover:underline"
                       >
                         {c.code}
                       </Link>
@@ -179,7 +178,8 @@ export default function RegistrationPage() {
                 );
               })}
               <tr className="border-t border-border-strong bg-surface-raised">
-                <td colSpan={4} className="px-4 py-3.5 text-[12px] font-medium uppercase tracking-[0.12em] text-foreground">
+                {/* Three columns, not four: the serial-number column is gone. */}
+                <td colSpan={3} className="px-4 py-3.5 text-[12px] font-medium uppercase tracking-[0.12em] text-foreground">
                   Total
                 </td>
                 <Td numeric align="right" strong>
@@ -191,7 +191,7 @@ export default function RegistrationPage() {
           </DataTable>
         </TableFrame>
         <p className="mt-4 text-[13px] text-muted-foreground">
-          Course codes link to that course&rsquo;s resource page. A dash in the
+          Course codes link to that course&rsquo;s resource page. A zero in the
           files column means a lecturer hasn&rsquo;t uploaded anything yet.
         </p>
       </section>

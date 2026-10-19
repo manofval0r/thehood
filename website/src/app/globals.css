@@ -564,9 +564,19 @@ body {
 }
 
 .flip-clock-nav {
-  --flap-h: 1.7rem;
+  /* Responsive because the navbar clock competes for horizontal space with
+     five links and a wordmark. At 1.7rem the six flaps alone were 150px, which
+     is most of a phone's width. Scaled by viewport it stays legible on a
+     laptop and leaves the links room on a handset. */
+  --flap-h: clamp(1.15rem, 2.9vw, 1.7rem);
   --flap-w: calc(var(--flap-h) * 0.92);
-  --flip-gap: 1.5px;
+  --flip-gap: 1px;
+}
+
+/* The colon is punctuation between groups. At navbar size the space it needs
+   costs more than it explains. */
+.flip-clock-nav .flip-colon {
+  display: none;
 }
 
 .flip-group {
