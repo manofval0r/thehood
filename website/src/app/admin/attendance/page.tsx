@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AttendanceGrid, type GridDate } from "@/components/AttendanceGrid";
-import { isAdmin } from "@/lib/admin-session";
+import { currentStaff } from "@/lib/admin-session";
 import {
   getMarks,
   getRoster,
@@ -69,7 +69,7 @@ async function Workspace({
 }) {
   await connection();
 
-  if (!(await isAdmin())) {
+  if (!(await currentStaff())) {
     return (
       <div className="mt-8 rounded-lg border border-border bg-surface p-5">
         <h2 className="text-[15px] font-semibold text-foreground">

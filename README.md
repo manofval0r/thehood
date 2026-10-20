@@ -465,6 +465,48 @@ nobody has got to is not in the denominator, so an unfinished week never
 becomes a bad mark for a student. Excused sessions are not in the denominator
 either.
 
+### Who can get in
+
+Every person on the staff list has a code **of their own**. The sign-in is a
+name and a code, not one shared secret for the department, because:
+
+- A shared code cannot say who did what. `marked_by` used to be the word
+  "staff" on every row, which means an attendance record that cannot be
+  argued with. It now carries the name of the person who marked it, and the
+  correction history carries it too.
+- A shared code cannot be taken back from one person without taking it back
+  from all of them. Per-person codes can be locked out individually.
+
+**The code is never stored.** What is kept is a scrypt hash and the salt it
+was made with, so reading the table cannot hand over a way in. The code is
+shown once, when it is made, and never again: there is no way to read
+somebody's code back and no way to reset it in place. A lost code means a new
+code, and the old one stops working.
+
+`tools/add-staff.js "Name" [email]` makes the first one from the command
+line. After that, anyone on the list can add colleagues from the staff page.
+
+`ADMIN_SECRET` is **not** a way in. It signs the session cookie and nothing
+else, so rotating it ends every session at once without changing anybody's
+code. It is the key to the door, not a key to the building.
+
+### What else protects it
+
+- The code is compared with a constant-time check, so a wrong guess cannot be
+  narrowed down by timing the response.
+- Five wrong guesses from one address locks that address out for fifteen
+  minutes. The counters live in the instance's memory, so on a serverless
+  deployment the lockout is per instance rather than global.
+- The session cookie is httpOnly, signed, and expires after twelve hours. The
+  person in it is checked against the staff list on every request, so
+  removing someone ends their access straight away rather than whenever
+  their cookie happens to expire.
+- Every Server Action re-checks the session itself, because an action is
+  reachable by a direct POST and a check in the interface is not a
+  protection.
+- The area is excluded from the sitemap and from `robots.txt`, carries
+  `noindex`, and has no link in the site navigation.
+
 ### Configuration
 
 Three environment variables, on the deployment and in `.env.local` locally:
@@ -473,13 +515,12 @@ Three environment variables, on the deployment and in `.env.local` locally:
 |---|---|
 | `SUPABASE_URL` | The project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | The service role key. Server-side only, never exposed |
-| `ADMIN_SECRET` | The shared staff code |
+| `ADMIN_SECRET` | Signs the session cookie. Not a way in, and not anybody's code |
 
-`ADMIN_SECRET` is the only credential for the whole area. Five wrong guesses
-from one address locks that address out for fifteen minutes. The lockout
-counters live in the instance's memory, so on a serverless deployment they are
-per instance rather than global, which is weaker than a shared store and worth
-knowing about.
+Five wrong guesses from one address locks that address out for fifteen
+minutes. The lockout counters live in the instance's memory, so on a
+serverless deployment they are per instance rather than global, which is
+weaker than a shared store and worth knowing about.
 
 ### Where it is not yet
 

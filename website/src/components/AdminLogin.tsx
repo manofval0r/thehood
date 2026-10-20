@@ -6,9 +6,9 @@ import { login, type LoginState } from "@/app/admin/actions";
 /**
  * The way in.
  *
- * One code, shared by the department. There are no accounts and no names,
- * because there is nobody to name: the person filling a box is whoever is
- * standing in front of the screen on that day.
+ * A name and a code of your own. There are no shared accounts, because a
+ * shared account cannot say who did what: an attendance record that says
+ * "staff" cannot be argued with, and an argument needs a name.
  */
 export function AdminLogin() {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(
@@ -19,23 +19,39 @@ export function AdminLogin() {
   return (
     <form action={formAction} className="mt-8 max-w-sm">
       <label
-        htmlFor="secret"
+        htmlFor="name"
         className="block text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
       >
-        Staff code
+        Your name
       </label>
       <input
-        id="secret"
-        name="secret"
+        id="name"
+        name="name"
+        type="text"
+        autoComplete="username"
+        required
+        className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground outline-none focus-visible:border-accent"
+        placeholder="The name you are on the staff list under"
+      />
+
+      <label
+        htmlFor="code"
+        className="mt-4 block text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
+      >
+        Your code
+      </label>
+      <input
+        id="code"
+        name="code"
         type="password"
         autoComplete="current-password"
         required
-        className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground outline-none focus-visible:border-accent"
-        placeholder="The code the department was given"
+        className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[14px] tracking-[0.12em] text-foreground outline-none focus-visible:border-accent"
+        placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
       />
 
       {state.error ? (
-        <p role="alert" className="mt-2 text-[12.5px] text-foreground">
+        <p role="alert" className="mt-3 text-[12.5px] text-foreground">
           {state.error}
         </p>
       ) : null}
@@ -50,7 +66,8 @@ export function AdminLogin() {
 
       <p className="mt-4 text-[12px] leading-relaxed text-muted">
         Five wrong guesses from the same address locks that address out for
-        fifteen minutes.
+        fifteen minutes. If you have lost your code, ask whoever made it to
+        give you a new one.
       </p>
     </form>
   );

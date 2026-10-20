@@ -1,5 +1,10 @@
 import "server-only";
 
+import { rest } from "@/lib/rest";
+
+/** Whether the store is reachable at all. */
+export { isConfigured } from "@/lib/rest";
+
 /**
  * The attendance store.
  *
@@ -13,9 +18,6 @@ import "server-only";
  * functions, and hand-written requests keep the dependency list short and the
  * request shape visible.
  */
-
-const URL = process.env.SUPABASE_URL;
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export interface RosterStudent {
   matric: string;
@@ -34,53 +36,12 @@ export interface Mark {
   marked_at: string | null;
 }
 
-/** Whether the store is reachable at all. The admin area says so plainly. */
-export function isConfigured(): boolean {
-  return Boolean(URL && KEY);
-}
-
-function configError(): Error {
-  return new Error(
-    "Attendance is not configured: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set."
-  );
-}
-
-async function request<T>(
-  path: string,
-  init: RequestInit & { prefer?: string } = {}
-): Promise<T> {
-  if (!URL || !KEY) throw configError();
-
-  const { prefer, ...rest } = init;
-  const res = await fetch(`${URL}/rest/v1/${path}`, {
-    ...rest,
-    headers: {
-      apikey: KEY,
-      Authorization: `Bearer ${KEY}`,
-      "Content-Type": "application/json",
-      ...(prefer ? { Prefer: prefer } : {}),
-      ...(rest.headers ?? {}),
-    },
-    // The store is the live record. Never serve a stale copy of a mark.
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Attendance store returned ${res.status}: ${body.slice(0, 300)}`);
-  }
-
-  if (res.status === 204) return undefined as T;
-  const text = await res.text();
-  return (text ? JSON.parse(text) : undefined) as T;
-}
-
 /** Every student on the roll, for one course or for all of them. */
 export async function getRoster(course?: string): Promise<RosterStudent[]> {
   const query = course
     ? `roster?course=eq.${encodeURIComponent(course)}&select=matric,name,course&order=name`
     : "roster?select=matric,name,course&order=course,name";
-  const rows = await request<RosterStudent[]>(query);
+  const rows = await rest<RosterStudent[]>(query);
   return rows ?? [];
 }
 
@@ -94,15 +55,14 @@ export async function getMarks(
 
   // PostgREST spells a set filter as in.(a,b,c), with no operator inside.
   const dates = sessionDates.join(",");
-  const rows = await request<Mark[]>(
+  const rows = await rest<Mark[]>(
     `attendance?course=eq.${encodeURIComponent(course)}&session_date=in.(${dates})&select=*`
   );
 
   for (const row of rows ?? []) {
     out.set(`${row.session_date}|${row.matric}`, {
       ...row,
-      fill: row.fill === null ? null : Number(row.fill),
-    });
+      fill: row.fill === null ? null : Number(row.fill),    });
   }
   return out;
 }
@@ -122,17 +82,16 @@ export async function setMark(args: {
   excused: boolean;
   markedBy: string;
 }): Promise<void> {
-  await request("rpc/set_attendance", {
+  await rest("rpc/set_attendance", {
     method: "POST",
-    body: JSON.stringify({
+    body: ({
       p_course: args.course,
       p_session_date: args.sessionDate,
       p_matric: args.matric,
       p_fill: args.fill,
       p_excused: args.excused,
       p_marked_by: args.markedBy,
-    }),
-  });
+    }),  });
 }
 
 /** Mark a whole column at once, for "everyone present" or "clear this class". */
@@ -145,17 +104,16 @@ export async function setMarksBulk(args: {
   markedBy: string;
 }): Promise<void> {
   if (args.matrics?.length === 0) return;
-  await request("rpc/set_attendance_bulk", {
+  await rest("rpc/set_attendance_bulk", {
     method: "POST",
-    body: JSON.stringify({
+    body: ({
       p_course: args.course,
       p_session_date: args.sessionDate,
       p_matric: args.matrics,
       p_fill: args.fill,
       p_excused: args.excused,
       p_marked_by: args.markedBy,
-    }),
-  });
+    }),  });
 }
 
 /** Put students on the roll. Existing matrics keep their name. */
@@ -163,16 +121,16 @@ export async function addStudents(
   students: { matric: string; name: string; course: string }[]
 ): Promise<void> {
   if (students.length === 0) return;
-  await request("roster", {
+  await rest("roster", {
     method: "POST",
     prefer: "resolution=merge-duplicates,return=minimal",
-    body: JSON.stringify(students),
+    body: students,
   });
 }
 
 /** Take a student off the roll. Their marks stay, so the history survives. */
 export async function removeStudent(matric: string): Promise<void> {
-  await request(`roster?matric=eq.${encodeURIComponent(matric)}`, {
+  await rest(`roster?matric=eq.${encodeURIComponent(matric)}`, {
     method: "DELETE",
   });
 }
@@ -197,7 +155,7 @@ export interface Standing {
 export async function getStanding(
   course: string
 ): Promise<Record<string, Standing>> {
-  const rows = await request<
+  const rows = await rest<
     { matric: string; fill: number | null; excused: boolean }[]
   >(
     `attendance?course=eq.${encodeURIComponent(course)}&select=matric,fill,excused`
@@ -235,7 +193,7 @@ export async function getStanding(
 export async function getCourseSummary(
   course: string
 ): Promise<{ students: number; sessions: number; lastMarkedAt: string | null }> {
-  const rows = await request<
+  const rows = await rest<
     { session_date: string; marked_at: string | null }[]
   >(
     `attendance?course=eq.${encodeURIComponent(course)}&select=session_date,marked_at`
@@ -262,7 +220,7 @@ export async function getCourseSummary(
 export async function getAllSummaries(): Promise<
   Record<string, { sessions: number; lastMarkedAt: string | null }>
 > {
-  const rows = await request<{ course: string; session_date: string; marked_at: string | null }[]>(
+  const rows = await rest<{ course: string; session_date: string; marked_at: string | null }[]>(
     "attendance?select=course,session_date,marked_at"
   );
 
@@ -303,7 +261,7 @@ export async function getHistory(
     changed_by: string | null;
   }[]
 > {
-  const rows = await request<
+  const rows = await rest<
     {
       matric: string;
       old_fill: number | null;

@@ -13,13 +13,14 @@ import { deleteFile, MAX_UPLOAD_BYTES, uploadFile } from "@/lib/files";
 import { COURSES } from "@/lib/resources";
 import {
   clearFailures,
+  currentStaff,
   endSession,
-  isAdmin,
   loginBlocked,
   recordFailure,
-  secretMatches,
   startSession,
 } from "@/lib/admin-session";
+import { addStaff, findStaff, listStaff, removeStaff, setStaffActive as setStaffActiveRow, touchStaff, verifySecret } from "@/lib/staff";
+import type { StaffMember } from "@/lib/staff";
 
 /**
  * Every action re-checks the session itself.
@@ -29,10 +30,12 @@ import {
  * protection.
  */
 
-async function requireAdmin(): Promise<void> {
-  if (!(await isAdmin())) {
+async function requireStaff(): Promise<StaffMember> {
+  const member = await currentStaff();
+  if (!member) {
     throw new Error("Not signed in.");
   }
+  return member;
 }
 
 /** The address a login attempt came from, for the throttle. */
@@ -51,7 +54,8 @@ export async function login(
   _prev: LoginState,
   formData: FormData
 ): Promise<LoginState> {
-  const candidate = String(formData.get("secret") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const code = String(formData.get("code") ?? "").trim();
   const key = await attemptKey();
 
   if (loginBlocked(key)) {
@@ -60,13 +64,17 @@ export async function login(
     };
   }
 
-  if (!secretMatches(candidate)) {
+  const member = await findStaff(name);
+
+  if (!member || !member.active || !verifySecret(code, member.secret_hash)) {
     recordFailure(key);
-    return { error: "That is not the staff code." };
+    return { error: "That name and code do not match." };
   }
 
   clearFailures(key);
-  await startSession();
+  await startSession(member.id);
+  await touchStaff(member.id);
+
   // The cookie is set, but the page the reader is looking at was rendered
   // before they had it. Without this the action returns only its value, the
   // route is not re-rendered, and the reader is left looking at the login
@@ -92,8 +100,8 @@ export interface MarkPayload {
 
 /** Mark one box. */
 export async function markBox(payload: MarkPayload): Promise<void> {
-  await requireAdmin();
-  await setMark({ ...payload, markedBy: "staff" });
+  const staff = await requireStaff();
+  await setMark({ ...payload, markedBy: staff.name });
   refresh();
 }
 
@@ -105,8 +113,8 @@ export async function markClass(payload: {
   fill: number | null;
   excused: boolean;
 }): Promise<void> {
-  await requireAdmin();
-  await setMarksBulk({ ...payload, markedBy: "staff" });
+  const staff = await requireStaff();
+  await setMarksBulk({ ...payload, markedBy: staff.name });
   refresh();
 }
 
@@ -126,7 +134,7 @@ export async function addToRoster(
   _prev: RosterState,
   formData: FormData
 ): Promise<RosterState> {
-  await requireAdmin();
+  const staff = await requireStaff();
 
   const course = String(formData.get("course") ?? "").trim();
   const raw = String(formData.get("students") ?? "");
@@ -166,7 +174,7 @@ export async function addToRoster(
 
 /** Take a student off the roll. Their marks stay. */
 export async function removeFromRoster(matric: string): Promise<void> {
-  await requireAdmin();
+  const staff = await requireStaff();
   await removeStudent(matric);
   revalidatePath("/admin");
   revalidatePath("/admin/attendance");
@@ -191,7 +199,7 @@ export async function uploadCourseFile(
   _prev: UploadState,
   formData: FormData
 ): Promise<UploadState> {
-  await requireAdmin();
+  const staff = await requireStaff();
 
   const course = String(formData.get("course") ?? "").trim();
   const file = formData.get("file");
@@ -210,7 +218,7 @@ export async function uploadCourseFile(
     String(formData.get("title") ?? "").trim() || file.name.replace(/\.[^.]+$/, "");
 
   try {
-    await uploadFile({ course, title, file, uploadedBy: "staff" });
+    await uploadFile({ course, title, file, uploadedBy: staff.name });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "The upload failed." };
   }
@@ -228,7 +236,7 @@ export async function uploadCourseFile(
 
 /** Take an uploaded file away. */
 export async function removeCourseFile(id: string): Promise<void> {
-  await requireAdmin();
+  const staff = await requireStaff();
   try {
     await deleteFile(id);
   } catch (e) {
@@ -244,4 +252,66 @@ export async function removeCourseFile(id: string): Promise<void> {
 /** The slug for a course code, for the path to revalidate. */
 function courseSlug(code: string): string {
   return COURSES.find((c) => c.code === code)?.slug ?? "";
+}
+
+/* ---------------------------------------------------------------- staff */
+
+export interface StaffState {
+  error?: string;
+  /** The code, shown once. Only a hash of it is kept. */
+  code?: string;
+  name?: string;
+}
+
+/**
+ * Put someone on the staff list.
+ *
+ * Their code is made here and shown once. It cannot be read back afterwards,
+ * because only a hash of it is kept, so if it is lost a new one is made and
+ * the old one stops working.
+ */
+export async function addStaffMember(
+  _prev: StaffState,
+  formData: FormData
+): Promise<StaffState> {
+  await requireStaff();
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!name) return { error: "Who is it for?" };
+  if (email && !email.includes("@")) {
+    return { error: "That does not look like an email address." };
+  }
+
+  const existing = await listStaff();
+  if (
+    existing.some(
+      (m) => m.name.toLowerCase() === name.toLowerCase() && m.active
+    )
+  ) {
+    return { error: "Someone with that name is already on the list." };
+  }
+
+  const { member, code } = await addStaff(name, email || undefined);
+  revalidatePath("/admin");
+
+  return { code, name: member.name };
+}
+
+/** Let someone back in, or lock them out, without making them a new person. */
+export async function setStaffActive(
+  id: string,
+  active: boolean
+): Promise<void> {
+  await requireStaff();
+  await setStaffActiveRow(id, active);
+  revalidatePath("/admin");
+}
+
+/** Take someone off the list. Their marks stay where they are. */
+export async function removeStaffMember(id: string): Promise<void> {
+  await requireStaff();
+  await removeStaff(id);
+  revalidatePath("/admin");
 }

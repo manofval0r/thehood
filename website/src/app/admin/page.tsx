@@ -5,14 +5,16 @@ import { connection } from "next/server";
 import { AdminLogin } from "@/components/AdminLogin";
 import { FileManager } from "@/components/FileManager";
 import { RosterManager } from "@/components/RosterManager";
+import { StaffManager } from "@/components/StaffManager";
 import { logout } from "@/app/admin/actions";
-import { isAdmin } from "@/lib/admin-session";
+import { currentStaff } from "@/lib/admin-session";
 import {
   getAllSummaries,
   getRoster,
   isConfigured,
 } from "@/lib/attendance-db";
 import { getAllFiles } from "@/lib/files";
+import { listStaff } from "@/lib/staff";
 import { COURSES } from "@/lib/resources";
 
 export const metadata: Metadata = {
@@ -44,9 +46,10 @@ export default function AdminPage() {
           The staff area
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-          Attendance is marked here and nowhere else. One code is shared by the
-          department. Nothing on this page is public, and nothing on this page
-          is indexed.
+          Attendance is marked here and nowhere else. Everyone on the staff
+          list has a code of their own, so a mark carries a name and a code can
+          be taken back from one person without touching anybody else. Nothing
+          on this page is public, and nothing on this page is indexed.
         </p>
       </header>
 
@@ -70,7 +73,8 @@ function AreaSkeleton() {
 async function AdminArea() {
   await connection();
 
-  if (!(await isAdmin())) {
+  const me = await currentStaff();
+  if (!me) {
     return <AdminLogin />;
   }
 
@@ -81,7 +85,7 @@ async function AdminArea() {
           The attendance store is not configured
         </h2>
         <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-          The code was accepted, but this deployment has no database behind it.
+          You are signed in, but this deployment has no database behind it.
           Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and the rest of this
           area will fill in.
         </p>
@@ -89,10 +93,11 @@ async function AdminArea() {
     );
   }
 
-  const [roster, summaries, files] = await Promise.all([
+  const [roster, summaries, files, staff] = await Promise.all([
     getRoster(),
     getAllSummaries(),
     getAllFiles(),
+    listStaff(),
   ]);
 
   const courseOptions = COURSES.map((c) => ({ code: c.code, title: c.title }));
@@ -144,6 +149,8 @@ async function AdminArea() {
         </ul>
       </section>
 
+      <StaffManager staff={staff} me={me.id} />
+
       <FileManager
         courses={courseOptions}
         files={files.map((f) => ({
@@ -158,7 +165,10 @@ async function AdminArea() {
 
       <RosterManager students={roster} courses={courseOptions} />
 
-      <form action={logout} className="mt-12">
+      <form action={logout} className="mt-12 flex items-center gap-3">
+        <p className="text-[12.5px] text-muted">
+          Signed in as {me.name}.
+        </p>
         <button
           type="submit"
           className="pressable rounded-md border border-border px-3 py-1.5 text-[12.5px] text-muted-foreground hover:text-foreground"

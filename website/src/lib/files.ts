@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
+import { rest, storage, storeConfig } from "@/lib/rest";
 import { COURSES } from "@/lib/resources";
 
 /**
@@ -41,33 +42,26 @@ const BUCKET = "course-files";
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
 function base(): { url: string; key: string } {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
+  const config = storeConfig();
+  if (!config) {
     throw new Error(
       "The file store is not configured: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set."
     );
   }
-  return { url, key };
+  return config;
 }
 
 export function isConfigured(): boolean {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return storeConfig() !== null;
 }
 
 /* --------------------------------------------------------------- reading */
 
 async function readIndex(): Promise<CourseFile[]> {
-  const { url, key } = base();
-  const res = await fetch(`${url}/rest/v1/files?select=*&order=uploaded_at.desc`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error(`The file index returned ${res.status}`);
-  }
-  const rows = await res.json();
-  return (rows ?? []) as CourseFile[];
+  const rows = await rest<CourseFile[]>(
+    "files?select=*&order=uploaded_at.desc"
+  );
+  return rows ?? [];
 }
 
 /**
@@ -227,8 +221,6 @@ export async function uploadFile(args: {
   file: File;
   uploadedBy: string;
 }): Promise<CourseFile> {
-  const { url, key } = base();
-
   if (args.file.size > MAX_UPLOAD_BYTES) {
     throw new Error(
       `That file is ${(args.file.size / 1024 / 1024).toFixed(1)} MB. The limit is 25 MB.`
@@ -238,11 +230,9 @@ export async function uploadFile(args: {
   const path = `${slugFor(args.course)}/${Date.now()}-${safeName(args.file.name)}`;
   const bytes = await args.file.arrayBuffer();
 
-  const res = await fetch(`${url}/storage/v1/object/${BUCKET}/${path}`, {
+  const res = await storage(`object/${BUCKET}/${path}`, {
     method: "POST",
     headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
       "Content-Type": args.file.type || "application/octet-stream",
       "x-upsert": "false",
     },
@@ -265,24 +255,12 @@ export async function uploadFile(args: {
     uploaded_by: args.uploadedBy,
   };
 
-  const insert = await fetch(`${url}/rest/v1/files`, {
+  const created = await rest<CourseFile[]>("files", {
     method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-    },
-    body: JSON.stringify(row),
+    body: row,
+    prefer: "return=representation",
   });
 
-  if (!insert.ok) {
-    throw new Error(
-      `The file was stored but could not be indexed: ${await insert.text()}`
-    );
-  }
-
-  const created = await insert.json();
   return created[0] as CourseFile;
 }
 
@@ -294,16 +272,11 @@ export async function uploadFile(args: {
  * public folder with nothing pointing at it.
  */
 export async function deleteFile(id: string): Promise<void> {
-  const { url, key } = base();
-
-  const res = await fetch(
-    `${url}/rest/v1/files?id=eq.${encodeURIComponent(id)}&select=*`,
-    { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+  const rows = await rest<(CourseFile & { storage_path: string | null })[]>(
+    `files?id=eq.${encodeURIComponent(id)}&select=*`
   );
-  if (!res.ok) throw new Error(`The file index returned ${res.status}`);
 
-  const rows = await res.json();
-  const row = rows?.[0] as CourseFile | undefined;
+  const row = rows?.[0];
   if (!row) return;
 
   if (row.source !== "upload" || !row.storage_path) {
@@ -312,39 +285,28 @@ export async function deleteFile(id: string): Promise<void> {
     );
   }
 
-  const del = await fetch(
-    `${url}/storage/v1/object/${BUCKET}/${row.storage_path
+  const del = await storage(
+    `object/${BUCKET}/${row.storage_path
       .split("/")
       .map(encodeURIComponent)
       .join("/")}`,
-    { method: "DELETE", headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    { method: "DELETE" }
   );
   if (!del.ok && del.status !== 404) {
     throw new Error(`The file could not be removed: ${del.status}`);
   }
 
-  const drop = await fetch(
-    `${url}/rest/v1/files?id=eq.${encodeURIComponent(id)}`,
-    { method: "DELETE", headers: { apikey: key, Authorization: `Bearer ${key}` } }
-  );
-  if (!drop.ok) throw new Error(`The index row could not be removed: ${drop.status}`);
+  await rest(`files?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
 /** Makes sure the bucket exists. Safe to run again. */
 export async function ensureBucket(): Promise<void> {
-  const { url, key } = base();
-  const res = await fetch(`${url}/storage/v1/bucket/${BUCKET}`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
-  });
-  if (res.ok) return;
+  const head = await storage(`bucket/${BUCKET}`);
+  if (head.ok) return;
 
-  const create = await fetch(`${url}/storage/v1/bucket`, {
+  const create = await storage("bucket", {
     method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       id: BUCKET,
       name: BUCKET,

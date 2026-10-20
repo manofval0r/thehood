@@ -164,11 +164,14 @@ week, and each cell is one box.
 
 ### The questions, answered
 
-1. **Identity.** One shared staff code, no accounts. Whoever knows the code is
-   staff for as long as the code is not rotated. The students themselves are
-   identified by matric number only.
-2. **Who marks.** The department, through the shared code. Every write is
-   recorded as `marked_by` and logged.
+1. **Identity.** One code per person, no accounts. The sign-in is a name and
+   a code, the code is kept only as a scrypt hash and shown once, and a mark
+   records the name of whoever made it. A shared code could not say who did
+   what, and could not be taken back from one person without taking it back
+   from all of them. The students themselves are identified by matric number
+   only.
+2. **Who marks.** The department, each member with a code of their own. Every
+   write is recorded as `marked_by` and logged.
 3. **Granularity.** One box per weekly meeting, which is what attendance
    thresholds are counted against. A course that meets twice has two columns a
    week, because the count of boxes has to match the count of classes.
