@@ -56,6 +56,7 @@ npm start        # serve the build
 | `/timeline` | Academic calendar with a draggable session rail, category filters, `.ics` download |
 | `/resources` | Papers, lecture channels, practice platforms and tools |
 | `/news` | Security headlines from eight feeds, fetched server-side and reissued hourly |
+| `/admin` | The staff area, behind one shared code. Mark attendance, manage the roll |
 | `/contact` | Who teaches each course, when and where, and how to reach them |
 | `/calendar.ics` | The whole session as an importable calendar file |
 | `/sitemap.xml`, `/robots.txt` | Generated from `src/app/` |
@@ -331,6 +332,85 @@ it is easy to get each one wrong and each one has a consequence:
 Run `node tools/probe-feeds.js` to re-check every candidate feed against the
 live network before editing `news-sources.ts`.
 
+## Attendance
+
+`/admin` is the staff area. It is behind one shared code, it is excluded from
+the sitemap and from `robots.txt`, and it has no link in the site navigation.
+The footer carries a quiet link to it, because staff need to be able to find
+it and students have no business in it.
+
+### The box
+
+The idea was that staff fill a box per class and the fill is the record. That
+is what it does, and the box is drawn in pixels like the rest of the site:
+
+| State | What it looks like | What it means |
+|---|---|---|
+| Not recorded | An empty outline | Nobody has marked this box |
+| Present | The box, filled | On class for the whole session |
+| Half | The box, filled halfway | On class for part of it |
+| Absent | A bright cross through the box | Not on class |
+| Excused | A flat bar across the box | Illness or death, not counted against them |
+
+The distinction between an empty box and a cross is the whole point of the
+feature. An empty box has not been marked yet and does not count against
+anyone. A cross is a verdict, and it is drawn so it can never be mistaken for
+the empty box beside it.
+
+### The data
+
+Three tables in Supabase project `thehood-cms`:
+
+- `roster` — matric number, name, course.
+- `attendance` — one row per course, session date and student. `fill` is a
+  level from 0 to 1 and is **nullable**: null means unmarked, which is not the
+  same as 0. `excused` is a third state, not a flavour of absent.
+- `attendance_log` — every change, with what it replaced.
+
+A mark and its log entry are written by one database function, so a change
+cannot be saved without its history.
+
+**Row level security is on, with no policies, and the tables are revoked from
+`anon` and `authenticated`.** The site reads them with the service role,
+server-side only. The build was checked to confirm the service key and the
+staff code appear in no client chunk.
+
+**The roster is in the database, not in the repository.** The site is public,
+and a student list committed to git is a student list published. Staff paste
+the roll in on the staff page, as one `matric, name` per line.
+
+### Standing
+
+The percentage is over the sessions that were actually marked. A session
+nobody has got to is not in the denominator, so an unfinished week never
+becomes a bad mark for a student. Excused sessions are not in the denominator
+either.
+
+### Configuration
+
+Three environment variables, on the deployment and in `.env.local` locally:
+
+| Variable | What it is |
+|---|---|
+| `SUPABASE_URL` | The project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | The service role key. Server-side only, never exposed |
+| `ADMIN_SECRET` | The shared staff code |
+
+`ADMIN_SECRET` is the only credential for the whole area. Five wrong guesses
+from one address locks that address out for fifteen minutes. The lockout
+counters live in the instance's memory, so on a serverless deployment they are
+per instance rather than global, which is weaker than a shared store and worth
+knowing about.
+
+### Where it is not yet
+
+- **The student view.** A student cannot see their own attendance yet. It
+  needs the real roster first, and the roster is the privacy decision that has
+  not been made yet: matric lookup, a name plus a matric, or a per-student
+  secret all expose different things.
+- **The admin CMS (P6).** The staff area covers attendance only. Uploading
+  files still means editing `resources.ts`.
+
 ## Data sources
 
 - `src/lib/resources.ts` — courses, their weekly sessions and their files. The
@@ -339,6 +419,9 @@ live network before editing `news-sources.ts`.
   published Unified Academic Calendar. `tools/check-calendar.js` validates it.
 - `src/lib/schedule.ts` — the teaching timetable, derived from the same course
   records, and used by the countdowns and by the timetable page.
+- `src/lib/attendance-db.ts` — the attendance store, read and written with the
+  Supabase service role over PostgREST. The schema lives in
+  `supabase/migrations/` and is applied with `supabase db push`.
 
 ## Study resources marks
 

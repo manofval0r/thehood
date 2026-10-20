@@ -32,6 +32,10 @@ const columns: { heading: string; links: FooterLink[] }[] = [
         href: "/docs/300 Level CyberSecurity Course Registration List .pdf",
         download: true,
       },
+      // Staff reach the attendance area from here. There is no link to it in
+      // the navigation, because the navigation is for students and the
+      // attendance area holds personal data.
+      { label: "Staff area", href: "/admin" },
     ],
   },
   {

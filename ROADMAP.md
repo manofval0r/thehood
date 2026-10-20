@@ -119,7 +119,7 @@ stray paragraph, no grouping. After:
 | P4 | Prospective-role resources | Next — link each role to the courses that feed it |
 | P5 | Events feed | Planned |
 | P6 | Admin CMS upload | Planned — replaces `resources.ts` with a real endpoint |
-| P7 | **Attendance** | Planned — see section 9. Filled boxes per class; depends on P6 and on an identity decision |
+| P7 | **Attendance** | **Done** — `/admin` behind one shared staff code. One box per class per student; the fill is the record (null is unmarked, 0 is absent, 0.5 is partial, excused is a third state). Supabase `thehood-cms`, RLS on with no policies, service role server-only. See section 9 |
 
 ## 8. Rules held throughout
 
@@ -133,7 +133,7 @@ stray paragraph, no grouping. After:
 - Every interactive element has a visible `:focus-visible` ring.
 - Icons carry meaning or are omitted; never decorative filler.
 
-## 9. Attendance (planned, not built)
+## 9. Attendance (built)
 
 **The idea, as given:** in the admin CMS, staff fill a box per class. What a
 student missed is inferred from which boxes are filled and which are not, and
@@ -146,48 +146,56 @@ entered anything yet". That distinction has to survive into the data, or the
 student-facing view will accuse people of missing classes that were never
 marked.
 
-### Shape it implies
+### What it became
 
-One row per (course, session date, student, fill level).
+The staff area lives at `/admin`, behind one shared code. The attendance grid
+is at `/admin/attendance`: rows are students, columns are the classes in a
+week, and each cell is one box.
 
-- `fill` is a **level, not a boolean**. "How much someone has been on class"
-  implies partial attendance is real, so a number from 0 to 1.
-- Unmarked is `null`, and `null` is not `0`. This is the whole ballgame.
-- Keyed by course and session date, not a running index, so a correction does
-  not renumber anything after it.
-- Excused is a third state, not a flavour of absent. Illness and death are
-  counted at a university and must not read the same as not turning up.
+- **The box is drawn in pixels, like everything else here.** No icons. An
+  unmarked box is an empty outline. An absent one carries a bright cross. A
+  partial mark fills the box to the level that was marked. An excuse is a flat
+  bar. The distinction between "nobody has marked this" and "this person was
+  not there" is visible before a word is read.
+- **The grid is flat.** It is a table, and tables on this site stay flat.
+- **Standing** is the percentage of the classes that were actually marked. A
+  session nobody marked is not in the denominator, because an unfinished week
+  must not become a bad mark for a student.
 
-### Questions to answer before any of it is built
+### The questions, answered
 
-1. **Identity.** There are no student accounts. Matric-number lookup, name plus
-   matric entry, or a roster per course each imply different data collection
-   and different privacy exposure. Decide this first: most of the rest follows
-   from it.
-2. **Who marks.** The lecturer of record for that session, or a department
-   admin. Lecturer-only follows whoever teaches, which is easier to run and
-   harder to chase up.
-3. **Granularity.** One box per weekly meeting, or one per block of lectures
-   inside a meeting. Blocks are faster to fill; meetings are what attendance
-   thresholds are counted against.
-4. **Visibility.** Own record only, or a class-level percentage too. The
-   aggregate is arguably the more useful half, and it needs no personal data, so
-   it could ship without any of the privacy work above.
-5. **Correction.** Whether a student can see that a mark was changed, and when.
-   A silently edited attendance record is worse than a wrong one.
+1. **Identity.** One shared staff code, no accounts. Whoever knows the code is
+   staff for as long as the code is not rotated. The students themselves are
+   identified by matric number only.
+2. **Who marks.** The department, through the shared code. Every write is
+   recorded as `marked_by` and logged.
+3. **Granularity.** One box per weekly meeting, which is what attendance
+   thresholds are counted against. A course that meets twice has two columns a
+   week, because the count of boxes has to match the count of classes.
+4. **Visibility.** Admin-only for now. The student-facing view is not built,
+   because it needs the real roster first and the roster is the privacy
+   decision that has not been made yet.
+5. **Correction.** Every change is written to `attendance_log` with what it
+   replaced, in the same transaction as the change itself. A silently edited
+   attendance record is worse than a wrong one.
 
-### What it depends on
+### Where the data lives
 
-- **P6, the admin CMS.** Attendance is an admin feature, and there is nowhere
-  to enter it until that exists.
-- **The identity decision.** Nothing about attendance can be modelled without
-  it, and it is the same question the admin CMS needs answered anyway.
+Supabase project `thehood-cms`, three tables: `roster`, `attendance` and
+`attendance_log`. Row level security is on with no policies and the tables
+are revoked from `anon` and `authenticated`, so the only way in is the site's
+own server code using the service role. The service role key never reaches
+the client bundle, and the build was checked for that.
 
-### Rules it will have to obey
+**The roster is in the database, not in the repository.** This site is public
+and a student list committed to git is a student list published. The roster is
+entered by staff behind the code and read by the server only.
+
+### Rules it obeys
 
 - Attendance is personal data. It goes behind auth, never on a public page, and
   never into the client bundle.
-- "Missed" is a loaded word for something a student did not choose. Prefer
-  "not recorded" or "absent" and let the number carry the weight.
+- "Missed" is a loaded word for something a student did not choose. The copy
+  says "not recorded" and "absent" and lets the number carry the weight.
 - The threshold a university counts against (commonly 70 or 75 percent) belongs
   in the copy, so a student can see where they stand without asking.
