@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, refresh } from "next/cache";
+import { revalidatePath, refresh, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import {
@@ -9,6 +9,8 @@ import {
   setMark,
   setMarksBulk,
 } from "@/lib/attendance-db";
+import { deleteFile, MAX_UPLOAD_BYTES, uploadFile } from "@/lib/files";
+import { COURSES } from "@/lib/resources";
 import {
   clearFailures,
   endSession,
@@ -168,4 +170,78 @@ export async function removeFromRoster(matric: string): Promise<void> {
   await removeStudent(matric);
   revalidatePath("/admin");
   revalidatePath("/admin/attendance");
+}
+
+/* ---------------------------------------------------------------- files */
+
+export interface UploadState {
+  error?: string;
+  done?: string;
+}
+
+/**
+ * Add a file to a course.
+ *
+ * The file goes to Supabase Storage and the index row is written after it,
+ * so the course page never points at a file that is not there. The index is
+ * tagged afterwards, which is what makes the new file appear on the course
+ * page, in the search and in the counts without a rebuild.
+ */
+export async function uploadCourseFile(
+  _prev: UploadState,
+  formData: FormData
+): Promise<UploadState> {
+  await requireAdmin();
+
+  const course = String(formData.get("course") ?? "").trim();
+  const file = formData.get("file");
+
+  if (!course) return { error: "Choose the course first." };
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Choose a file to upload." };
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return {
+      error: `That file is ${(file.size / 1024 / 1024).toFixed(1)} MB. The limit is 25 MB.`,
+    };
+  }
+
+  const title =
+    String(formData.get("title") ?? "").trim() || file.name.replace(/\.[^.]+$/, "");
+
+  try {
+    await uploadFile({ course, title, file, uploadedBy: "staff" });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "The upload failed." };
+  }
+
+  updateTag("files");
+  revalidatePath("/admin");
+  revalidatePath(`/courses/${courseSlug(course)}`);
+  // The list on this page is rendered on the server, so the router has to be
+  // asked for it again. Without this the upload succeeds and the file does
+  // not appear in the list until the page is reloaded.
+  refresh();
+
+  return { done: `${title} was added to ${course}.` };
+}
+
+/** Take an uploaded file away. */
+export async function removeCourseFile(id: string): Promise<void> {
+  await requireAdmin();
+  try {
+    await deleteFile(id);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The file could not be removed."
+    );
+  }
+  updateTag("files");
+  revalidatePath("/admin");
+  refresh();
+}
+
+/** The slug for a course code, for the path to revalidate. */
+function courseSlug(code: string): string {
+  return COURSES.find((c) => c.code === code)?.slug ?? "";
 }

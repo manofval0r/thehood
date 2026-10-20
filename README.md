@@ -59,7 +59,7 @@ npm start        # serve the build
 | `/careers` | The eight jobs this programme feeds, the certifications that count, and where to practise |
 | `/careers/<role>` | One job in depth, and the courses here that feed it |
 | `/events` | Competitions you can enter, the department's calendar, and the events that happen every year |
-| `/admin` | The staff area, behind one shared code. Mark attendance, manage the roll |
+| `/admin` | The staff area, behind one shared code. Mark attendance, manage the roll, upload course files |
 | `/contact` | Who teaches each course, when and where, and how to reach them |
 | `/calendar.ics` | The whole session as an importable calendar file |
 | `/sitemap.xml`, `/robots.txt` | Generated from `src/app/` |
@@ -371,6 +371,46 @@ three sections rather than one list:
 - **The events that happen every year**, which no feed reports because they
   are not announcements, they are the shape of the year.
 
+## Course files
+
+Staff add a file to a course from `/admin`. It appears on the course page, in
+the search and in the counts, without the site being rebuilt.
+
+### Two kinds of file, one index
+
+| | Where the file lives | Who can remove it |
+|---|---|---|
+| Archive | In the repository, under `public/courses`, served by the site's own CDN | Nobody, from the staff area |
+| Upload | In Supabase Storage | Staff, from the staff area |
+
+**The archive stays in the repository on purpose.** The site's CDN does not
+charge for the traffic, and a class of a hundred students downloading their
+course material every week is exactly the traffic that a metered storage
+bucket charges for. The staff area says so on the file itself: an archive
+file is marked "in the repository" and has no Remove button, because taking
+it out of the index would leave the file sitting in the public folder with
+nothing pointing at it.
+
+### The index
+
+`files` table: course, title, type, url, size, and which of the two kinds it
+is. It is read through `/api/files`, which is the endpoint the manifest used
+to be, and the search uses it so a file staff uploaded is findable by name.
+
+The index is cached and tagged. An upload calls `updateTag("files")`, so the
+course page, the search and the counts all pick the change up on the next
+request rather than waiting for the cache to age out.
+
+**The manifest still carries the original file list**, for two reasons. It is
+the fallback when the database cannot be reached, because a course page that
+shows nothing because a table was not populated is a worse failure than a
+duplicated row. And `tools/migrate-files.js` reads it to index the archive.
+Once the CMS is trusted, that array can go.
+
+The upload itself is capped at 25 MB. The file is stored first and indexed
+second, so a course page never points at a file that is not there: the other
+order would leave an index row pointing at a file that was never stored.
+
 ## Attendance
 
 `/admin` is the staff area. It is behind one shared code, it is excluded from
@@ -461,6 +501,8 @@ knowing about.
 - `src/lib/attendance-db.ts` — the attendance store, read and written with the
   Supabase service role over PostgREST. The schema lives in
   `supabase/migrations/` and is applied with `supabase db push`.
+- `src/lib/files.ts` — the file index and the upload path, the same way.
+  `tools/migrate-files.js` indexes the archive files.
 
 ## Study resources marks
 

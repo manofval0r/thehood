@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, Download } from "lucide-react";
 import { COURSES } from "@/lib/resources";
+import { getAllFiles } from "@/lib/files";
 import SearchBar from "@/components/SearchBar";
 import { CourseCard } from "@/components/CourseCard";
 import PixelArt from "@/components/PixelArt";
 import Reveal from "@/components/Reveal";
 import NextClassCountdown from "@/components/NextClassCountdown";
 
-const totalResources = COURSES.reduce((sum, c) => sum + c.resources.length, 0);
 const totalUnits = COURSES.reduce((sum, c) => sum + c.units, 0);
-const withFiles = COURSES.filter((c) => c.resources.length > 0).length;
 
 export const metadata = {
   title: "Courses · Cybersecurity 300L",
@@ -42,7 +41,13 @@ function Stat({
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  // The counts come from the file index, so a file staff uploaded is
+  // counted the moment it is added.
+  const allFiles = await getAllFiles();
+  const coursesWithFiles = new Set(allFiles.map((f) => f.course));
+  const totalResources = allFiles.length;
+  const withFiles = coursesWithFiles.size;
   return (
     <div>
       {/* ================= HERO ================= */}
@@ -164,7 +169,13 @@ export default function Home() {
         <div className="mt-12 grid auto-rows-fr grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {COURSES.map((course, i) => (
             <Reveal key={course.slug} delay={i * 45} className="h-full">
-              <CourseCard course={course} index={i} />
+              <CourseCard
+                course={course}
+                index={i}
+                fileCount={
+                  allFiles.filter((f) => f.course === course.code).length
+                }
+              />
             </Reveal>
           ))}
         </div>

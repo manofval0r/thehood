@@ -3,6 +3,7 @@ import { ArrowUpRight, GitBranch, Download, Globe } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
 import PixelArt from "@/components/PixelArt";
 import { resourceUrl, TIMETABLE_PDF, COURSES } from "@/lib/resources";
+import { getAllFiles } from "@/lib/files";
 
 interface FooterLink {
   label: string;
@@ -47,9 +48,12 @@ const columns: { heading: string; links: FooterLink[] }[] = [
   },
 ];
 
-export default function Footer() {
-  const withFiles = COURSES.filter((c) => c.resources.length > 0).length;
-  const totalFiles = COURSES.reduce((s, c) => s + c.resources.length, 0);
+export default async function Footer() {
+  // The counts come from the file index, so an upload is reflected here
+  // without the site being rebuilt.
+  const allFiles = await getAllFiles();
+  const withFiles = new Set(allFiles.map((f) => f.course)).size;
+  const totalFiles = allFiles.length;
 
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-border bg-surface">

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft, FileText, MapPin, User, Calendar, Clock, Mail } from "lucide-react";
-import type { Course } from "@/lib/resources";
+import type { Course, Resource } from "@/lib/resources";
 import { resourceUrl } from "@/lib/resources";
 import { repAddress, repFirstName } from "@/lib/contact";
 import ResourceCard from "@/components/ResourceCard";
@@ -22,7 +22,13 @@ const FILTER_TYPE: Record<(typeof FILTERS)[number], string | null> = {
   Document: "doc",
 };
 
-export default function CourseClient({ course }: { course: Course }) {
+export default function CourseClient({
+  course,
+  resources,
+}: {
+  course: Course;
+  resources: Resource[];
+}) {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
   const [previewId, setPreviewId] = useState<string | null>(null);
   const params = useSearchParams();
@@ -31,22 +37,22 @@ export default function CourseClient({ course }: { course: Course }) {
   useEffect(() => {
     const wanted = params.get("r");
     if (!wanted) return;
-    if (course.resources.some((r) => r.id === wanted)) setPreviewId(wanted);
-  }, [params, course.resources]);
+    if (resources.some((r) => r.id === wanted)) setPreviewId(wanted);
+  }, [params, resources]);
 
   const want = FILTER_TYPE[filter];
   const visible = want
-    ? course.resources.filter((r) => r.type === want)
-    : course.resources;
+    ? resources.filter((r) => r.type === want)
+    : resources;
 
   // Only offer filters that would actually show something.
   const available = FILTERS.filter((f) => {
     const t = FILTER_TYPE[f];
-    return !t || course.resources.some((r) => r.type === t);
+    return !t || resources.some((r) => r.type === t);
   });
 
   const previewResource = previewId
-    ? course.resources.find((r) => r.id === previewId)
+    ? resources.find((r) => r.id === previewId)
     : undefined;
 
   return (
@@ -128,9 +134,9 @@ export default function CourseClient({ course }: { course: Course }) {
         <div className="flex flex-col gap-5 border-t border-border pt-10 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
             Resources
-            {course.resources.length > 0 && (
+            {resources.length > 0 && (
               <span className="tnum ml-2.5 text-lg font-normal text-muted-foreground">
-                {course.resources.length}
+                {resources.length}
               </span>
             )}
           </h2>
@@ -187,12 +193,9 @@ export default function CourseClient({ course }: { course: Course }) {
           </div>
         )}
 
-        {course.resources.length > 0 && (
+        {resources.length > 0 && (
           <div className="mt-14">
-            <BatchDownload
-              resources={course.resources}
-              courseCode={course.code}
-            />
+            <BatchDownload resources={resources} courseCode={course.code} />
           </div>
         )}
       </section>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AdminLogin } from "@/components/AdminLogin";
+import { FileManager } from "@/components/FileManager";
 import { RosterManager } from "@/components/RosterManager";
 import { logout } from "@/app/admin/actions";
 import { isAdmin } from "@/lib/admin-session";
@@ -11,6 +12,7 @@ import {
   getRoster,
   isConfigured,
 } from "@/lib/attendance-db";
+import { getAllFiles } from "@/lib/files";
 import { COURSES } from "@/lib/resources";
 
 export const metadata: Metadata = {
@@ -87,9 +89,10 @@ async function AdminArea() {
     );
   }
 
-  const [roster, summaries] = await Promise.all([
+  const [roster, summaries, files] = await Promise.all([
     getRoster(),
     getAllSummaries(),
+    getAllFiles(),
   ]);
 
   const courseOptions = COURSES.map((c) => ({ code: c.code, title: c.title }));
@@ -140,6 +143,18 @@ async function AdminArea() {
           })}
         </ul>
       </section>
+
+      <FileManager
+        courses={courseOptions}
+        files={files.map((f) => ({
+          id: f.id,
+          course: f.course,
+          title: f.title,
+          type: f.type,
+          size: f.size,
+          source: f.source,
+        }))}
+      />
 
       <RosterManager students={roster} courses={courseOptions} />
 

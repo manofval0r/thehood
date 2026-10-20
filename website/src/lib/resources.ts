@@ -151,7 +151,20 @@ export const COURSES: Course[] = [
       venue: "Cybersecurity Lab",
       lecturer: "Charles Igah",
     },
-    resources: [],
+    resources: [
+      {
+        id: "csc309-course-outline",
+        title: "CSC 309 Course Outline",
+        type: "pdf",
+        url: `${base}/Artificial Intelligence/CSC309_Course_Outline.pdf`,
+      },
+      {
+        id: "csc309-foundations-of-ai",
+        title: "Foundations of AI",
+        type: "pdf",
+        url: `${base}/Artificial Intelligence/CSC309_Foundations_of_AI.pdf`,
+      },
+    ],
   },
   {
     code: "NUT-CSC 312",
@@ -245,6 +258,18 @@ export const COURSES: Course[] = [
     },
     resources: [
       {
+        id: "cyb305-course-overview",
+        title: "CYB 305 Course Overview",
+        type: "pdf",
+        url: `${base}/Digital Forensics CYB305/CYB305_Course Overview.pdf`,
+      },
+      {
+        id: "cyb305-week1-fundamentals",
+        title: "Week 1 – Computer Forensics Fundamentals",
+        type: "pdf",
+        url: `${base}/Digital Forensics CYB305/Week 1_Computer Forensics Fundamentals.pdf`,
+      },
+      {
         id: "cyb305-readme",
         title: "Lab Evidence Manual – README_FIRST",
         type: "doc",
@@ -321,8 +346,15 @@ export function getCourse(slug: string) {
   return COURSES.find((c) => c.slug === slug);
 }
 
-/** Encode each path segment so spaces/parens survive in a URL. */
+/**
+ * Encode each path segment so spaces and parentheses survive in a URL.
+ *
+ * An absolute URL is passed through. A file that staff uploaded is served
+ * from Supabase Storage, and encoding that would turn the "https:" into
+ * "https%3A" and break it.
+ */
 export function resourceUrl(url: string) {
+  if (/^https?:\/\//.test(url)) return url;
   return url.split("/").map(encodeURIComponent).join("/");
 }
 

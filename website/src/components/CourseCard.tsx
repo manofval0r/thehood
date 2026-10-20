@@ -4,8 +4,19 @@ import type { Course } from "@/lib/resources";
 import AppleCard from "@/components/AppleCard";
 import { cn } from "@/lib/utils";
 
-export function CourseCard({ course, index = 0 }: { course: Course; index?: number }) {
-  const count = course.resources.length;
+export function CourseCard({
+  course,
+  index = 0,
+  fileCount,
+}: {
+  course: Course;
+  index?: number;
+  /** How many files the index holds for this course. */
+  fileCount?: number;
+}) {
+  // The count comes from the index when there is one, so a file staff
+  // uploaded is counted on the card straight away.
+  const count = fileCount ?? course.resources.length;
   const hasFiles = count > 0;
 
   return (

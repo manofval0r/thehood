@@ -118,7 +118,7 @@ stray paragraph, no grouping. After:
 | P3 | Certification deals, competitions, role pathways | **Done** — `/careers` carries eight roles, fifteen certifications with indicative cost bands and how to pay less, and twelve practice platforms. Four new pixel motifs |
 | P4 | Prospective-role resources | **Done** — `/careers/<role>` names the courses on this programme that feed each role and links to each one, with the route in, the certifications that count and where to practise |
 | P5 | Events feed | **Done** — `/events` carries a live CTFtime competition list fetched server-side and cached hourly, the department's own calendar, and the events that happen every year |
-| P6 | Admin CMS upload | Planned — replaces `resources.ts` with a real endpoint |
+| P6 | Admin CMS upload | **Done** — `/admin` uploads a file to a course without a rebuild. The file goes to Supabase Storage, the index to the `files` table, and the index is tagged so the course page, the search and the counts pick it up. `/api/files` is the endpoint the manifest used to be |
 | P7 | **Attendance** | **Done** — `/admin` behind one shared staff code. One box per class per student; the fill is the record (null is unmarked, 0 is absent, 0.5 is partial, excused is a third state). Supabase `thehood-cms`, RLS on with no policies, service role server-only. See section 9 |
 
 ## 8. Rules held throughout

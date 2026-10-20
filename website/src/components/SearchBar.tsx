@@ -33,6 +33,9 @@ type ResourceHit = {
 };
 type Hit = CourseHit | ResourceHit;
 
+/** A file from the index, which knows which course it belongs to. */
+type IndexedFile = Resource & { course: string };
+
 /** Rank a hit so an exact course code always beats a loose title match. */
 function score(haystack: string[], q: string) {
   const needle = q.toLowerCase();
@@ -52,7 +55,10 @@ function score(haystack: string[], q: string) {
   return best;
 }
 
-function search(q: string): {
+function search(
+  q: string,
+  uploaded: IndexedFile[]
+): {
   courses: Course[];
   resources: ResourceHit[];
 } {
@@ -69,7 +75,17 @@ function search(q: string): {
     );
     if (s > 0) courses.push(course);
 
-    for (const r of course.resources) {
+    // The manifest holds the archive. The endpoint holds everything,
+    // including what staff uploaded, and the ids overlap, so the uploaded
+    // list is filtered against the manifest rather than replacing it.
+    const files = [
+      ...course.resources,
+      ...uploaded.filter(
+        (u) => u.course === course.code && !course.resources.some((r) => r.id === u.id)
+      ),
+    ];
+
+    for (const r of files) {
       const rs = score([r.title, course.code, course.title, course.lecturer], trimmed);
       if (rs > 0) {
         resources.push({
@@ -103,7 +119,29 @@ export default function SearchBar() {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const wrapRef = React.useRef<HTMLDivElement>(null);
 
-  const { courses, resources } = React.useMemo(() => search(q), [q]);
+  // The file index, once. The manifest holds the archive in the bundle, so
+  // the archive is searchable before this answers; the endpoint adds what
+  // staff uploaded.
+  const [uploaded, setUploaded] = React.useState<IndexedFile[]>([]);
+  React.useEffect(() => {
+    let alive = true;
+    fetch("/api/files")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: IndexedFile[]) => {
+        if (alive && Array.isArray(rows)) setUploaded(rows);
+      })
+      .catch(() => {
+        // The archive is still searchable. Nothing to say to the reader.
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const { courses, resources } = React.useMemo(
+    () => search(q, uploaded),
+    [q, uploaded]
+  );
   const total = courses.length + resources.length;
 
   // Flat list of navigable rows, so arrows move across group boundaries.

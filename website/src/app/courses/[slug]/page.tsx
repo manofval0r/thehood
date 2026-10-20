@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { COURSES, getCourse } from "@/lib/resources";
+import { getCourseFiles, fileSize } from "@/lib/files";
 import CourseClient from "./client";
 
 export function generateStaticParams() {
@@ -35,10 +36,24 @@ export default async function CoursePage({
   const course = getCourse(slug);
   if (!course) notFound();
 
+  // The files come from the index, which is cached and tagged. An upload
+  // tags the index, so the next request picks the new file up without the
+  // site having to be rebuilt.
+  const files = await getCourseFiles(course.code);
+
+  // The card wants a size a human can read, not a number of bytes.
+  const resources = files.map((f) => ({
+    id: f.id,
+    title: f.title,
+    type: f.type,
+    url: f.url,
+    size: fileSize(f.size),
+  }));
+
   // CourseClient reads ?r= to open a file directly, so it needs a boundary.
   return (
     <Suspense fallback={null}>
-      <CourseClient course={course} />
+      <CourseClient course={course} resources={resources} />
     </Suspense>
   );
 }
