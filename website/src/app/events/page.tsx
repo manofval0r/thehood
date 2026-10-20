@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AppleCard from "@/components/AppleCard";
 import PixelMotif from "@/components/PixelMotif";
 import Reveal from "@/components/Reveal";
 import { ANNUAL_EVENTS, getCtfEvents, getDepartmentEvents } from "@/lib/events";
@@ -103,50 +104,58 @@ export default async function EventsPage() {
             </p>
           </div>
         ) : (
-          <ul className="mt-6 space-y-2">
-            {ctfs.map((ctf) => {
+          <ul className="mt-6 space-y-3">
+            {ctfs.map((ctf, i) => {
               const when = dayLabel(ctf.start);
               return (
-                <Reveal key={ctf.id}>
+                <Reveal key={ctf.id} delay={Math.min(i * 25, 300)}>
                   <li>
-                    <a
-                      href={ctf.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="pressable flex items-start gap-4 rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover"
-                    >
-                      <span className="w-11 shrink-0 text-center">
-                        <span className="block font-mono text-[17px] leading-none text-foreground">
-                          {when.day}
-                        </span>
-                        <span className="mt-1 block text-[10.5px] uppercase tracking-[0.1em] text-muted">
-                          {when.month}
-                        </span>
-                      </span>
+                    <AppleCard maxTilt={4} className="h-full">
+                      <a
+                        href={ctf.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="card-tilt settle relative block h-full rounded-lg border border-border bg-surface transition-colors hover:border-border-strong hover:bg-surface-hover"
+                      >
+                        <span className="card-cast" aria-hidden="true" />
+                        <span className="card-accent-glow" aria-hidden="true" />
+                        <span className="card-bevel" aria-hidden="true" />
 
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[14px] font-medium leading-snug text-foreground">
-                          {ctf.title}
-                        </span>
-                        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-muted">
-                          {ctf.organizer && <span>{ctf.organizer}</span>}
-                          <span aria-hidden="true">·</span>
-                          <span>{ctf.format}</span>
-                          <span aria-hidden="true">·</span>
-                          <span>{ctf.restrictions}</span>
-                          {ctf.onsite && (
-                            <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
-                              in person
+                        <div className="relative flex h-full items-start gap-4 px-4 py-3">
+                          <span className="card-depth w-11 shrink-0 text-center">
+                            <span className="block font-mono text-[17px] leading-none text-foreground">
+                              {when.day}
                             </span>
-                          )}
-                          {ctf.weight > 0 && (
-                            <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
-                              weight {Math.round(ctf.weight)}
+                            <span className="mt-1 block text-[10.5px] uppercase tracking-[0.1em] text-muted">
+                              {when.month}
                             </span>
-                          )}
-                        </span>
-                      </span>
-                    </a>
+                          </span>
+
+                          <span className="card-depth min-w-0 flex-1">
+                            <span className="block text-[14px] font-medium leading-snug text-foreground">
+                              {ctf.title}
+                            </span>
+                            <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-muted">
+                              {ctf.organizer && <span>{ctf.organizer}</span>}
+                              <span aria-hidden="true">·</span>
+                              <span>{ctf.format}</span>
+                              <span aria-hidden="true">·</span>
+                              <span>{ctf.restrictions}</span>
+                              {ctf.onsite && (
+                                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
+                                  in person
+                                </span>
+                              )}
+                              {ctf.weight > 0 && (
+                                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
+                                  weight {Math.round(ctf.weight)}
+                                </span>
+                              )}
+                            </span>
+                          </span>
+                        </div>
+                      </a>
+                    </AppleCard>
                   </li>
                 </Reveal>
               );
@@ -164,24 +173,31 @@ export default async function EventsPage() {
           From the published academic calendar.
         </p>
 
-        <ul className="mt-6 space-y-2">
-          {department.map((e) => (
-            <li
-              key={`${e.date}-${e.title}`}
-              className="flex items-start gap-4 rounded-lg border border-border bg-surface px-4 py-3"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-black">
-                <PixelMotif kind="flag" title="" className="h-6 w-6" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-medium leading-snug text-foreground">
-                  {e.title}
-                </span>
-                <span className="mt-1 block text-[11.5px] text-muted">
-                  {e.when} · {e.category}
-                </span>
-              </span>
-            </li>
+        <ul className="mt-6 space-y-3">
+          {department.map((e, i) => (
+            <Reveal key={`${e.date}-${e.title}`} delay={Math.min(i * 25, 300)}>
+              <li>
+                <AppleCard maxTilt={4} className="h-full">
+                  <div className="card-tilt settle relative flex h-full items-start gap-4 rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover">
+                    <span className="card-cast" aria-hidden="true" />
+                    <span className="card-accent-glow" aria-hidden="true" />
+                    <span className="card-bevel" aria-hidden="true" />
+
+                    <span className="card-depth grid h-9 w-9 shrink-0 place-items-center rounded-md bg-black">
+                      <PixelMotif kind="flag" title="" className="h-6 w-6" />
+                    </span>
+                    <span className="card-depth min-w-0 flex-1">
+                      <span className="block text-[14px] font-medium leading-snug text-foreground">
+                        {e.title}
+                      </span>
+                      <span className="mt-1 block text-[11.5px] text-muted">
+                        {e.when} · {e.category}
+                      </span>
+                    </span>
+                  </div>
+                </AppleCard>
+              </li>
+            </Reveal>
           ))}
         </ul>
       </section>
@@ -197,27 +213,34 @@ export default async function EventsPage() {
           planning for them and hearing about them afterwards.
         </p>
 
-        <ul className="mt-6 space-y-2">
-          {ANNUAL_EVENTS.map((e) => (
-            <li
-              key={e.name}
-              className="rounded-lg border border-border bg-surface px-4 py-3"
-            >
-              <div className="flex flex-wrap items-baseline gap-x-3">
-                <a
-                  href={e.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[14px] font-semibold text-foreground underline decoration-border-strong underline-offset-4 transition-colors hover:text-accent"
-                >
-                  {e.name}
-                </a>
-                <span className="text-[12px] text-muted">{e.when}</span>
-              </div>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                {e.what}
-              </p>
-            </li>
+        <ul className="mt-6 space-y-3">
+          {ANNUAL_EVENTS.map((e, i) => (
+            <Reveal key={e.name} delay={Math.min(i * 25, 300)}>
+              <li>
+                <AppleCard maxTilt={4} className="h-full">
+                  <div className="card-tilt settle relative block h-full rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover">
+                    <span className="card-cast" aria-hidden="true" />
+                    <span className="card-accent-glow" aria-hidden="true" />
+                    <span className="card-bevel" aria-hidden="true" />
+
+                    <div className="card-depth relative flex flex-wrap items-baseline gap-x-3">
+                      <a
+                        href={e.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[14px] font-semibold text-foreground underline decoration-border-strong underline-offset-4 transition-colors hover:text-accent"
+                      >
+                        {e.name}
+                      </a>
+                      <span className="text-[12px] text-muted">{e.when}</span>
+                    </div>
+                    <p className="card-depth mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                      {e.what}
+                    </p>
+                  </div>
+                </AppleCard>
+              </li>
+            </Reveal>
           ))}
         </ul>
       </section>

@@ -179,28 +179,34 @@ export default function CareersPage() {
         </p>
 
         <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PLATFORMS.map((p) => (
-            <Reveal key={p.id}>
+          {PLATFORMS.map((p, i) => (
+            <Reveal key={p.id} delay={Math.min(i * 25, 300)}>
               <li className="h-full">
-                <a
-                  href={p.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pressable flex h-full flex-col rounded-lg border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-surface-hover"
-                >
-                  <span className="text-[14px] font-semibold leading-snug tracking-tight text-foreground">
-                    {p.name}
-                  </span>
-                  <span className="mt-1.5 flex-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                    {p.what}
-                  </span>
-                  <span className="mt-3 flex items-center gap-2 text-[11.5px]">
-                    <span className="rounded-full border border-border px-2 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-muted">
-                      {p.kind}
+                <AppleCard maxTilt={4} className="h-full">
+                  <a
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="card-tilt settle relative flex h-full flex-col rounded-lg border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-surface-hover"
+                  >
+                    <span className="card-cast" aria-hidden="true" />
+                    <span className="card-accent-glow" aria-hidden="true" />
+                    <span className="card-bevel" aria-hidden="true" />
+
+                    <span className="card-depth text-[14px] font-semibold leading-snug tracking-tight text-foreground">
+                      {p.name}
                     </span>
-                    <span className="font-medium text-accent">{p.price}</span>
-                  </span>
-                </a>
+                    <span className="card-depth mt-1.5 flex-1 text-[12.5px] leading-relaxed text-muted-foreground">
+                      {p.what}
+                    </span>
+                    <span className="card-depth mt-3 flex items-center gap-2 text-[11.5px]">
+                      <span className="rounded-full border border-border px-2 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-muted">
+                        {p.kind}
+                      </span>
+                      <span className="font-medium text-accent">{p.price}</span>
+                    </span>
+                  </a>
+                </AppleCard>
               </li>
             </Reveal>
           ))}

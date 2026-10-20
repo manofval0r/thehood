@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, MapPin, Clock, Mail } from "lucide-react";
+import { ArrowRight, Clock, Mail, MapPin, MessageCircle } from "lucide-react";
 import { COURSES } from "@/lib/resources";
-import { repAddress, hasAnyAddress, isUnassigned } from "@/lib/contact";
+import {
+  COURSE_REPS,
+  repAddress,
+  hasAnyAddress,
+  isUnassigned,
+  whatsappLink,
+} from "@/lib/contact";
 import Reveal from "@/components/Reveal";
 import AppleCard from "@/components/AppleCard";
 
@@ -42,19 +48,91 @@ export default function ContactPage() {
         </p>
       </header>
 
+      {/* ---------- The course representatives ---------- */}
+      <section className="mt-12">
+        <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
+          Your course representatives
+        </h2>
+        <p className="mt-1 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
+          The people elected to stand between the class and the department.
+          Ask them about a lecture you missed, a registration problem, or a
+          mark that looks wrong.
+        </p>
+
+        <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {COURSE_REPS.map((rep, i) => (
+            <Reveal key={rep.email} delay={i * 60}>
+              <li className="h-full">
+                <AppleCard maxTilt={4} className="h-full">
+                  <div className="card-tilt settle flex h-full flex-col rounded-lg border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-surface-hover">
+                    <span className="card-cast" aria-hidden="true" />
+                    <span className="card-bevel" aria-hidden="true" />
+
+                    <p
+                      className="card-depth text-[15px] font-semibold leading-snug text-foreground"
+                      style={{ "--depth": "24px" } as React.CSSProperties}
+                    >
+                      {rep.name}
+                    </p>
+                    <p
+                      className="card-depth mt-1 text-[12.5px] text-muted-foreground"
+                      style={{ "--depth": "12px" } as React.CSSProperties}
+                    >
+                      {rep.role}
+                    </p>
+
+                    <div
+                      className="card-depth mt-4 flex flex-col gap-2 border-t border-border pt-3"
+                      style={{ "--depth": "6px" } as React.CSSProperties}
+                    >
+                      <a
+                        href={`mailto:${rep.email}`}
+                        className="pressable flex items-center gap-2 text-[12.5px] text-foreground transition-colors hover:text-accent"
+                      >
+                        <Mail size={13} className="shrink-0 text-accent" aria-hidden="true" />
+                        <span className="truncate">{rep.email}</span>
+                      </a>
+
+                      <a
+                        href={whatsappLink(
+                          rep,
+                          `Hello ${rep.name}, I have a question about the Cybersecurity 300 Level programme.`
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="pressable flex items-center gap-2 text-[12.5px] text-foreground transition-colors hover:text-accent"
+                      >
+                        <MessageCircle
+                          size={13}
+                          className="shrink-0 text-accent"
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{rep.whatsapp}</span>
+                        <span className="shrink-0 text-[11px] text-muted">
+                          ({rep.note})
+                        </span>
+                      </a>
+                    </div>
+                  </div>
+                </AppleCard>
+              </li>
+            </Reveal>
+          ))}
+        </ul>
+      </section>
+
       {!anyAddress && (
-        <Reveal className="mt-8">
+        <Reveal className="mt-10">
           <div className="flex gap-4 rounded-xl border border-border bg-surface p-5">
             <Mail size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden="true" />
             <div>
               <h2 className="text-[14px] font-semibold text-foreground">
-                Email addresses are not published yet
+                Lecturers do not have direct addresses published here
               </h2>
               <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-                Nobody has added an address for these reps, so no mail link is
-                shown rather than one that would go nowhere. In the meantime,
-                the fastest route is the rep in your tutorial, or the
-                department office through the faculty portal.
+                The reps above are the way in. A course lecturer can be reached
+                through them, and they can pass a question on. An address is
+                only published here when somebody is actually reading it.
               </p>
             </div>
           </div>

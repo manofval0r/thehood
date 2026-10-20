@@ -93,7 +93,14 @@ export default function Nav() {
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           <div
             className={cn(
-              "relative flex h-12 w-full items-center justify-between rounded-full pl-4 pr-2",
+              "relative flex h-12 w-full items-center justify-between rounded-full",
+              // Even padding, and closer to the edge on a phone. The bar was
+              // 16px on the left and 8px on the right, which read as
+              // lopsided, and on a phone the mark was pushed in far enough
+              // that the link rail had almost nothing left. Eight pixels
+              // either side, and the words get their room back on a desktop
+              // where there is space for it.
+              "pl-2 pr-2 lg:pl-4",
               "transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
               scrolled
                 ? "border border-border-strong bg-surface/80 shadow-lift backdrop-blur-xl"
@@ -133,7 +140,14 @@ export default function Nav() {
               // scrolled keeps a tab stop that shows nothing.
               tabIndex={scrolled ? -1 : 0}
             >
-              <Wordmark size="md" />
+              {/* The mark is smaller on a phone. Every pixel it gives up is a
+                  pixel the link rail has, and at this size the difference
+                  between a twenty-two pixel mark and a thirty pixel one is
+                  the difference between three links and two. */}
+              <Wordmark
+                size="md"
+                markClassName="h-[22px] w-[22px] lg:h-[30px] lg:w-[30px]"
+              />
             </Link>
 
             {/* ---------- Tabs ----------
@@ -151,7 +165,6 @@ export default function Nav() {
               className={cn(
                 // Phone: a rail that takes the leftover width and scrolls.
                 "min-w-[4.5rem] flex-1 overflow-x-auto overscroll-x-contain",
-                "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
                 // The links sit in the space between the wordmark and the
                 // countdown and are centred in whatever is left. An earlier
                 // version took them out of the flow and centred them on the
@@ -161,7 +174,13 @@ export default function Nav() {
                 // worse than one whose links are not quite on the centre
                 // line. Centred in the gap, they cannot reach the clock at
                 // any width, and they scroll when the gap is too small.
-                "flex",
+                //
+                // h-full so the rail is the height of the bar rather than the
+                // height of a link. The extra room is what the scrollbar
+                // sits in, and without it the bar would be clipped by three
+                // pixels the moment there is something to scroll.
+                "flex h-full items-center",
+                "nav-rail",
               )}
             >
               <div
@@ -174,7 +193,12 @@ export default function Nav() {
               >
                 {/* Sits exactly on the active link's measured box. rounded-lg,
                     not rounded-full: a full pill on a 32px row reads as a
-                    lozenge and swallows the word it is meant to mark. */}
+                    lozenge and swallows the word it is meant to mark.
+
+                    It is a tablet-and-up affordance. On a phone the rail is
+                    barely wider than two links, and a filled panel behind the
+                    active one eats the space the words need. Below md the
+                    active link marks itself with an underline instead. */}
                 <span
                   aria-hidden="true"
                   className={cn(
@@ -183,7 +207,7 @@ export default function Nav() {
                     // position from `align-items: center`, which already sits it
                     // 7px down, and the measured translate is applied on top of
                     // that, doubling the offset.
-                    "pointer-events-none absolute left-0 top-0 rounded-lg bg-accent/14 ring-1 ring-inset ring-accent/30",
+                    "pointer-events-none absolute left-0 top-0 hidden rounded-lg bg-accent/14 ring-1 ring-inset ring-accent/30 md:block",
                     "transition-[transform,opacity] duration-[280ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
                     pill.ready ? "opacity-100" : "opacity-0"
                   )}
@@ -211,7 +235,17 @@ export default function Nav() {
                         "pressable relative z-10 flex h-8 shrink-0 items-center rounded-full px-3 text-[13.5px] font-medium transition-colors",
                         active
                           ? "text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
+                          : "text-muted-foreground hover:text-foreground",
+                        // On a phone the active link marks itself. The pill is
+                        // a tablet-and-up affordance, and the rail scrolls on
+                        // a phone, so a shared indicator would be sitting
+                        // somewhere off the edge of the screen most of the
+                        // time. This one belongs to the link, so it is always
+                        // under its own word. It is a line rather than a
+                        // block because a block would eat the width the
+                        // words need.
+                        active &&
+                          "after:absolute after:inset-x-3 after:bottom-1 after:h-px after:bg-accent after:content-[''] md:after:hidden"
                       )}
                     >
                       {t.label}

@@ -30,6 +30,47 @@ export function hasAnyAddress(): boolean {
 }
 
 /**
+ * The course representatives.
+ *
+ * These are the people a student asks about a course, and unlike the
+ * lecturers there is a person here rather than a name on a timetable, so
+ * there is something to reach. Each one says how their number may be used,
+ * because a number published without that is a number that gets called at
+ * two in the morning.
+ */
+export interface CourseRep {
+  name: string;
+  role: string;
+  email: string;
+  /** Digits only, with the country code and no punctuation. */
+  whatsapp: string;
+  /** How the number may be used, in the holder's own terms. */
+  note: string;
+}
+
+export const COURSE_REPS: CourseRep[] = [
+  {
+    name: "Evans Davou",
+    role: "Course Representative, Cybersecurity",
+    email: "evansdavou178@gmail.com",
+    whatsapp: "+2349166388655",
+    note: "WhatsApp only",
+  },
+  {
+    name: "Tito Odulana",
+    role: "Course Representative",
+    email: "emtodulana@gmail.com",
+    whatsapp: "+2349015898797",
+    note: "Mobile and WhatsApp",
+  },
+];
+
+/** A WhatsApp link that opens a message to the rep. */
+export function whatsappLink(rep: CourseRep, body: string): string {
+  return `https://wa.me/${rep.whatsapp}?text=${encodeURIComponent(body)}`;
+}
+
+/**
  * Whether a course has someone to ask.
  *
  * The manifest carries "Pending" where a lecturer has not been assigned, and

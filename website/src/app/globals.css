@@ -194,6 +194,16 @@
   --shadow-lift-hi: var(--lift-shadow-hi);
 }
 
+html {
+  /* Every in-page link on the site scrolls rather than jumps. A jump cuts
+     the content off at the top of the viewport and, on a long page, leaves
+     the reader with no idea where they have landed. */
+  scroll-behavior: smooth;
+  /* The header is sticky and 64px tall. An anchor target needs to land
+     clear of it, or the thing you asked to see is hidden underneath. */
+  scroll-padding-top: 5rem;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -201,6 +211,15 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Smooth scrolling is motion. Someone who has asked the system for less
+   motion does not want a page that glides for two seconds; they want it to
+   arrive. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 ::selection {
@@ -810,9 +829,12 @@ body {
 
 /* ============================================================
    CUSTOM SCROLLBAR
-   Thin, rounded, and quiet until the pointer is over it. Kept on
-   neutral greys rather than the accent: a saturated thumb fights
-   the content for attention the way a scrollbar never should.
+   An overlay-style scrollbar. The track is transparent so the
+   content shows through it, the thumb is a slim pill rather
+   than a bar, and it widens and brightens under the pointer.
+   Neutral greys rather than the accent: a saturated thumb
+   fights the content for attention the way a scrollbar never
+   should.
    ============================================================ */
 
 * {
@@ -833,16 +855,75 @@ body {
   background-color: var(--scroll-thumb);
   /* Fully rounded ends: the thumb reads as a capsule, not a bar. */
   border-radius: 999px;
+  /* The transparent border is what keeps the visible thumb slim inside a
+     wider groove. Three pixels of it leaves a four-pixel thumb. */
   border: 3px solid transparent;
   background-clip: content-box;
+  /* A handle, not a bar: a short thumb says there is something to drag. */
+  min-height: 44px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+  /* Two pixels of border instead of three, so the thumb grows from four
+     pixels to six the moment the pointer is on it. The groove does not
+     change size, only what is visible inside it. */
+  border-width: 2px;
+}
+
+::-webkit-scrollbar-thumb:active {
   background-color: var(--scroll-thumb-hover);
 }
 
 ::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* Firefox cannot change a thumb's width on hover, so the colour carries
+   the same signal: the pointer is over the scrollbar. */
+html:hover {
+  scrollbar-color: var(--scroll-thumb-hover) transparent;
+}
+
+/* ============================================================
+   THE NAV LINK RAIL
+   The link rail scrolls when the links do not fit beside the
+   countdown. Its scrollbar is hidden on a phone, where an
+   overlay scrollbar is the platform's business and not the
+   site's, and shown from tablet upwards, where a mouse is in
+   use and a hidden scrollbar is a hidden link.
+
+   Four pixels, because the rail is only a little taller than
+   a line of text and a scrollbar with any presence to it eats
+   the words.
+   ============================================================ */
+
+@media (min-width: 640px) {
+  .nav-rail {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+  }
+
+  .nav-rail::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .nav-rail::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .nav-rail::-webkit-scrollbar-thumb {
+    background-color: var(--scroll-thumb);
+    border-radius: 999px;
+  }
+
+  .nav-rail:hover::-webkit-scrollbar-thumb {
+    background-color: var(--scroll-thumb-hover);
+  }
+
+  .nav-rail::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }
 
 /* ============================================================

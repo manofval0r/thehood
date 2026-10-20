@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AppleCard from "@/components/AppleCard";
 import PixelMotif from "@/components/PixelMotif";
 import Reveal from "@/components/Reveal";
 import {
@@ -189,22 +190,28 @@ export default async function RolePage({
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {platforms.map((p) => (
               <li key={p.id}>
-                <a
-                  href={p.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pressable flex h-full flex-col rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover"
-                >
-                  <span className="text-[14px] font-semibold text-foreground">
-                    {p.name}
-                  </span>
-                  <span className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                    {p.what}
-                  </span>
-                  <span className="mt-2 text-[11.5px] font-medium text-accent">
-                    {p.price}
-                  </span>
-                </a>
+                <AppleCard maxTilt={4} className="h-full">
+                  <a
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="card-tilt settle relative flex h-full flex-col rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover"
+                  >
+                    <span className="card-cast" aria-hidden="true" />
+                    <span className="card-accent-glow" aria-hidden="true" />
+                    <span className="card-bevel" aria-hidden="true" />
+
+                    <span className="card-depth text-[14px] font-semibold text-foreground">
+                      {p.name}
+                    </span>
+                    <span className="card-depth mt-1 flex-1 text-[12.5px] leading-relaxed text-muted-foreground">
+                      {p.what}
+                    </span>
+                    <span className="card-depth mt-2 text-[11.5px] font-medium text-accent">
+                      {p.price}
+                    </span>
+                  </a>
+                </AppleCard>
               </li>
             ))}
           </ul>

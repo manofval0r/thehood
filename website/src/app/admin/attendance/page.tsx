@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { AttendanceGrid, type GridDate } from "@/components/AttendanceGrid";
 import { currentStaff } from "@/lib/admin-session";
 import {
+  getHistory,
   getMarks,
   getRoster,
   getStanding,
@@ -24,6 +25,15 @@ export const metadata: Metadata = {
   title: "Mark attendance · Cybersecurity 300L",
   robots: { index: false, follow: false },
 };
+
+/** How a mark reads in a sentence: "present", "absent", "half", "excused". */
+function describeState(fill: number | null, excused: boolean): string {
+  if (excused) return "excused";
+  if (fill === null) return "not recorded";
+  if (fill <= 0) return "absent";
+  if (fill >= 1) return "present";
+  return `${Math.round(fill * 100)} percent present`;
+}
 
 /** The days a course meets, including any second meeting in the week. */
 function meetingDays(courseCode: string): number[] {
@@ -121,6 +131,13 @@ async function Workspace({
     ),
     getStanding(course.code),
   ]);
+
+  // The correction history for the classes on screen. A record that can be
+  // changed without leaving a trace is worse than a wrong one, so the trail
+  // is shown to the person marking rather than kept for later.
+  const history = dates.length
+    ? await getHistory(course.code, dates[dates.length - 1].iso)
+    : [];
 
   const initial: Record<string, { fill: number | null; excused: boolean }> = {};
   for (const d of dates) {
@@ -234,6 +251,36 @@ async function Workspace({
             excuses are left out of the percentage. A student is usually
             expected to reach 70 percent of the classes that were marked.
           </p>
+
+          {history.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
+                What changed on {dates[dates.length - 1].day} {dates[dates.length - 1].month}
+              </h2>
+              <ul className="mt-3 divide-y divide-border border-y border-border">
+                {history.map((h, i) => (
+                  <li key={`${h.matric}-${h.changed_at}-${i}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-[12.5px]">
+                    <span className="font-medium text-foreground">{h.matric}</span>
+                    <span className="text-muted">
+                      {describeState(h.old_fill, h.old_excused)} →{" "}
+                      <span className="text-foreground">
+                        {describeState(h.new_fill, h.new_excused)}
+                      </span>
+                    </span>
+                    <span className="text-muted">by {h.changed_by ?? "someone"}</span>
+                    <span className="ml-auto text-[11.5px] text-muted">
+                      {new Date(h.changed_at).toLocaleString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       )}
     </div>

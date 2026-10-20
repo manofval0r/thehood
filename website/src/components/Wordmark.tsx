@@ -88,9 +88,12 @@ export function NutmMark({
 /** Wordmark: mark + programme name. Used in nav and footer. */
 export function Wordmark({
   className,
+  markClassName,
   size = "md",
 }: {
   className?: string;
+  /** To resize the mark alone, e.g. to make it smaller on a phone. */
+  markClassName?: string;
   size?: "sm" | "md" | "lg";
 }) {
   const text = { sm: "text-sm", md: "text-[15px]", lg: "text-xl" }[size];
@@ -98,7 +101,7 @@ export function Wordmark({
 
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
-      <NutmMark size={size} />
+      <NutmMark size={size} className={markClassName} />
       {/*
         data-wordmark-text is a stable hook for callers that want to drop the
         words and keep the mark. It cannot be done with a bare descendant
