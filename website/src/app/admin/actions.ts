@@ -9,6 +9,7 @@ import {
   setMarksBulk,
 } from "@/lib/attendance-db";
 import { deleteFile, MAX_UPLOAD_BYTES, uploadFile } from "@/lib/files";
+import { announceApproval, announceMaterial } from "@/lib/push";
 import { COURSES } from "@/lib/resources";
 import {
   clearFailures,
@@ -218,6 +219,11 @@ export async function addStaffMember(
     detail: permissions.join(", "),
   });
 
+  // The super admins are told somebody is waiting. Awaited for the same
+  // reason the material announcement is: a function can sleep before a push
+  // that was never sent goes anywhere.
+  await announceApproval(name, staff.name);
+
   revalidatePath("/admin");
   return { name, expired: false };
 }
@@ -356,6 +362,13 @@ export async function uploadCourseFile(
   } catch (e) {
     return { error: e instanceof Error ? e.message : "The upload failed." };
   }
+
+  // The readers of that course are told there is something new. This is
+  // event-driven: the upload is the event, so nothing has to be scheduled.
+  // It is awaited rather than left to itself, because a serverless function
+  // can be put to sleep the moment the response goes out, and a push that
+  // was never sent is a push that never arrives.
+  await announceMaterial({ course, title, uploadedBy: staff.name });
 
   updateTag("files");
   revalidatePath("/admin");

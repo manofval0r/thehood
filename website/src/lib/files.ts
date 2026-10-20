@@ -259,6 +259,14 @@ export async function uploadFile(args: {
     method: "POST",
     body: row,
     prefer: "return=representation",
+  }).catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("23505") || message.includes("duplicate key")) {
+      throw new Error(
+        `There is already a file called "${args.title}" on ${args.course}. Give it a different name, or remove the one that is there.`
+      );
+    }
+    throw error;
   });
 
   return created[0] as CourseFile;

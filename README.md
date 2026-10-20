@@ -648,6 +648,96 @@ weaker than a shared store and worth knowing about.
 - **The admin CMS (P6).** The staff area covers attendance only. Uploading
   files still means editing `resources.ts`.
 
+## Notifications
+
+The bell in the bar. It says how much is unread, and it opens a panel with
+what is unread, what is coming, and the settings for what to be told about.
+
+### The idea underneath it
+
+Most of what a notification system would deliver has **already happened, in a
+table the site already keeps**. A new file is a row in `files` with a
+timestamp on it. A mark that changed is a row in `attendance_log`. The
+timetable is a constant. So the system is not a queue and a delivery
+pipeline. It is a question asked of the data the site already holds: *what has
+changed since this person last looked*.
+
+`GET /api/updates?since=<timestamp>` is that question. The reader's cursor
+lives in their own browser, so there is no read-receipt table and no row to
+mark as seen.
+
+The push is the only part with machinery in it, and it is deliberately small.
+
+### What can be told about
+
+| | Kind | What it is |
+|---|---|---|
+| A | New course material | A deck or a handout was posted for a course |
+| E, F | Your classes | Five minutes before a class, and when it ends |
+| B, C, D | Your attendance | Attendance recorded, a mark corrected, the standing |
+| I | The academic calendar | Exams, registration, matriculation |
+| J to Q | Staff and the site | Approvals, unmarked classes, uploads, a broken feed |
+
+Each kind is turned on and off separately, and there are quiet hours in the
+reader's own clock. The server checks the quiet hours as well, so a push that
+should not have arrived does not.
+
+### Two halves
+
+**In the tab.** The class reminders are timed in the browser, because the
+class times are known in advance and need no server to say so. A tab that is
+open will remind you five minutes before, and when the class ends. This half
+works on any plan, with no push service involved.
+
+**Out of the tab.** Web push, for the cases where the reader is elsewhere.
+This needs a service worker, a VAPID key pair and a subscription. The payload
+is encrypted end to end, so the push service sees an opaque blob it cannot
+read, and it never sees the reader's address.
+
+**A subscription is a device, not a person.** The students have no accounts,
+so the row says nothing about who is holding it. The preferences are per
+device for the same reason, and the device id is a random string in the
+reader's own storage.
+
+### What triggers what
+
+Only the class reminders need a clock. Everything else is event-driven: a
+file was uploaded, so the upload action says so. There is nothing scheduled
+about a file, and nothing to keep running.
+
+The scheduler is `GET /api/push/schedule`, guarded by a shared secret. It is
+called every five minutes by Supabase's own cron, which calls it over the
+network with `pg_net`, because Vercel's cron runs once a day on the free
+plan and that is no use for "starts in five minutes". `vercel.json` has the
+same schedule for a paid plan, and the two do not conflict.
+
+If neither cron is working, the class reminders still arrive for anybody who
+has the site open, because the browser times them itself.
+
+### Configuration
+
+| Variable | What it is |
+|---|---|
+| `VAPID_PUBLIC_KEY` | Goes to the browser |
+| `VAPID_PRIVATE_KEY` | Never leaves the server |
+| `VAPID_SUBJECT` | A contact address for the push service |
+| `PUSH_SCHEDULE_SECRET` | The secret the scheduler calls with. Different from `ADMIN_SECRET` |
+
+To make a new key pair:
+
+```bash
+node -e "console.log(require('web-push').generateVAPIDKeys())"
+```
+
+Rotating the pair invalidates every subscription, so every device has to turn
+notifications on again.
+
+### The site is now installable
+
+There is a service worker, so the site can be added to a home screen and
+opens without a network. `public/offline.html` is what it shows when there
+is no signal.
+
 ## Data sources
 
 - `src/lib/resources.ts` — courses, their weekly sessions and their files. The

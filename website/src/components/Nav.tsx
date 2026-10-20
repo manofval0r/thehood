@@ -10,6 +10,7 @@ import { formatRange } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions";
 import { useStaffSession } from "@/components/StaffSession";
+import { NotificationBell } from "@/components/NotificationBell";
 import type { Permission } from "@/lib/permissions";
 
 /**
@@ -316,6 +317,13 @@ export default function Nav() {
                 })}
               </div>
             </div>
+
+            {/* ---------- The bell ----------
+                What has changed, and the settings for what to be told about.
+                It is the only way into the notification panel, and it sits
+                beside the countdown because both are answers to "what is
+                happening now". */}
+            <NotificationBell />
 
             {/* ---------- Sign out ----------
                 Only for a member of staff, and only when the bar is showing
