@@ -171,7 +171,11 @@ week, and each cell is one box.
    from all of them. The students themselves are identified by matric number
    only.
 2. **Who marks.** The department, each member with a code of their own. Every
-   write is recorded as `marked_by` and logged.
+   write is recorded as `marked_by` and logged. There are two kinds of staff:
+   a super admin, who approves people, takes access away and reads the audit
+   log, and an admin, who does the day-to-day work and can add people that
+   wait for a super admin before they work at all. Permissions are granted
+   one at a time, so uploading and marking can be taken away separately.
 3. **Granularity.** One box per weekly meeting, which is what attendance
    thresholds are counted against. A course that meets twice has two columns a
    week, because the count of boxes has to match the count of classes.

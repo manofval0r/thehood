@@ -14,7 +14,13 @@ import {
   isConfigured,
 } from "@/lib/attendance-db";
 import { getAllFiles } from "@/lib/files";
-import { listStaff } from "@/lib/staff";
+import {
+  can,
+  isSuper,
+  listAudit,
+  listPending,
+  listStaff,
+} from "@/lib/staff";
 import { COURSES } from "@/lib/resources";
 
 export const metadata: Metadata = {
@@ -93,21 +99,30 @@ async function AdminArea() {
     );
   }
 
-  const [roster, summaries, files, staff] = await Promise.all([
+  const [roster, summaries, files, everyone, pending, audit] = await Promise.all([
     getRoster(),
     getAllSummaries(),
     getAllFiles(),
     listStaff(),
+    isSuper(me) ? listPending() : Promise.resolve([]),
+    isSuper(me) ? listAudit(50) : Promise.resolve([]),
   ]);
 
   const courseOptions = COURSES.map((c) => ({ code: c.code, title: c.title }));
 
+  // A super admin sees everybody. An admin sees the people they added, and
+  // the code for the ones a super admin has approved.
+  const people = isSuper(me)
+    ? everyone
+    : everyone.filter((p) => p.added_by === me.id);
+
   return (
     <>
-      <section className="mt-10">
-        <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
-          Mark attendance
-        </h2>
+      {can(me, "attendance") && (
+        <section className="mt-10">
+          <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
+            Mark attendance
+          </h2>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
           One box per class per student. A box nobody has filled in is not an
           absence, and the grid keeps the two apart.
@@ -146,24 +161,37 @@ async function AdminArea() {
               </li>
             );
           })}
-        </ul>
-      </section>
+          </ul>
+        </section>
+      )}
 
-      <StaffManager staff={staff} me={me.id} />
+      {can(me, "staff") && (
+        <StaffManager
+          me={{ id: me.id, name: me.name, role: me.role }}
+          people={people}
+          pending={pending}
+          audit={audit}
+          super={isSuper(me)}
+        />
+      )}
 
-      <FileManager
-        courses={courseOptions}
-        files={files.map((f) => ({
-          id: f.id,
-          course: f.course,
-          title: f.title,
-          type: f.type,
-          size: f.size,
-          source: f.source,
-        }))}
-      />
+      {can(me, "files") && (
+        <FileManager
+          courses={courseOptions}
+          files={files.map((f) => ({
+            id: f.id,
+            course: f.course,
+            title: f.title,
+            type: f.type,
+            size: f.size,
+            source: f.source,
+          }))}
+        />
+      )}
 
-      <RosterManager students={roster} courses={courseOptions} />
+      {can(me, "roster") && (
+        <RosterManager students={roster} courses={courseOptions} />
+      )}
 
       <form action={logout} className="mt-12 flex items-center gap-3">
         <p className="text-[12.5px] text-muted">

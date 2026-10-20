@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { AttendanceGrid, type GridDate } from "@/components/AttendanceGrid";
 import { currentStaff } from "@/lib/admin-session";
+import { can } from "@/lib/staff";
 import {
   getHistory,
   getMarks,
@@ -79,7 +80,8 @@ async function Workspace({
 }) {
   await connection();
 
-  if (!(await currentStaff())) {
+  const staff = await currentStaff();
+  if (!staff) {
     return (
       <div className="mt-8 rounded-lg border border-border bg-surface p-5">
         <h2 className="text-[15px] font-semibold text-foreground">
@@ -91,6 +93,20 @@ async function Workspace({
             staff page
           </Link>{" "}
           to mark attendance.
+        </p>
+      </div>
+    );
+  }
+
+  if (!can(staff, "attendance")) {
+    return (
+      <div className="mt-8 rounded-lg border border-border bg-surface p-5">
+        <h2 className="text-[15px] font-semibold text-foreground">
+          Marking attendance is not one of your permissions
+        </h2>
+        <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
+          You can sign in, but you have not been allowed to fill the boxes. A
+          super admin can turn it on from the staff page.
         </p>
       </div>
     );

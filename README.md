@@ -438,6 +438,16 @@ the empty box beside it.
 
 ### The data
 
+**The roll is the cohort.** The seventeen students are in the database, on
+every course in the programme, because the core courses are taken by every
+student and the shared ones are taken by them too. `tools/seed-roster.js` puts
+them there and clears anything that was there before.
+
+The roster lives in the database rather than in the repository. This site is
+public, and a student list committed to git is a student list published.
+
+The rest of the attendance data:
+
 Three tables in Supabase project `thehood-cms`:
 
 - `roster` — matric number, name, course.
@@ -478,6 +488,10 @@ because the navigation is for students; there is a quiet one in the footer.
    It prints a code like `FNTQH-GUXFB-W33QW-6WUUA`. **Write it down there and
    then.** It is shown once and cannot be read back.
 
+   The first account made this way is a super admin. After that, anybody with
+   the **Add staff members** permission can add colleagues from the staff
+   page, and a super admin approves them.
+
 2. **Open `/admin` and sign in** with your name and that code.
 
 3. **To upload a course file:** pick the course, choose the file, give it a
@@ -495,35 +509,87 @@ because the navigation is for students; there is a quiet one in the footer.
    half, absent, excused, not recorded. Every change is written down with your
    name on it, and the last day's changes are listed underneath the grid.
 
-6. **To add a colleague:** "Who can get in" on the staff page. Their code is
-   shown once, the same way.
+6. **To add a colleague:** "Who can get in" on the staff page. They wait for
+   a super admin to approve them, and then their code appears for you to
+   copy and pass on, for two days.
 
 7. **To sign out:** the button at the bottom. Your session lasts twelve hours.
 
 ### Who can get in
 
-Every person on the staff list has a code **of their own**. The sign-in is a
-name and a code, not one shared secret for the department, because:
+There are two kinds of staff, and the difference between them is who can do
+what to whom.
+
+**A super admin** (there are two or three) approves people, takes access
+away, changes what somebody is allowed to do, and reads the audit log. They
+also have every permission themselves, whatever their list says.
+
+**An admin** does the day-to-day work: marks attendance, uploads files,
+keeps the roll. They can also add people, but the people they add go into a
+review queue and wait for a super admin before they can sign in at all.
+
+Every person has a code **of their own**. The sign-in is a name and a code,
+not one shared secret for the department, because:
 
 - A shared code cannot say who did what. `marked_by` used to be the word
   "staff" on every row, which means an attendance record that cannot be
   argued with. It now carries the name of the person who marked it, and the
   correction history carries it too.
 - A shared code cannot be taken back from one person without taking it back
-  from all of them. Per-person codes can be locked out individually.
+  from all of them. Per-person codes can be locked out individually, and
+  individual permissions can be taken away without taking the account.
 
-**The code is never stored.** What is kept is a scrypt hash and the salt it
-was made with, so reading the table cannot hand over a way in. The code is
-shown once, when it is made, and never again: there is no way to read
-somebody's code back and no way to reset it in place. A lost code means a new
-code, and the old one stops working.
+### Adding somebody
 
-`tools/add-staff.js "Name" [email]` makes the first one from the command
-line. After that, anyone on the list can add colleagues from the staff page.
+1. An admin adds a name, an email, and what they should be allowed to do.
+2. The person is **pending**. They cannot sign in, because they have no code
+   yet, and the sign-in says so rather than saying the code is wrong.
+3. A super admin sees them in the queue and approves them.
+4. A code is made. **The person who added them can read it for two days**,
+   and a super admin can too. It is shown with a Copy button, because a code
+   that is read off a screen and typed into a message is a code that gets
+   typed wrong.
+5. After two days the code is **destroyed**, not merely hidden. There is
+   nothing left to decrypt. If it needs passing on again, a new one is
+   issued and the old one stops working.
 
-`ADMIN_SECRET` is **not** a way in. It signs the session cookie and nothing
-else, so rotating it ends every session at once without changing anybody's
-code. It is the key to the door, not a key to the building.
+The code is never stored in the clear. What is kept for signing in is a
+scrypt hash and the salt it was made with; what is kept for the two-day
+window is an encrypted copy, encrypted with a key derived from
+`ADMIN_SECRET`. Rotating that secret makes every issued code unreadable,
+which is the same as saying those codes no longer exist.
+
+`tools/add-staff.js "Name" [email]` makes a super admin from the command
+line. After that, anybody with the **Add staff members** permission can add
+colleagues from the staff page.
+
+`ADMIN_SECRET` is **not** a way in. It signs the session cookie and encrypts
+the issued codes, and nothing else, so rotating it ends every session at
+once without changing anybody's code. It is the key to the door, not a key to
+the building.
+
+### Permissions
+
+| Permission | What it allows |
+|---|---|
+| **Mark attendance** | Fill the boxes on the attendance grid |
+| **Upload and remove course files** | Add and remove the files on a course page |
+| **Keep the student roll** | Add and remove students from the roll |
+| **Add staff members** | Add people, who then wait for a super admin to approve them |
+
+A super admin has all four. An admin has whichever they were given, and a
+super admin can change that at any time, one permission at a time or all of
+them at once by taking the account away.
+
+The permissions are enforced **in the Server Actions**, not only in the
+interface. An action is reachable by a direct POST, so hiding a section is a
+convenience and not a protection.
+
+### The audit log
+
+Every change to anybody's access is written down: who added them, who
+approved them, whose permissions were changed, who was locked out and by
+whom, with the time. A super admin reads it on the staff page.
 
 ### What else protects it
 
@@ -579,6 +645,10 @@ weaker than a shared store and worth knowing about.
   `supabase/migrations/` and is applied with `supabase db push`.
 - `src/lib/files.ts` — the file index and the upload path, the same way.
   `tools/migrate-files.js` indexes the archive files.
+- `src/lib/permissions.ts` — what a member of staff may do. It has no secrets
+  and no database in it, so the browser can read it too.
+- `src/lib/staff.ts` — the staff list, the codes, and the audit log.
+  `tools/seed-roster.js` puts the cohort on the roll.
 
 ## Study resources marks
 

@@ -3,7 +3,6 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { getStaff, type StaffMember } from "@/lib/staff";
-
 /**
  * The staff session.
  *
@@ -64,6 +63,8 @@ export async function endSession(): Promise<void> {
  * The id in the cookie is only a claim. The person is looked up and checked
  * to still be on the list, so removing someone from the list ends their
  * access immediately rather than whenever their cookie happens to expire.
+ * Their status is checked too: somebody waiting for approval cannot sign in
+ * even with a correct code, because they have no code yet.
  */
 export async function currentStaff(): Promise<StaffMember | null> {
   const raw = (await cookies()).get(COOKIE)?.value;
@@ -95,9 +96,10 @@ export async function currentStaff(): Promise<StaffMember | null> {
 
   try {
     const member = await getStaff(staffId);
-    if (!member || !member.active) return null;
-    const { secret_hash: _ignored, ...safe } = member;
-    return safe;
+    if (!member) return null;
+    if (member.status !== "active") return null;
+    const { secret_hash: _ignored, code_cipher: _also, ...safe } = member;
+    return safe as StaffMember;
   } catch {
     return null;
   }
