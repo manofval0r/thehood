@@ -28,6 +28,8 @@ const TABS = [
   { href: "/registration", label: "Registration" },
   { href: "/resources", label: "Resources" },
   { href: "/news", label: "News" },
+  { href: "/careers", label: "Careers" },
+  { href: "/events", label: "Events" },
 ];
 
 export default function Nav() {
@@ -110,14 +112,20 @@ export default function Nav() {
                 // Desktop keeps the full lockup. There is room for it there and
                 // the identity is doing work.
                 "lg:max-w-none lg:opacity-100",
-                // Below sm the words go and only the mark stays. The wordmark
+                // Below xl the words go and only the mark stays. The wordmark
                 // is 170px and the countdown 128px; on a 375px phone that is
                 // 298 of 307 usable pixels, so keeping both leaves a one-pixel
                 // gap for five links. The mark alone is 30px, which buys back
                 // two visible links. This is the same text that collapses on
                 // scroll, just starting earlier, because a phone has no room
                 // for it at any point.
-                "max-sm:[&_[data-wordmark-text]]:hidden",
+                //
+                // The cut-off moved up to xl because the bar grew: with eight
+                // links the words and the links together no longer fit
+                // between 1024 and 1280, and at those widths the links are
+                // navigation while the words are identity. The mark carries
+                // the identity on its own.
+                "max-xl:[&_[data-wordmark-text]]:hidden",
                 scrolled ? "max-w-0 opacity-0 lg:max-w-none lg:opacity-100" : "max-w-[10rem] opacity-100"
               )}
               aria-label="Cybersecurity 300L home"
@@ -144,19 +152,25 @@ export default function Nav() {
                 // Phone: a rail that takes the leftover width and scrolls.
                 "min-w-[4.5rem] flex-1 overflow-x-auto overscroll-x-contain",
                 "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-                // Desktop: taken out of the flex flow and centred on the bar.
-                // Inside a flex-1 slot the links sat immediately after the
-                // wordmark, so they looked shoved right: they were centred in
-                // whatever was left, and the countdown was wider than the
-                // wordmark. Centring on the bar is what the eye is actually
-                // judging, and it also stops the links drifting as the
-                // wordmark collapses on scroll.
-                "lg:absolute lg:left-1/2 lg:top-0 lg:h-full lg:w-max lg:max-w-none lg:flex-none lg:-translate-x-1/2 lg:overflow-visible"
+                // The links sit in the space between the wordmark and the
+                // countdown and are centred in whatever is left. An earlier
+                // version took them out of the flow and centred them on the
+                // whole bar instead, which looked right until there were
+                // enough of them: the group grew until it ran into the
+                // countdown, and a bar whose links overlap the clock is
+                // worse than one whose links are not quite on the centre
+                // line. Centred in the gap, they cannot reach the clock at
+                // any width, and they scroll when the gap is too small.
+                "flex",
               )}
             >
               <div
                 ref={tabListRef}
-                className="relative flex h-full w-max items-center"
+                // Auto margins rather than justify-content: when the links
+                // are wider than the rail, auto margins resolve to zero and
+                // the rail scrolls from the first link, whereas a centred
+                // flex row clips the first link with no way to scroll to it.
+                className="relative mx-auto flex h-full w-max items-center"
               >
                 {/* Sits exactly on the active link's measured box. rounded-lg,
                     not rounded-full: a full pill on a 32px row reads as a
@@ -189,7 +203,12 @@ export default function Nav() {
                       href={t.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "pressable relative z-10 flex h-8 shrink-0 items-center rounded-full px-3.5 text-[13.5px] font-medium transition-colors",
+                        // px-3 rather than px-3.5: with eight links the
+                        // half-pixel of extra padding on each side was
+                        // thirty-two pixels across the row, which is the
+                        // difference between the last link fitting beside the
+                        // countdown and being clipped by it.
+                        "pressable relative z-10 flex h-8 shrink-0 items-center rounded-full px-3 text-[13.5px] font-medium transition-colors",
                         active
                           ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"

@@ -56,6 +56,9 @@ npm start        # serve the build
 | `/timeline` | Academic calendar with a draggable session rail, category filters, `.ics` download |
 | `/resources` | Papers, lecture channels, practice platforms and tools |
 | `/news` | Security headlines from eight feeds, fetched server-side and reissued hourly |
+| `/careers` | The eight jobs this programme feeds, the certifications that count, and where to practise |
+| `/careers/<role>` | One job in depth, and the courses here that feed it |
+| `/events` | Competitions you can enter, the department's calendar, and the events that happen every year |
 | `/admin` | The staff area, behind one shared code. Mark attendance, manage the roll |
 | `/contact` | Who teaches each course, when and where, and how to reach them |
 | `/calendar.ics` | The whole session as an importable calendar file |
@@ -331,6 +334,42 @@ it is easy to get each one wrong and each one has a consequence:
 
 Run `node tools/probe-feeds.js` to re-check every candidate feed against the
 live network before editing `news-sources.ts`.
+
+## Careers
+
+`/careers` answers the three questions a student at this level actually asks,
+in this order: what job can I get, what paper proves I can do it, and where do
+I practise. `/careers/<role>` opens one job and names the courses on this
+programme that feed it, because the job title and the course code look like
+unrelated things until somebody points at both.
+
+The content is a manifest (`src/lib/career.ts`), not a database. It is eight
+roles, fifteen certifications and twelve practice platforms, cross-referenced
+to each other. `tools/check-career.js` asserts that every reference resolves,
+so a typo in a course slug cannot quietly render one card fewer than it
+should. Run it alongside the other checks.
+
+**On the costs.** Certification prices are indicative bands rather than
+quotes, and the page says so where they appear. Vendors move prices, academic
+pricing differs by country, and a specific number written here would be wrong
+by next term. What is specific is the advice about how to pay less, which
+barely changes: academic pricing, and buying the training and the exam
+together rather than the exam alone.
+
+## Events
+
+`/events` carries three different kinds of thing, which is why they are in
+three sections rather than one list:
+
+- **Competitions**, from the [CTFtime API](https://ctftime.org/api/),
+  fetched on the server and cached for an hour. The reader's browser never
+  talks to CTFtime, so a feed that wants to know where you were learns
+  nothing. Their API asks that it be used for data analysis rather than for
+  copying their site; this is a short list, each entry links back to the
+  event, and the page says where the data came from.
+- **The department's own calendar**, which was already in the manifest.
+- **The events that happen every year**, which no feed reports because they
+  are not announcements, they are the shape of the year.
 
 ## Attendance
 

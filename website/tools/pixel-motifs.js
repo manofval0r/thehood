@@ -248,6 +248,71 @@ const MOTIFS = {
     rect(g, 6, 6, 8, 2, "a");
     put(g, 15, 9, "a");
   },
+
+  /** Badge: a seal with two ribbon tails. Certification. */
+  badge(g) {
+    disc(g, 9, 7, 6, "d");
+    disc(g, 9, 7, 5, "a");
+    disc(g, 9, 7, 4, "d");
+    disc(g, 9, 7, 2, "l");
+    // The tails hang below the seal, with a gap between them.
+    rect(g, 5, 12, 3, 6, "d");
+    rect(g, 11, 12, 3, 6, "d");
+    rect(g, 5, 16, 3, 1, "a");
+    rect(g, 11, 16, 3, 1, "a");
+    rect(g, 6, 13, 1, 5, "l");
+    rect(g, 12, 13, 1, 5, "l");
+  },
+
+  /** Trophy: a cup on a stem. Competition. */
+  trophy(g) {
+    rect(g, 4, 3, 12, 2, "d");
+    rect(g, 4, 3, 12, 1, "l");
+    for (let i = 0; i < 5; i++) {
+      rect(g, 6 + Math.floor(i / 2), 5 + i, 8 - i, 1, "d");
+    }
+    // The band under the rim carries the accent.
+    rect(g, 6, 5, 8, 1, "a");
+    // Handles, joined to the body so they do not float beside it.
+    rect(g, 3, 5, 2, 4, "m");
+    rect(g, 15, 5, 2, 4, "m");
+    put(g, 5, 6, "m");
+    put(g, 5, 7, "m");
+    put(g, 14, 6, "m");
+    put(g, 14, 7, "m");
+    // Stem and base.
+    rect(g, 9, 10, 2, 5, "d");
+    rect(g, 9, 10, 1, 5, "l");
+    rect(g, 6, 15, 8, 2, "d");
+    rect(g, 7, 15, 6, 1, "a");
+  },
+
+  /** Route: steps going up. A pathway. */
+  route(g) {
+    // Each step runs all the way down, so the shape reads as one staircase
+    // rather than four blocks sitting near each other.
+    rect(g, 2, 15, 5, 4, "d");
+    rect(g, 6, 12, 5, 7, "d");
+    rect(g, 10, 9, 5, 10, "d");
+    rect(g, 14, 6, 5, 13, "d");
+    // Treads catch the light, the last one carries the accent.
+    rect(g, 2, 15, 5, 1, "m");
+    rect(g, 6, 12, 5, 1, "m");
+    rect(g, 10, 9, 5, 1, "m");
+    rect(g, 14, 6, 5, 1, "a");
+    // The riser of the top step catches a highlight.
+    rect(g, 14, 9, 1, 3, "l");
+  },
+
+  /** Flag: a pole with a pennant. Events. */
+  flag(g) {
+    rect(g, 4, 2, 2, 16, "d");
+    rect(g, 4, 2, 1, 16, "l");
+    for (let i = 0; i < 7; i++) rect(g, 6, 3 + i, 10 - i, 1, "a");
+    rect(g, 6, 3, 10, 1, "b");
+    rect(g, 2, 17, 7, 2, "d");
+    rect(g, 3, 17, 5, 1, "m");
+  },
 };
 
 /* ---------------- emit ---------------- */
@@ -275,6 +340,10 @@ const ACCENTS = {
   research: ["#c084fc", "#7e22ce"],
   region: ["#38bdf8", "#0369a1"],
   industry: ["#94a3b8", "#475569"],
+  badge: ["#fcd34d", "#b45309"],
+  trophy: ["#e2e8f0", "#64748b"],
+  route: ["#818cf8", "#4338ca"],
+  flag: ["#a3e635", "#4d7c0f"],
 };
 
 const entries = Object.keys(MOTIFS);

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { ROLES } from "@/lib/career";
 import { COURSES } from "@/lib/resources";
 
 /** Canonical origin. Override with NEXT_PUBLIC_SITE_URL on the deployment. */
@@ -15,8 +16,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/registration`, lastModified: now, priority: 0.6, changeFrequency: "monthly" },
     { url: `${BASE}/resources`, lastModified: now, priority: 0.6, changeFrequency: "weekly" },
     { url: `${BASE}/news`, lastModified: now, priority: 0.6, changeFrequency: "hourly" },
+    { url: `${BASE}/careers`, lastModified: now, priority: 0.6, changeFrequency: "monthly" },
+    { url: `${BASE}/events`, lastModified: now, priority: 0.5, changeFrequency: "hourly" },
     { url: `${BASE}/contact`, lastModified: now, priority: 0.4, changeFrequency: "monthly" },
   ];
+
+  const roleRoutes: MetadataRoute.Sitemap = ROLES.map((r) => ({
+    url: `${BASE}/careers/${r.slug}`,
+    lastModified: now,
+    priority: 0.5,
+    changeFrequency: "monthly",
+  }));
 
   const courseRoutes: MetadataRoute.Sitemap = COURSES.map((c) => ({
     url: `${BASE}/courses/${c.slug}`,
@@ -25,5 +35,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "weekly",
   }));
 
-  return [...staticRoutes, ...courseRoutes];
+  return [...staticRoutes, ...roleRoutes, ...courseRoutes];
 }
