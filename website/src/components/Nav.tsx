@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import FlipClock from "@/components/FlipClock";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
+import { formatRange } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
+import { logout } from "@/app/admin/actions";
+import { useStaffSession } from "@/components/StaffSession";
+import type { Permission } from "@/lib/permissions";
 
 /**
  * GitHub-style repository navigation, as a set of pills that contract into a
@@ -32,8 +36,30 @@ const TABS = [
   { href: "/events", label: "Events" },
 ];
 
+/**
+ * The links a member of staff gets instead.
+ *
+ * The student links are not needed to run the roll, and the staff area is
+ * split into pages rather than being one long page, so each of these is a
+ * place of its own. A link appears only if that person holds the permission
+ * it needs, which is the same rule the server actions enforce.
+ */
+const ADMIN_TABS: {
+  href: string;
+  label: string;
+  permission: Permission;
+  /** Match the path exactly, so "Staff" is not lit while on a sub-page. */
+  exact?: boolean;
+}[] = [
+  { href: "/admin/attendance", label: "Attendance", permission: "attendance" },
+  { href: "/admin/files", label: "Files", permission: "files" },
+  { href: "/admin/roll", label: "Roll", permission: "roster" },
+  { href: "/admin", label: "Staff", permission: "staff", exact: true },
+];
+
 export default function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [pill, setPill] = useState({ left: 0, top: 0, width: 0, height: 0, ready: false });
   const tabListRef = useRef<HTMLDivElement>(null);
@@ -49,8 +75,44 @@ export default function Nav() {
     setMs(((h || 0) * 3600 + (m || 0) * 60 + (s || 0)) * 1000);
   }, [countdown.text, countdown.ready]);
 
-  const activeHref = TABS.find((t) =>
-    t.href === "/" ? pathname === "/" : pathname.startsWith(t.href)
+  /**
+   * Whether a member of staff is signed in.
+   *
+   * The bar changes for them: the student links are not what they need, and
+   * the staff area is a set of pages rather than one long one. The answer
+   * comes from the shared session, which is asked for once and refreshed
+   * after signing in or out.
+   */
+  const { session, refresh } = useStaffSession();
+
+  const isStaff = session?.isAdmin === true;
+
+  /**
+   * Signing out.
+   *
+   * The cookie goes, and then the bar has to be told, because it decides
+   * which links to show from what it was told last. Without the refresh the
+   * bar would go on showing the staff links to somebody who is no longer
+   * signed in, which is both wrong and confusing.
+   */
+  async function signOut() {
+    await logout();
+    await refresh();
+    router.push("/");
+    router.refresh();
+  }
+
+  /** The links this bar shows: the staff ones if signed in, else the student's. */
+  const links: { href: string; label: string; exact?: boolean }[] = isStaff
+    ? ADMIN_TABS.filter(
+        (t) =>
+          session?.role === "super" ||
+          session?.permissions?.includes(t.permission)
+      ).map((t) => ({ href: t.href, label: t.label, exact: t.exact }))
+    : TABS;
+
+  const activeHref = links.find((t) =>
+    t.exact ? pathname === t.href : pathname.startsWith(t.href)
   )?.href;
 
   /**
@@ -218,7 +280,7 @@ export default function Nav() {
                   }}
                 />
 
-                {TABS.map((t) => {
+                {links.map((t) => {
                   const active = t.href === activeHref;
                   return (
                     <Link
@@ -255,6 +317,20 @@ export default function Nav() {
               </div>
             </div>
 
+            {/* ---------- Sign out ----------
+                Only for a member of staff, and only when the bar is showing
+                the staff links, because it belongs with them. The student
+                bar has nothing to sign out of. */}
+            {isStaff && (
+              <button
+                type="button"
+                onClick={signOut}
+                className="pressable ml-1.5 shrink-0 rounded-full border border-border bg-surface px-2.5 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground sm:ml-2"
+              >
+                Sign out
+              </button>
+            )}
+
             {/* ---------- Countdown ----------
                 Pinned to the end of the bar, outside the link scroller. */}
             {next && (
@@ -274,16 +350,49 @@ export default function Nav() {
                   aria-hidden="true"
                 />
                 <FlipClock ms={ms} size="nav" className="shrink-0" />
-                {/* The course name needs about 150px the tab row may not have.
-                    Below that width the flaps alone still say what time it is,
-                    and the label carries the rest, so the control is never
-                    dropped entirely to save space. */}
-                <span className="hidden min-w-0 xl:block">
-                  <span className="block truncate text-[11.5px] font-medium leading-tight text-foreground">
+
+                {/* The course code, and nothing else. The title used to sit
+                    here on a second line, and it was the single widest thing
+                    in the bar: it pushed the links towards the countdown and
+                    the countdown towards the edge. The code says which class
+                    is being counted down to; the rest of it is one hover
+                    away, where it does not cost anything until somebody
+                    asks for it. */}
+                <span className="hidden shrink-0 font-mono text-[11px] leading-none text-foreground lg:block">
+                  {next.course.code}
+                </span>
+
+                {/* What the code used to say, on hover and on focus. It is
+                    the same information the label carries for a screen
+                    reader, so nothing is hidden from anybody. */}
+                <span
+                  className={cn(
+                    "pointer-events-none absolute right-0 top-full z-50 mt-2 w-64 origin-top-right rounded-lg border border-border bg-surface-raised p-3 text-left opacity-0 shadow-lift",
+                    "translate-y-1 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                    "group-hover/cd:translate-y-0 group-hover/cd:opacity-100 group-focus-within/cd:translate-y-0 group-focus-within/cd:opacity-100"
+                  )}
+                  aria-hidden="true"
+                >
+                  <span className="block text-[13px] font-semibold leading-snug text-foreground">
                     {next.course.title}
                   </span>
-                  <span className="block font-mono text-[10px] leading-tight text-muted">
-                    {next.course.code}
+                  <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-muted">
+                    <span className="font-mono text-foreground">
+                      {next.course.code}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span>
+                      {next.course.dayName},{" "}
+                      {formatRange(next.course.startMin, next.course.endMin)}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span>{next.course.venue}</span>
+                  </span>
+                  <span className="mt-2 block border-t border-border pt-2 text-[11.5px] text-muted">
+                    {next.inProgress ? "In progress now" : "Starts in"}{" "}
+                    <span className="font-mono text-foreground">
+                      {countdown.text}
+                    </span>
                   </span>
                 </span>
               </Link>

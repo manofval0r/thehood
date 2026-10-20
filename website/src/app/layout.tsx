@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { ThemeProvider, THEME_BOOTSTRAP } from "@/components/ThemeProvider";
+import { StaffSessionProvider } from "@/components/StaffSession";
 import ThemePill from "@/components/ThemePill";
 import "./globals.css";
 
@@ -73,16 +74,20 @@ export default function RootLayout({
           `}</style>
         </noscript>
         <ThemeProvider>
-          <Nav />
-          {/* Floats below the header rather than living inside it: the navbar
-              carries six things already, and a fixed control outside the bar
-              cannot change the bar's geometry as the page scrolls. */}
-          <ThemePill />
-          {/* pb keeps the last element of any page clear of the footer. Without
-              it, whichever page forgets its own bottom padding sits flush against
-              the footer's top border. */}
-          <main className="flex-1 pb-16">{children}</main>
-          <Footer />
+          {/* Whether a member of staff is signed in, so the bar can show
+              them the staff links rather than the student's. */}
+          <StaffSessionProvider>
+            <Nav />
+            {/* Floats below the header rather than living inside it: the navbar
+                carries six things already, and a fixed control outside the bar
+                cannot change the bar's geometry as the page scrolls. */}
+            <ThemePill />
+            {/* pb keeps the last element of any page clear of the footer. Without
+                it, whichever page forgets its own bottom padding sits flush against
+                the footer's top border. */}
+            <main className="flex-1 pb-16">{children}</main>
+            <Footer />
+          </StaffSessionProvider>
         </ThemeProvider>
       </body>
     </html>

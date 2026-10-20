@@ -480,6 +480,21 @@ either.
 The staff area is at **`/admin`**. There is no link to it in the navigation,
 because the navigation is for students; there is a quiet one in the footer.
 
+**When a member of staff signs in, the bar changes.** The student links are
+replaced by the staff ones, the page you are on is marked in the same way a
+student's page is, and a **Sign out** button appears. The staff links are
+whatever that person is allowed to do, so somebody who may only mark
+attendance sees only "Attendance".
+
+The area is four pages rather than one long one:
+
+| Page | What it is for | Needs |
+|---|---|---|
+| `/admin` | Who can get in, the review queue, the audit log | Add staff members |
+| `/admin/attendance` | The marking grid | Mark attendance |
+| `/admin/files` | Adding and removing course files | Upload and remove course files |
+| `/admin/roll` | Who is on each course | Keep the student roll |
+
 1. **Get your code.** The first one is made from the command line:
    ```bash
    cd website
@@ -494,26 +509,27 @@ because the navigation is for students; there is a quiet one in the footer.
 
 2. **Open `/admin` and sign in** with your name and that code.
 
-3. **To upload a course file:** pick the course, choose the file, give it a
-   name if you want one other than the file name, and press **Add the file**.
-   It appears on the course page, in the search and in the counts within a
-   request or two. Twenty-five megabytes is the limit.
+3. **To upload a course file:** `/admin/files`, pick the course, choose the
+   file, give it a name if you want one other than the file name, and press
+   **Add the file**. It appears on the course page, in the search and in the
+   counts within a request or two. Twenty-five megabytes is the limit.
 
 4. **To remove a file:** the **Remove** button next to it. Only files you
    uploaded can be removed; the ones in the repository are marked "in the
    repository" and have no button, because deleting one from the index would
    leave the file sitting in the public folder with nothing pointing at it.
 
-5. **To mark attendance:** go to **Mark attendance**, choose the course, pick
-   the week, and click a box. A panel opens with the five states: present,
-   half, absent, excused, not recorded. Every change is written down with your
+5. **To mark attendance:** `/admin/attendance`, choose the course, pick the
+   week, and click a box. A panel opens with the five states: present, half,
+   absent, excused, not recorded. Every change is written down with your
    name on it, and the last day's changes are listed underneath the grid.
 
-6. **To add a colleague:** "Who can get in" on the staff page. They wait for
-   a super admin to approve them, and then their code appears for you to
-   copy and pass on, for two days.
+6. **To add a colleague:** "Who can get in" on `/admin`. They wait for a
+   super admin to approve them, and then their code appears for you to copy
+   and pass on, for two days.
 
-7. **To sign out:** the button at the bottom. Your session lasts twelve hours.
+7. **To sign out:** the **Sign out** button in the bar. Your session lasts
+   twelve hours.
 
 ### Who can get in
 

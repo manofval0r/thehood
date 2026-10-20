@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath, refresh, updateTag } from "next/cache";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import {
   addStudents,
@@ -95,6 +94,8 @@ async function attemptKey(): Promise<string> {
 
 export interface LoginState {
   error?: string;
+  /** Set once the code was right. The interface does the navigating. */
+  ok?: boolean;
 }
 
 export async function login(
@@ -144,13 +145,14 @@ export async function login(
   // route is not re-rendered, and the reader is left looking at the login
   // form they have just filled in.
   revalidatePath("/admin");
-  redirect("/admin");
+  return { ok: true };
 }
 
 export async function logout(): Promise<void> {
   await endSession();
   revalidatePath("/admin");
-  redirect("/admin");
+  // No redirect from here. The caller navigates, because the bar has to be
+  // told the session is gone before it goes on showing the staff links.
 }
 
 /* ---------------------------------------------------------------- staff */

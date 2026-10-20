@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AttendanceGrid, type GridDate } from "@/components/AttendanceGrid";
+import { AdminHeader } from "@/components/AdminHeader";
 import { currentStaff } from "@/lib/admin-session";
 import { can } from "@/lib/staff";
 import {
@@ -48,14 +49,10 @@ export default async function AdminAttendancePage({
 }) {
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
-      <header className="rise max-w-2xl">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">
-          Staff
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Mark attendance
-        </h1>
-      </header>
+      <AdminHeader
+        title="Mark attendance"
+        lede="One box per class per student. A box nobody has filled in is not an absence, and the grid keeps the two apart."
+      />
 
       <Suspense fallback={<GridSkeleton />}>
         <Workspace searchParams={searchParams} />
