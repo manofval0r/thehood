@@ -1,0 +1,21 @@
+# The project builds from the website folder, so nothing outside it is
+# needed. The courses folder at the top of the repository is the same
+# material the site serves out of website/public/courses, and the launch
+# film folder is a render that is not part of the site.
+#
+# Without this the upload carries forty megabytes of films and duplicated
+# decks that the build never reads, and the upload is slow enough to time
+# out.
+courses
+docs
+audio
+MEMORY.md
+report.md
+**/MEMORY.md
+**/report.md
+
+# The workspace files.
+**/node_modules
+**/.next
+**/.vercel
+**/.git

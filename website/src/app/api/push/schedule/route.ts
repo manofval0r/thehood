@@ -14,7 +14,7 @@ import { recordHealth } from "@/lib/push";
  * Everything else in the notification system is event-driven. A file was
  * uploaded, so the upload says so. There is nothing here about files.
  */
-export async function GET(request: Request) {
+async function run(request: Request) {
   const secret = request.headers.get("x-push-secret");
   const expected = process.env.PUSH_SCHEDULE_SECRET;
 
@@ -42,4 +42,20 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({ ok: true, ...result });
+}
+
+/**
+ * Both verbs, because the callers disagree.
+ *
+ * A Vercel cron sends a GET. The database's own cron sends a POST, because
+ * that is what the HTTP client it has does. The route used to answer only
+ * the GET, so the one caller that mattered most was answered with a 405
+ * and the reminders never went out.
+ */
+export async function GET(request: Request) {
+  return run(request);
+}
+
+export async function POST(request: Request) {
+  return run(request);
 }
