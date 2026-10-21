@@ -6,6 +6,7 @@ import { ThemeProvider, THEME_BOOTSTRAP } from "@/components/ThemeProvider";
 import { StaffSessionProvider } from "@/components/StaffSession";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import { ScheduleProvider } from "@/components/ScheduleProvider";
+import ThemePill from "@/components/ThemePill";
 import { getAllBreaks } from "@/lib/break-store";
 import "./globals.css";
 
@@ -93,6 +94,11 @@ export default async function RootLayout({
                   them. */}
               <ScheduleProvider breaks={breaks}>
                 <Nav />
+                {/* The light and dark switch. It floats below the bar on a
+                    screen with room for it, and lives in the bar on a
+                    narrow one, where a floating control would sit on top of
+                    the page. */}
+                <ThemePill className="hidden lg:block" />
                 {/* pb keeps the last element of any page clear of the footer.
                     Without it, whichever page forgets its own bottom padding
                     sits flush against the footer's top border. */}

@@ -123,7 +123,11 @@ export function FlipClock({ ms, className, size = "hero" }: FlipClockProps) {
 
   return (
     <div
-      className={cn("flip-clock", size === "nav" && "flip-clock-nav", className)}
+      className={cn(
+        "flip-clock",
+        size === "nav" ? "flip-clock-nav" : "flip-clock-hero",
+        className
+      )}
       role="timer"
       aria-label={spoken}
     >

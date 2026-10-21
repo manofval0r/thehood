@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { formatCountdown, nextClass, type NextClass } from "@/lib/schedule";
+import { formatCountdown, followingClass, nextClass, type NextClass } from "@/lib/schedule";
 import { breakFor, segmentsFor } from "@/lib/breaks";
 import { useBreaks } from "@/components/ScheduleProvider";
 
@@ -9,6 +9,8 @@ export interface Countdown {
   /** HH:MM:SS remaining. */
   text: string;
   next: NextClass | null;
+  /** The class after the one that is running. */
+  following: NextClass | null;
   /** False until the client clock is read, so server and client agree. */
   ready: boolean;
   /** What the clock is counting to. */
@@ -43,6 +45,10 @@ export function useCountdown(): Countdown {
   }, []);
 
   const next = React.useMemo(() => (now ? nextClass(now) : null), [now]);
+  const following = React.useMemo(
+    () => (now ? followingClass(now) : null),
+    [now]
+  );
 
   const plan = React.useMemo(() => {
     if (!now || !next) return null;
@@ -111,6 +117,7 @@ export function useCountdown(): Countdown {
   return {
     text,
     next,
+    following,
     ready,
     phase: plan?.phase ?? "to-start",
     note: plan?.note ?? "until it starts",

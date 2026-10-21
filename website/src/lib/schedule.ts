@@ -189,6 +189,60 @@ export function nextClass(now: Date): NextClass | null {
   return null;
 }
 
+/**
+ * The class after the one that is running.
+ *
+ * A reader sitting in a class wants to know what is next, not only how
+ * long the one they are in has left. When nothing is running this is the
+ * same answer as `nextClass`.
+ */
+export function followingClass(now: Date): NextClass | null {
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  const running = SCHEDULE.find(
+    (c) => c.dayIndex === now.getDay() && nowMin >= c.startMin && nowMin < c.endMin
+  );
+
+  // The next class that starts once the running one is done, or the next
+  // one from now if nothing is running.
+  const from = running ? running.endMin : nowMin;
+
+  const laterToday = SCHEDULE.filter(
+    (c) => c.dayIndex === now.getDay() && c.startMin >= from
+  );
+  if (laterToday.length > 0) {
+    const first = laterToday[0];
+    return {
+      course: first,
+      startsAt: atMinutes(now, first.startMin),
+      endsAt: atMinutes(now, first.endMin),
+      inProgress: false,
+      isToday: true,
+      daysAway: 0,
+    };
+  }
+
+  for (let offset = 1; offset <= 7; offset++) {
+    const dayIndex = (now.getDay() + offset) % 7;
+    if (!TEACHING_DAYS.includes(dayIndex)) continue;
+    const forDay = SCHEDULE.filter((c) => c.dayIndex === dayIndex);
+    if (forDay.length === 0) continue;
+    const first = forDay[0];
+    const target = new Date(now);
+    target.setDate(target.getDate() + offset);
+    return {
+      course: first,
+      startsAt: atMinutes(target, first.startMin),
+      endsAt: atMinutes(target, first.endMin),
+      inProgress: false,
+      isToday: false,
+      daysAway: offset,
+    };
+  }
+
+  return null;
+}
+
 function atMinutes(day: Date, minutes: number) {
   const d = new Date(day);
   d.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);

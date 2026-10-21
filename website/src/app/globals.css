@@ -1157,6 +1157,33 @@ html:hover {
   max-width: 100%;
 }
 
+/* The landing page's clock, in green.
+   A row of digits standing on a black page is a row of digits. The same
+   digits on a green card read as a clock face, and the green is the one
+   colour on this site that means something is happening.
+
+   The green is fixed rather than taken from the accent, because the accent
+   is darker in light mode for the sake of the text that sits on it, and
+   this is a card with near-black digits on it. The clock is the same green
+   whatever the reader's mode is. */
+.flip-clock-hero .flip,
+.flip-clock-hero .flip-half,
+.flip-clock-hero .leaf-top,
+.flip-clock-hero .leaf-bottom {
+  background: #22c55e;
+}
+
+.flip-clock-hero .flip {
+  color: #06110a;
+  box-shadow:
+    0 10px 26px -14px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.flip-clock-hero .flip-group-label {
+  color: #22c55e;
+}
+
 /* ============================================================
    PRINT
    The timetable and the registration list are the two pages

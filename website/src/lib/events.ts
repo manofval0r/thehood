@@ -99,33 +99,16 @@ function parseEvent(raw: Record<string, unknown>): CtfEvent | null {
 }
 
 /**
- * Whether a competition can be entered from a desk in Lagos.
+ * Whether a competition is one a student here can enter.
  *
- * The feed says whether people have to be there in person, and most of them
- * say no. Some say where, and some of those say a city in another country.
- */
-export function isRemote(event: CtfEvent): boolean {
-  if (!event.onsite) return true;
-  return /online|on-line|remote|virtual|internet/i.test(event.location);
-}
-
-/** Whether a competition is happening in Nigeria. */
-export function isInNigeria(event: CtfEvent): boolean {
-  return /nigeria|lagos|abuja|benin city|kano|ibadan|port harcourt|enugu|owerri|jos\b|nwele/i.test(
-    event.location
-  );
-}
-
-/**
- * Whether a competition is one a student here can actually join.
+ * The feed gives its times in UTC and the page shows them in Lagos time,
+ * because Lagos is where the students are and this is the same rule.
  *
- * A competition in another country that needs you in the room is not one a
- * student in Nigeria can enter. One that is online, or one that is in
- * Nigeria, is.
+ * The rules themselves are in a separate file, because the feed is read on
+ * the server and the rules are read in the browser, and a file that is
+ * read in both cannot hold a cached function.
  */
-export function isJoinable(event: CtfEvent): boolean {
-  return isRemote(event) || isInNigeria(event);
-}
+export { isRemote, isInNigeria, isJoinable } from "./competition-kinds";
 
 /**
  * The next capture-the-flag competitions.

@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions";
 import { useStaffSession } from "@/components/StaffSession";
 import { NotificationBell } from "@/components/NotificationBell";
-import ThemeSwitch from "@/components/ThemeSwitch";
+import ThemeSlider from "@/components/ThemeSlider";
 import type { Permission } from "@/lib/permissions";
 
 /**
@@ -69,7 +69,27 @@ export default function Nav() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [pill, setPill] = useState({ left: 0, top: 0, width: 0, height: 0, ready: false });
+  const [fontsReady, setFontsReady] = useState(false);
   const tabListRef = useRef<HTMLDivElement>(null);
+
+  // The web font arrives after the first paint, and the words get wider when
+  // it does. The pill is measured against the row, so until the font has
+  // landed it would be measured against the wrong row and would sit on the
+  // wrong word. Waiting for the font is what keeps it from flashing onto
+  // the wrong link when a reader opens the site straight onto a page.
+  useEffect(() => {
+    let live = true;
+    document.fonts?.ready
+      .then(() => {
+        if (live) setFontsReady(true);
+      })
+      .catch(() => {
+        if (live) setFontsReady(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const countdown = useCountdown();
   const breaks = useBreaks();
@@ -345,7 +365,7 @@ export default function Nav() {
                     // that, doubling the offset.
                     "pointer-events-none absolute left-0 top-0 hidden rounded-lg bg-accent/14 ring-1 ring-inset ring-accent/30 md:block",
                     "transition-[transform,opacity] duration-[280ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
-                    pill.ready ? "opacity-100" : "opacity-0"
+                    pill.ready && fontsReady ? "opacity-100" : "opacity-0"
                   )}
                   style={{
                     transform: `translate3d(${pill.left}px, ${pill.top}px, 0)`,
@@ -391,13 +411,12 @@ export default function Nav() {
               </div>
             </div>
 
-              {/* ---------- The light and dark switch ----------
-                  It used to float below the bar, which put it on top of the
-                  right hand edge of every page. The pages put links in their
-                  top right corners, and a reader reaching for one of them was
-                  reaching for the switch. The bar is the only place a control
-                  can be that is never in the way. */}
-              <ThemeSwitch />
+                {/* ---------- The light and dark switch ----------
+                    On a narrow screen the floating switch would sit on top of
+                    the page, so it lives in the bar here instead. It is the
+                    same slider, in its small size, so a reader who meets it
+                    on one screen meets the same control on the next. */}
+                <ThemeSlider size="sm" className="lg:hidden" />
 
             {/* ---------- The bell ----------
                 What has changed, and the settings for what to be told about.
@@ -494,6 +513,37 @@ export default function Nav() {
                       {countdown.text}
                     </span>
                   </span>
+
+                  {/* And what is after it. A reader sitting in a class
+                      wants to know what is next, not only how long this one
+                      has left, and a class that has not started yet has a
+                      class after it as well. */}
+                  {countdown.following && (
+                    <span className="mt-2 block border-t border-border pt-2 text-[11.5px] text-muted">
+                      <span className="block text-[10.5px] uppercase tracking-[0.1em] text-muted">
+                        Then
+                      </span>
+                      <span className="mt-0.5 block font-medium text-foreground">
+                        {countdown.following.course.title}
+                      </span>
+                      <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px]">
+                        <span className="font-mono text-foreground">
+                          {countdown.following.course.code}
+                        </span>
+                        <span aria-hidden="true">·</span>
+                        <span>
+                          {countdown.following.isToday
+                            ? "today"
+                            : countdown.following.course.dayName}
+                          ,{" "}
+                          {formatRange(
+                            countdown.following.course.startMin,
+                            countdown.following.course.endMin
+                          )}
+                        </span>
+                      </span>
+                    </span>
+                  )}
                 </span>
               </Link>
             )}

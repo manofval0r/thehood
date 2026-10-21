@@ -3,14 +3,13 @@ import Link from "next/link";
 import AppleCard from "@/components/AppleCard";
 import PixelMotif from "@/components/PixelMotif";
 import Reveal from "@/components/Reveal";
+import CompetitionList from "@/components/CompetitionList";
 import {
   ANNUAL_EVENTS,
   getCtfEvents,
   getDepartmentEvents,
-  isInNigeria,
-  isJoinable,
-  isRemote,
 } from "@/lib/events";
+import { isJoinable } from "@/lib/competition-kinds";
 
 export const metadata: Metadata = {
   title: "Events · Cybersecurity 300L",
@@ -149,99 +148,7 @@ export default async function EventsPage() {
             </p>
           </div>
         ) : (
-          <ul className="mt-6 space-y-3">
-            {ctfs.map((ctf, i) => {
-              const when = dayLabel(ctf.start);
-              const remote = isRemote(ctf);
-              const here = isInNigeria(ctf);
-              return (
-                <Reveal key={ctf.id} delay={Math.min(i * 25, 300)}>
-                  <li>
-                    <AppleCard maxTilt={4} className="h-full">
-                      <a
-                        href={ctf.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="card-tilt settle relative block h-full rounded-lg border border-border bg-surface transition-colors hover:border-border-strong hover:bg-surface-hover"
-                      >
-                        <span className="card-cast" aria-hidden="true" />
-                        <span className="card-accent-glow" aria-hidden="true" />
-                        <span className="card-bevel" aria-hidden="true" />
-
-                        <div className="relative flex h-full items-start gap-4 px-4 py-4">
-                          <span className="card-depth w-11 shrink-0 text-center">
-                            <span className="block font-mono text-[17px] leading-none text-foreground">
-                              {when.day}
-                            </span>
-                            <span className="mt-1 block text-[10.5px] uppercase tracking-[0.1em] text-muted">
-                              {when.month}
-                            </span>
-                            <span className="mt-1 block text-[10px] uppercase tracking-[0.08em] text-muted">
-                              {when.weekday}
-                            </span>
-                            <span className="tnum mt-1 block font-mono text-[10px] text-muted">
-                              {when.time}
-                            </span>
-                          </span>
-
-                          <span className="card-depth min-w-0 flex-1">
-                            <span className="block text-[14px] font-medium leading-snug text-foreground">
-                              {ctf.title}
-                            </span>
-                            <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-muted">
-                              {ctf.organizer && <span>{ctf.organizer}</span>}
-                              <span aria-hidden="true">·</span>
-                              <span>{ctf.format}</span>
-                              <span aria-hidden="true">·</span>
-                              <span>{ctf.restrictions}</span>
-                              {ctf.hours > 0 && (
-                                <>
-                                  <span aria-hidden="true">·</span>
-                                  <span>
-                                    {ctf.hours < 24
-                                      ? `${ctf.hours}h`
-                                      : `${Math.round(ctf.hours / 24)} days`}
-                                  </span>
-                                </>
-                              )}
-                              {here ? (
-                                <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] text-accent">
-                                  in Nigeria
-                                </span>
-                              ) : remote ? (
-                                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
-                                  online
-                                </span>
-                              ) : (
-                                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
-                                  in person
-                                </span>
-                              )}
-                              {ctf.weight > 0 && (
-                                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
-                                  weight {Math.round(ctf.weight)}
-                                </span>
-                              )}
-                            </span>
-                            {ctf.description && (
-                              <span className="mt-2 block text-[12.5px] leading-relaxed text-muted-foreground">
-                                {ctf.description}
-                              </span>
-                            )}
-                            {ctf.location && (
-                              <span className="mt-1.5 block font-mono text-[11px] text-muted">
-                                {ctf.location}
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      </a>
-                    </AppleCard>
-                  </li>
-                </Reveal>
-              );
-            })}
-          </ul>
+          <CompetitionList competitions={ctfs} />
         )}
       </section>
 
