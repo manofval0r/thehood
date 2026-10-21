@@ -108,6 +108,10 @@ for (const file of files) {
   lines.forEach((line, i) => {
     const where = `${path.relative(ROOT, file)}:${i + 1}`;
 
+    // The encoding checker names the marks it looks for, so it would find
+    // itself.
+    if (path.basename(file) === "check-mojibake.js") return;
+
     const bad = line.match(/[\uFFFD]/g);
     if (bad) {
       broken += bad.length;
