@@ -18,6 +18,7 @@ import {
   renameFolder,
   uploadFile,
 } from "@/lib/files";
+import { addVideo, removeVideo, updateVideo } from "@/lib/videos";
 import { announceApproval, announceMaterial } from "@/lib/push";
 import { COURSES } from "@/lib/resources";
 import {
@@ -487,6 +488,103 @@ export async function deleteCourseFolder(
   }
   updateTag("files");
   revalidatePath("/admin");
+}
+
+export interface VideoState {
+  error?: string;
+  done?: string;
+  /** The video as it now stands, so the list can be updated without asking again. */
+  video?: {
+    id: string;
+    course: string;
+    title: string;
+    youtube_id: string;
+    note: string | null;
+    position: number;
+    thumb_path: string | null;
+  };
+}
+
+/**
+ * Add a video to a course.
+ *
+ * The picture is fetched by the server and kept here, so a reader's browser
+ * never asks YouTube for it. The video itself is played from YouTube when
+ * somebody presses play.
+ */
+export async function addCourseVideo(
+  _prev: VideoState,
+  formData: FormData
+): Promise<VideoState> {
+  const staff = await requirePermission("files");
+
+  const course = String(formData.get("course") ?? "").trim();
+  const url = String(formData.get("url") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+  const note = String(formData.get("note") ?? "").trim();
+
+  if (!course) return { error: "Choose the course first." };
+  if (!url) return { error: "Paste the link to the video." };
+
+  try {
+    const created = await addVideo({
+      course,
+      url,
+      title,
+      note,
+      addedBy: staff.name,
+    });
+
+    updateTag("videos");
+    revalidatePath("/admin/videos");
+
+    return {
+      done: `Added to ${course}.`,
+      video: {
+        id: created.id,
+        course: created.course,
+        title: created.title,
+        youtube_id: created.youtube_id,
+        note: created.note,
+        position: created.position,
+        thumb_path: created.thumb_path,
+      },
+    };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "The video was not added." };
+  }
+}
+
+/** Take a video off a course. */
+export async function removeCourseVideo(id: string): Promise<void> {
+  await requirePermission("files");
+  try {
+    await removeVideo(id);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The video could not be removed."
+    );
+  }
+  updateTag("videos");
+  revalidatePath("/admin/videos");
+}
+
+/** Change what a video is called and what it says. */
+export async function updateCourseVideo(
+  id: string,
+  title: string,
+  note: string
+): Promise<void> {
+  await requirePermission("files");
+  try {
+    await updateVideo(id, title, note);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The video could not be changed."
+    );
+  }
+  updateTag("videos");
+  revalidatePath("/admin/videos");
 }
 
 /** Take an uploaded file away. */

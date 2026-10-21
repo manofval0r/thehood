@@ -56,6 +56,7 @@ const ADMIN_TABS: {
 }[] = [
   { href: "/admin/attendance", label: "Attendance", permission: "attendance" },
   { href: "/admin/files", label: "Files", permission: "files" },
+  { href: "/admin/videos", label: "Videos", permission: "files" },
   { href: "/admin/roll", label: "Roll", permission: "roster" },
   { href: "/admin", label: "Staff", permission: "staff", exact: true },
 ];

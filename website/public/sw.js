@@ -12,7 +12,7 @@
  * file does.
  */
 
-const CACHE = "thehood-v1";
+const CACHE = "thehood-v2";
 const OFFLINE = "/offline";
 
 self.addEventListener("install", (event) => {
@@ -80,6 +80,24 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
+/**
+ * Whether a request is for the payload of a partly prerendered page.
+ *
+ * Next sends a header and a query parameter with it, and the payload is
+ * not the same twice: it carries whatever the page knew at the moment it
+ * was asked for. Serving one of these from the cache shows a reader the
+ * page as it was, which on a course page means a file that has been added
+ * and a video that has been put up are both missing, and the page says
+ * they are not there.
+ */
+function isPayload(request, url) {
+  return (
+    request.headers.get("RSC") === "1" ||
+    request.headers.get("Next-Router-Prefetch") === "1" ||
+    url.searchParams.has("_rsc")
+  );
+}
+
 /** A touch of caching, so the site is not a blank page with no signal. */
 self.addEventListener("fetch", (event) => {
   const request = event.request;
@@ -94,6 +112,17 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request).catch(() =>
         caches.match(OFFLINE).then((hit) => hit || Response.error())
+      )
+    );
+    return;
+  }
+
+  // The payload of a partly prerendered page is asked for fresh, and the
+  // cache is only a fallback for when there is no signal.
+  if (isPayload(request, url)) {
+    event.respondWith(
+      fetch(request).catch(() =>
+        caches.match(request).then((hit) => hit || Response.error())
       )
     );
     return;

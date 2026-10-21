@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { COURSES, getCourse } from "@/lib/resources";
 import { getCourseFiles, getCourseFolders, fileSize } from "@/lib/files";
+import { getCourseVideos, thumbBaseUrl } from "@/lib/videos";
 import CourseClient from "./client";
 
 export function generateStaticParams() {
@@ -44,6 +45,9 @@ export default async function CoursePage({
   // The folders staff made, including the ones with nothing in them yet.
   const folders = await getCourseFolders(course.code);
 
+  // The videos that belong to this course.
+  const videos = await getCourseVideos(course.code);
+
   // The card wants a size a human can read, not a number of bytes. The
   // address is encoded here rather than at each use, so the card, the panel
   // and the viewer all point at the same working address.
@@ -63,6 +67,14 @@ export default async function CoursePage({
         course={course}
         resources={resources}
         folders={folders}
+        videos={videos.map((v) => ({
+          id: v.id,
+          title: v.title,
+          youtube_id: v.youtube_id,
+          note: v.note,
+          thumb_path: v.thumb_path,
+        }))}
+        thumbBase={thumbBaseUrl() ?? ""}
       />
     </Suspense>
   );

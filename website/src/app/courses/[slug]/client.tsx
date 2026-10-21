@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, User, Calendar, Clock, Mail } from "lucide-react";
 import type { Course } from "@/lib/resources";
 import { repAddress, repFirstName } from "@/lib/contact";
 import CourseWorkspace from "@/components/CourseWorkspace";
+import VideoLibrary from "@/components/VideoLibrary";
 
 /**
  * The course page.
@@ -17,6 +18,8 @@ export default function CourseClient({
   course,
   resources,
   folders,
+  videos,
+  thumbBase,
 }: {
   course: Course;
   resources: {
@@ -28,6 +31,14 @@ export default function CourseClient({
     folder: string | null;
   }[];
   folders: string[];
+  videos: {
+    id: string;
+    title: string;
+    youtube_id: string;
+    note: string | null;
+    thumb_path: string | null;
+  }[];
+  thumbBase: string;
 }) {
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -110,6 +121,9 @@ export default function CourseClient({
         files={resources}
         folders={folders}
       />
+
+      {/* ---------- Videos ---------- */}
+      <VideoLibrary videos={videos} thumbBase={thumbBase} />
     </div>
   );
 }
