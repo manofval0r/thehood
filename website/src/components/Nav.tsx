@@ -26,13 +26,15 @@ import type { Permission } from "@/lib/permissions";
  * float reads as floating because of its material, not because it resizes.
  */
 
-const TABS = [
-  { href: "/", label: "Courses" },
+const TABS: { href: string; label: string; exact?: boolean }[] = [
+  // The home page is the courses, and it is matched exactly. Every path in
+  // the site starts with a slash, so a prefix match on "/" lights the first
+  // tab on every page, and the pill never moves off it.
+  { href: "/", label: "Courses", exact: true },
   { href: "/timetable", label: "Timetable" },
   { href: "/timeline", label: "Calendar" },
   { href: "/registration", label: "Registration" },
   { href: "/resources", label: "Resources" },
-  { href: "/news", label: "News" },
   { href: "/careers", label: "Careers" },
   { href: "/events", label: "Events" },
 ];
@@ -116,25 +118,69 @@ export default function Nav() {
     t.exact ? pathname === t.href : pathname.startsWith(t.href)
   )?.href;
 
+  // The set of links, as a string, so the pill is measured again when the
+  // links change rather than only when the path does.
+  const linkKey = links.map((t) => t.href).join("|");
+
   /**
    * Measure the active link's real box rather than assuming it is centred.
    * Positioning the pill from the viewport centre was why it sat a few pixels
    * off the word it was meant to mark, and why it drifted when the row height
    * changed.
+   *
+   * The measurement is taken again whenever the row changes shape, and the
+   * row changes shape more often than it looks: the web font arrives after
+   * the first paint and the words get wider, the window changes, and the
+   * links change from the student's to the staff's when somebody signs in.
+   * A pill measured once and left there points at the wrong word.
    */
   useLayoutEffect(() => {
     const list = tabListRef.current;
     if (!list) return;
-    const el = list.querySelector<HTMLElement>(`[data-href="${activeHref}"]`);
-    if (!el) return;
-    setPill({
-      left: el.offsetLeft,
-      top: el.offsetTop,
-      width: el.offsetWidth,
-      height: el.offsetHeight,
-      ready: true,
-    });
-  }, [activeHref]);
+
+    let frame = 0;
+
+    const measure = () => {
+      const el = activeHref
+        ? list.querySelector<HTMLElement>(`[data-href="${activeHref}"]`)
+        : null;
+
+      if (!el) {
+        if (activeHref) {
+          // The link is not in the row yet, which happens for a frame while
+          // the page is settling. Try again rather than hiding the pill and
+          // leaving it in the wrong place.
+          frame = requestAnimationFrame(measure);
+          return;
+        }
+        // There is no tab for this page, such as a file being viewed. The
+        // pill goes rather than marking the wrong link.
+        setPill((p) => (p.ready ? { ...p, ready: false } : p));
+        return;
+      }
+
+      setPill({
+        left: el.offsetLeft,
+        top: el.offsetTop,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
+        ready: true,
+      });
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    window.addEventListener("resize", measure);
+    document.fonts?.ready.then(measure).catch(() => {});
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+      cancelAnimationFrame(frame);
+    };
+  }, [activeHref, linkKey]);
 
   // One boolean across a threshold. React bails out when the value is
   // unchanged, so this stays cheap on every scroll event.

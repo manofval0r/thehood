@@ -15,8 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/timeline`, lastModified: now, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/registration`, lastModified: now, priority: 0.6, changeFrequency: "monthly" },
     { url: `${BASE}/resources`, lastModified: now, priority: 0.6, changeFrequency: "weekly" },
-    { url: `${BASE}/news`, lastModified: now, priority: 0.6, changeFrequency: "hourly" },
-    { url: `${BASE}/careers`, lastModified: now, priority: 0.6, changeFrequency: "monthly" },
+    { url: `${BASE}/careers`, lastModified: now, priority: 0.6, changeFrequency: "hourly" },
     { url: `${BASE}/events`, lastModified: now, priority: 0.5, changeFrequency: "hourly" },
     { url: `${BASE}/contact`, lastModified: now, priority: 0.4, changeFrequency: "monthly" },
   ];

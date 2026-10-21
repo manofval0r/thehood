@@ -3,17 +3,20 @@ import Link from "next/link";
 import AppleCard from "@/components/AppleCard";
 import PixelMotif from "@/components/PixelMotif";
 import Reveal from "@/components/Reveal";
+import { NewsStream } from "@/components/NewsStream";
 import {
   CERTIFICATIONS,
   PLATFORMS,
   ROLES,
   rolesForCert,
 } from "@/lib/career";
+import { getNews } from "@/lib/news";
+import { NEWS_SOURCES } from "@/lib/news-sources";
 
 export const metadata: Metadata = {
   title: "Careers · Cybersecurity 300L",
   description:
-    "The jobs this programme feeds, the certifications that count for each of them, and where to practise for free.",
+    "The jobs this programme feeds, the certifications that count for each of them, where to practise for free, and what the industry is doing this week.",
 };
 
 /**
@@ -23,8 +26,16 @@ export const metadata: Metadata = {
  * job can I get, what paper proves I can do it, and where do I practise.
  * The page answers them in that order and does not hide the cost, because the
  * cost is the part people get wrong.
+ *
+ * The news is here rather than on a page of its own, because a job title is
+ * an abstraction and this is what the work behind it actually looks like
+ * this week. The breaches, the advisories, the research, and the things
+ * happening close to home.
  */
-export default function CareersPage() {
+export default async function CareersPage() {
+  const news = await getNews();
+  const live = news.reached === news.total;
+
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
       <header className="rise max-w-2xl">
@@ -232,6 +243,58 @@ export default function CareersPage() {
             See the events
           </Link>
         </div>
+      </section>
+      {/* The industry */}
+      <section className="mt-16" id="industry">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="text-[19px] font-semibold tracking-tight text-foreground">
+            The industry right now
+          </h2>
+          <span className="text-[12px] text-muted">refreshed hourly</span>
+        </div>
+        <p className="mt-1 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
+          The jobs above are not abstractions. This is what the work behind
+          them actually looks like this week: the breaches, the advisories,
+          the research, and the things happening close to home. Everything
+          here is fetched by this site on your behalf, so no tracker learns
+          you were here.
+        </p>
+
+        <Reveal className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[12.5px] text-muted">
+          <span className="inline-flex items-center gap-1.5">
+            <span
+              className={
+                "h-1.5 w-1.5 shrink-0 rounded-full " +
+                (live ? "bg-accent" : "bg-amber-400")
+              }
+              aria-hidden="true"
+            />
+            {news.reached} of {news.total} sources live
+          </span>
+          <span aria-hidden="true" className="text-border-strong">
+            ·
+          </span>
+          <span>no trackers contacted</span>
+        </Reveal>
+
+        <Reveal className="mt-5">
+          <ul className="flex flex-wrap gap-2">
+            {NEWS_SOURCES.map((s) => (
+              <li key={s.id}>
+                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1.5 pr-3">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-black">
+                    <PixelMotif kind={s.beat} title={s.name} className="h-4 w-4" />
+                  </span>
+                  <span className="text-[12px] font-medium text-foreground">
+                    {s.name}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+
+        <NewsStream items={news.items} />
       </section>
     </div>
   );

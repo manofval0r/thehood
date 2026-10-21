@@ -3,12 +3,19 @@ import Link from "next/link";
 import AppleCard from "@/components/AppleCard";
 import PixelMotif from "@/components/PixelMotif";
 import Reveal from "@/components/Reveal";
-import { ANNUAL_EVENTS, getCtfEvents, getDepartmentEvents } from "@/lib/events";
+import {
+  ANNUAL_EVENTS,
+  getCtfEvents,
+  getDepartmentEvents,
+  isInNigeria,
+  isJoinable,
+  isRemote,
+} from "@/lib/events";
 
 export const metadata: Metadata = {
   title: "Events · Cybersecurity 300L",
   description:
-    "Capture-the-flag competitions you can enter, the department's calendar, and the security events that happen every year.",
+    "Capture-the-flag competitions you can enter from Nigeria, the department's calendar, and the security events that happen every year.",
 };
 
 /**
@@ -18,7 +25,10 @@ export const metadata: Metadata = {
  *
  *   - The competitions are announced, so they come from a feed, and the feed
  *     is read on the server so that reading this page is not reported to
- *     anybody.
+ *     anybody. Only the ones a student here can enter are listed: a
+ *     competition that needs you in a room in another country is not one
+ *     they can enter, and listing it would be a list of things they cannot
+ *     do.
  *   - The department's own dates are in the manifest already.
  *   - The annual events are not announced, because they are the shape of the
  *     year rather than news.
@@ -49,10 +59,15 @@ function dayLabel(ms: number): { day: string; month: string; weekday: string } {
 }
 
 export default async function EventsPage() {
-  const [ctfs, department] = await Promise.all([
-    getCtfEvents(24),
+  const [allCtf, department] = await Promise.all([
+    getCtfEvents(60),
     getDepartmentEvents(),
   ]);
+
+  // Only the competitions a student here can enter. The rest need you in a
+  // room in another country.
+  const ctfs = allCtf.filter(isJoinable);
+  const leftOut = allCtf.length - ctfs.length;
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
@@ -64,10 +79,10 @@ export default async function EventsPage() {
           What is coming up
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-          Competitions you can enter without being in the right company, the
-          department's own dates, and the events that happen every year. The
-          competition list is fetched here on the server once an hour, so
-          opening this page does not report you to anybody.
+          The competitions you can enter from here, the department&apos;s own
+          dates, and the events that happen every year. The competition list
+          is fetched here on the server once an hour, so opening this page
+          does not report you to anybody.
         </p>
       </header>
 
@@ -87,6 +102,17 @@ export default async function EventsPage() {
           </a>
         </div>
         <p className="mt-1 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
+          Only competitions that are online, or that are in Nigeria. One that
+          needs you in a room in another country is not one you can enter
+          from here, so it is not listed.
+          {leftOut > 0 && (
+            <>
+              {" "}
+              {leftOut} other competition{leftOut === 1 ? "" : "s"} in the
+              next few months {leftOut === 1 ? "is" : "are"} in person
+              somewhere else.
+            </>
+          )}{" "}
           Most of these are open to anyone who signs up. Weight is how much
           the competition counts towards the CTFtime rating, so a higher
           number is a harder field.
@@ -95,18 +121,22 @@ export default async function EventsPage() {
         {ctfs.length === 0 ? (
           <div className="mt-6 rounded-lg border border-border bg-surface p-5">
             <h3 className="text-[14.5px] font-semibold text-foreground">
-              The competition feed is unreachable
+              {allCtf.length === 0
+                ? "The competition feed is unreachable"
+                : "Nothing you can enter just yet"}
             </h3>
             <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              CTFtime did not answer on the last attempt. This page will try
-              again on the next hourly pass. The department dates below are
-              unaffected.
+              {allCtf.length === 0
+                ? "CTFtime did not answer on the last attempt. This page will try again on the next hourly pass. The department dates below are unaffected."
+                : "There are competitions coming up, but every one of them needs you in the room somewhere else. The department dates below are unaffected."}
             </p>
           </div>
         ) : (
           <ul className="mt-6 space-y-3">
             {ctfs.map((ctf, i) => {
               const when = dayLabel(ctf.start);
+              const remote = isRemote(ctf);
+              const here = isInNigeria(ctf);
               return (
                 <Reveal key={ctf.id} delay={Math.min(i * 25, 300)}>
                   <li>
@@ -121,13 +151,16 @@ export default async function EventsPage() {
                         <span className="card-accent-glow" aria-hidden="true" />
                         <span className="card-bevel" aria-hidden="true" />
 
-                        <div className="relative flex h-full items-start gap-4 px-4 py-3">
+                        <div className="relative flex h-full items-start gap-4 px-4 py-4">
                           <span className="card-depth w-11 shrink-0 text-center">
                             <span className="block font-mono text-[17px] leading-none text-foreground">
                               {when.day}
                             </span>
                             <span className="mt-1 block text-[10.5px] uppercase tracking-[0.1em] text-muted">
                               {when.month}
+                            </span>
+                            <span className="mt-1 block text-[10px] uppercase tracking-[0.08em] text-muted">
+                              {when.weekday}
                             </span>
                           </span>
 
@@ -141,7 +174,25 @@ export default async function EventsPage() {
                               <span>{ctf.format}</span>
                               <span aria-hidden="true">·</span>
                               <span>{ctf.restrictions}</span>
-                              {ctf.onsite && (
+                              {ctf.hours > 0 && (
+                                <>
+                                  <span aria-hidden="true">·</span>
+                                  <span>
+                                    {ctf.hours < 24
+                                      ? `${ctf.hours}h`
+                                      : `${Math.round(ctf.hours / 24)} days`}
+                                  </span>
+                                </>
+                              )}
+                              {here ? (
+                                <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] text-accent">
+                                  in Nigeria
+                                </span>
+                              ) : remote ? (
+                                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
+                                  online
+                                </span>
+                              ) : (
                                 <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]">
                                   in person
                                 </span>
@@ -152,6 +203,16 @@ export default async function EventsPage() {
                                 </span>
                               )}
                             </span>
+                            {ctf.description && (
+                              <span className="mt-2 block text-[12.5px] leading-relaxed text-muted-foreground">
+                                {ctf.description}
+                              </span>
+                            )}
+                            {ctf.location && (
+                              <span className="mt-1.5 block font-mono text-[11px] text-muted">
+                                {ctf.location}
+                              </span>
+                            )}
                           </span>
                         </div>
                       </a>
@@ -192,6 +253,9 @@ export default async function EventsPage() {
                       </span>
                       <span className="mt-1 block text-[11.5px] text-muted">
                         {e.when} · {e.category}
+                      </span>
+                      <span className="mt-1.5 block text-[12.5px] leading-relaxed text-muted-foreground">
+                        {e.note}
                       </span>
                     </span>
                   </div>

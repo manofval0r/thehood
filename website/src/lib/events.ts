@@ -32,12 +32,16 @@ export interface CtfEvent {
   format: string;
   /** Whether people have to be there in person. */
   onsite: boolean;
+  /** Where it happens. A city and a country, or "Online", or empty. */
+  location: string;
   /** Open, Individual, Prequalified, and so on. */
   restrictions: string;
   /** How heavily the event is weighted in the CTFtime rating. */
   weight: number;
   /** Plain text. The feed sends HTML. */
   description: string;
+  /** How long it runs for, in hours. */
+  hours: number;
 }
 
 const CTFTIME_ENDPOINT = "https://ctftime.org/api/v1/events/";
@@ -72,23 +76,55 @@ function parseEvent(raw: Record<string, unknown>): CtfEvent | null {
 
   const finish = Date.parse(String(raw.finish ?? ""));
   const duration = raw.duration as { days?: number; hours?: number } | undefined;
+  const end = Number.isFinite(finish)
+    ? finish
+    : start +
+      ((duration?.days ?? 0) * 24 + (duration?.hours ?? 0)) * 60 * 60 * 1000;
 
   return {
     id,
     title,
     start,
-    end: Number.isFinite(finish)
-      ? finish
-      : start +
-        ((duration?.days ?? 0) * 24 + (duration?.hours ?? 0)) * 60 * 60 * 1000,
+    end,
     url: toPlainText(raw.ctftime_url),
     organizer,
     format: toPlainText(raw.format) || "Jeopardy",
     onsite: String(raw.onsite ?? "") === "true",
+    location: toPlainText(raw.location),
     restrictions: toPlainText(raw.restrictions) || "Open",
     weight: Number(raw.weight ?? 0),
-    description: toPlainText(raw.description).slice(0, 220),
+    description: toPlainText(raw.description).slice(0, 600),
+    hours: Math.round(((end - start) / 3600000) * 10) / 10,
   };
+}
+
+/**
+ * Whether a competition can be entered from a desk in Lagos.
+ *
+ * The feed says whether people have to be there in person, and most of them
+ * say no. Some say where, and some of those say a city in another country.
+ */
+export function isRemote(event: CtfEvent): boolean {
+  if (!event.onsite) return true;
+  return /online|on-line|remote|virtual|internet/i.test(event.location);
+}
+
+/** Whether a competition is happening in Nigeria. */
+export function isInNigeria(event: CtfEvent): boolean {
+  return /nigeria|lagos|abuja|benin city|kano|ibadan|port harcourt|enugu|owerri|jos\b|nwele/i.test(
+    event.location
+  );
+}
+
+/**
+ * Whether a competition is one a student here can actually join.
+ *
+ * A competition in another country that needs you in the room is not one a
+ * student in Nigeria can enter. One that is online, or one that is in
+ * Nigeria, is.
+ */
+export function isJoinable(event: CtfEvent): boolean {
+  return isRemote(event) || isInNigeria(event);
 }
 
 /**
@@ -126,11 +162,33 @@ export async function getCtfEvents(limit = 24): Promise<CtfEvent[]> {
 export interface DepartmentEvent {
   title: string;
   category: string;
+  /** What the category means, so a line on a calendar explains itself. */
+  note: string;
   /** yyyy-mm-dd */
   date: string;
   /** Human date, e.g. "Monday 3 November 2026". */
   when: string;
 }
+
+/**
+ * What each kind of entry on the academic calendar means.
+ *
+ * "Statutory Meetings" on a calendar tells a student nothing on its own. The
+ * date tells them when to be somewhere; the note tells them why it is
+ * worth being there.
+ */
+const CATEGORY_NOTES: Record<string, string> = {
+  Academic:
+    "The teaching weeks of the session: when registration opens, when people come back, and when the lectures run.",
+  "Statutory Meetings":
+    "The dates the university has fixed for its own meetings. These are the ones the calendar moves around when they move.",
+  "Exams & Results":
+    "When the examinations are and when the results come out.",
+  "Holidays & Breaks":
+    "The public holidays and the breaks between them. These are the days nobody is expected in a classroom.",
+  Ceremonies:
+    "The ceremonies of the session, which are the days the department is in one place.",
+};
 
 const MONTH_NAMES = [
   "January",
@@ -167,6 +225,9 @@ export async function getDepartmentEvents(): Promise<DepartmentEvent[]> {
       return {
         title: e.activity,
         category: e.category,
+        note:
+          CATEGORY_NOTES[e.category] ??
+          "A date on the published academic calendar.",
         date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
         when: `${e.day} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`,
       };
