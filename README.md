@@ -662,8 +662,10 @@ There are two kinds of staff, and the difference between them is who can do
 what to whom.
 
 **A super admin** (there are two or three) approves people, takes access
-away, changes what somebody is allowed to do, and reads the audit log. They
-also have every permission themselves, whatever their list says.
+away, changes what somebody is allowed to do, reads the audit log, and can
+send a message to every student at once (see *Saying something to
+everybody* below). They also have every permission themselves, whatever
+their list says.
 
 **An admin** does the day-to-day work: marks attendance, uploads files,
 keeps the roll. They can also add people, but the people they add go into a
@@ -833,11 +835,49 @@ about a file, and nothing to keep running.
 The scheduler is `GET /api/push/schedule`, guarded by a shared secret. It is
 called every five minutes by Supabase's own cron, which calls it over the
 network with `pg_net`, because Vercel's cron runs once a day on the free
-plan and that is no use for "starts in five minutes". `vercel.json` has the
-same schedule for a paid plan, and the two do not conflict.
+plan and that is no use for "starts in five minutes". The Vercel cron in
+`vercel.json` is a daily backstop, because the free plan allows one a day
+and refuses a build that asks for more.
 
 If neither cron is working, the class reminders still arrive for anybody who
 has the site open, because the browser times them itself.
+
+### Saying something to everybody
+
+`/admin/announce`, for a super admin. A message goes to every device that
+has its notifications on, and to the bell on the site for anybody who is
+looking at it now.
+
+The message that matters is the one a student would otherwise find out by
+turning up: the class is not running, it is in another room, it starts at a
+different time. So there are **shapes** for the usual things, and the shape
+fills itself in from the timetable, which is the same timetable the
+countdown reads. A message cannot say the wrong time for a class, because
+there is one timetable and the shape reads it. It uses the next class that
+has not happened yet, because a class that finished an hour ago cannot be
+cancelled. Every word can be changed afterwards.
+
+Three things are more than a form:
+
+- **Urgent** comes even in the middle of the night, which is what a class
+  that is not running at nine in the morning is worth. It changes nothing
+  else: a reader who turned a kind off does not get that kind either,
+  because being muted is their decision and not a mistake.
+- **A message can ask for a confirmation**, and it stays in the bell until
+  the reader says they have seen it. A cancellation that scrolls away
+  unseen is a cancellation that did not happen. The count is a count of
+  devices, and it is labelled that way.
+- **A message can be written now and sent at seven in the morning.** The
+  scheduler runs every five minutes, so it goes out within five minutes of
+  its time.
+
+The history says what was said, when, and how far it got. A push cannot be
+taken back once it is delivered, so a mistake is answered with another
+message rather than with a retraction, and the button that does that is
+there. The counts tell the three failures apart, because they need
+different answers: a reader who muted that kind is a fact about the
+readers, and a push the service refused is a fact about the site, and it is
+the one somebody has to do something about.
 
 ### Configuration
 
