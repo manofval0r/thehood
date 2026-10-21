@@ -1,60 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowLeft, FileText, MapPin, User, Calendar, Clock, Mail } from "lucide-react";
-import type { Course, Resource } from "@/lib/resources";
-import { resourceUrl } from "@/lib/resources";
+import { ArrowLeft, MapPin, User, Calendar, Clock, Mail } from "lucide-react";
+import type { Course } from "@/lib/resources";
 import { repAddress, repFirstName } from "@/lib/contact";
-import ResourceCard from "@/components/ResourceCard";
-import ResourceModal from "@/components/ResourceModal";
-import BatchDownload from "@/components/BatchDownload";
-import { cn } from "@/lib/utils";
+import CourseWorkspace from "@/components/CourseWorkspace";
 
-const FILTERS = ["All", "PDF", "Slides", "Sheet", "Document"] as const;
-
-const FILTER_TYPE: Record<(typeof FILTERS)[number], string | null> = {
-  All: null,
-  PDF: "pdf",
-  Slides: "pptx",
-  Sheet: "xlsx",
-  Document: "doc",
-};
-
+/**
+ * The course page.
+ *
+ * The header says when the course meets and who teaches it, and who the
+ * course rep is. Everything else is the workspace, which is the browser for
+ * the course's material.
+ */
 export default function CourseClient({
   course,
   resources,
+  folders,
 }: {
   course: Course;
-  resources: Resource[];
+  resources: {
+    id: string;
+    title: string;
+    type: string;
+    url: string;
+    size?: string;
+    folder: string | null;
+  }[];
+  folders: string[];
 }) {
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
-  const [previewId, setPreviewId] = useState<string | null>(null);
-  const params = useSearchParams();
-
-  // Search can deep-link straight to a file: /courses/<slug>?r=<resourceId>
-  useEffect(() => {
-    const wanted = params.get("r");
-    if (!wanted) return;
-    if (resources.some((r) => r.id === wanted)) setPreviewId(wanted);
-  }, [params, resources]);
-
-  const want = FILTER_TYPE[filter];
-  const visible = want
-    ? resources.filter((r) => r.type === want)
-    : resources;
-
-  // Only offer filters that would actually show something.
-  const available = FILTERS.filter((f) => {
-    const t = FILTER_TYPE[f];
-    return !t || resources.some((r) => r.type === t);
-  });
-
-  const previewResource = previewId
-    ? resources.find((r) => r.id === previewId)
-    : undefined;
-
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       {/* ---------- Header ---------- */}
@@ -100,7 +74,7 @@ export default function CourseClient({
                 key={label}
                 className="row-hover flex items-baseline justify-between gap-4 px-4 py-3"
               >
-                <dt className="flex shrink-0 items-center gap-2 text-[12px] text-muted-foreground">
+                <dt className="flex shrink-0 items-center gap-2 text-[12px] text-muted">
                   <Icon size={13} className="text-muted" />
                   {label}
                 </dt>
@@ -130,83 +104,12 @@ export default function CourseClient({
       </section>
 
       {/* ---------- Resources ---------- */}
-      <section className="pb-16">
-        <div className="flex flex-col gap-5 border-t border-border pt-10 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">
-            Resources
-            {resources.length > 0 && (
-              <span className="tnum ml-2.5 text-lg font-normal text-muted-foreground">
-                {resources.length}
-              </span>
-            )}
-          </h2>
-
-          {available.length > 1 && (
-            <div
-              role="tablist"
-              aria-label="Filter resources by type"
-              className="flex flex-wrap gap-1.5"
-            >
-              {available.map((f) => (
-                <button
-                  key={f}
-                  role="tab"
-                  aria-selected={filter === f}
-                  onClick={() => setFilter(f)}
-                  className={cn(
-                    "pressable rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
-                    filter === f
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-                  )}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {visible.length === 0 ? (
-          <div className="mt-8 rounded-lg border border-dashed border-border-strong bg-surface p-12 text-center">
-            <FileText size={36} className="mx-auto text-muted" strokeWidth={1.5} />
-            <h3 className="mt-4 text-[15px] font-semibold text-foreground">
-              Nothing uploaded yet
-            </h3>
-            <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-muted-foreground">
-              {course.code} has no {filter === "All" ? "files" : filter.toLowerCase() + " files"} on
-              the server. Lecture notes for this course appear here as soon as the
-              lecturer adds them.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visible.map((r, i) => (
-              <ResourceCard
-                key={r.id}
-                resource={r}
-                href={resourceUrl(r.url)}
-                onPreview={setPreviewId}
-                index={i}
-              />
-            ))}
-          </div>
-        )}
-
-        {resources.length > 0 && (
-          <div className="mt-14">
-            <BatchDownload resources={resources} courseCode={course.code} />
-          </div>
-        )}
-      </section>
-
-      {previewResource && (
-        <ResourceModal
-          open
-          onOpenChange={(o) => !o && setPreviewId(null)}
-          resource={previewResource}
-        />
-      )}
+      <CourseWorkspace
+        courseCode={course.code}
+        courseSlug={course.slug}
+        files={resources}
+        folders={folders}
+      />
     </div>
   );
 }

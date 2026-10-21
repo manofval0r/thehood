@@ -71,7 +71,7 @@ export const COURSES: Course[] = [
     resources: [
       {
         id: "gst312-session-1",
-        title: "Session 1 – Peace and Conflict Resolution",
+        title: "Session 1 - Peace and Conflict Resolution",
         type: "pptx",
         url: `${base}/Peace and Conflict Resolution/Session 1- Peace and Conflict Resolution. (1).pptx`,
       },
@@ -103,7 +103,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "nutman315-group-assignment",
-        title: "Group Assignment – Marketing Management",
+        title: "Group Assignment - Marketing Management",
         type: "pdf",
         url: `${base}/Marketing Management/Group Assignment_NUTMAN315_Marketing Management.pdf`,
       },
@@ -192,7 +192,7 @@ export const COURSES: Course[] = [
       },
       {
         id: "csc312-week1",
-        title: "Week 1 – Data Management Foundations",
+        title: "Week 1 - Data Management Foundations",
         type: "pptx",
         url: `${base}/Data Structures/DTS304_Week1_Data_Management_Foundations.pptx`,
       },
@@ -265,13 +265,13 @@ export const COURSES: Course[] = [
       },
       {
         id: "cyb305-week1-fundamentals",
-        title: "Week 1 – Computer Forensics Fundamentals",
+        title: "Week 1 - Computer Forensics Fundamentals",
         type: "pdf",
         url: `${base}/Digital Forensics CYB305/Week 1_Computer Forensics Fundamentals.pdf`,
       },
       {
         id: "cyb305-readme",
-        title: "Lab Evidence Manual – README_FIRST",
+        title: "Lab Evidence Manual - README_FIRST",
         type: "doc",
         url: `${base}/Digital Forensics CYB305/CYB305 Lab Evidence Manual/README_FIRST.txt`,
       },
