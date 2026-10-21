@@ -134,7 +134,19 @@ self.addEventListener("fetch", (event) => {
     caches.match(request).then((hit) => {
       const live = fetch(request)
         .then((response) => {
-          if (response.ok && response.type === "basic") {
+          // Only the static assets are kept. A page's own html is not, and
+          // neither is the payload of a partly prerendered page, because
+          // neither of them is the same twice: caching them means a reader
+          // is shown the site as it was when it was last visited, and on a
+          // course page that means a file that has been added is missing and
+          // the page says it is not there.
+          const type = response.headers.get("content-type") || "";
+          const keepable =
+            response.ok &&
+            response.type === "basic" &&
+            !type.includes("text/html") &&
+            !type.includes("application/json");
+          if (keepable) {
             const copy = response.clone();
             caches.open(CACHE).then((cache) => cache.put(request, copy));
           }

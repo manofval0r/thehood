@@ -198,6 +198,13 @@ Dark is the brand and the default. Light mode re-points the tokens rather than
 overriding utilities one at a time, so a new component is theme-correct for
 free by using the tokens and nothing else.
 
+- **The light and dark switch is in the bar**, next to the bell. It used to
+  float below the header, and it looked good there, but a floating control is
+  on top of something, and the pages put links in their top right corners. A
+  reader reaching for a download button was reaching for the switch. At a
+  narrow width it was covering the rightmost sixty pixels of the content,
+  which is a fifth of a phone. The bar is the only place a control can be
+  that is never in the way.
 - **Ground** `#000000`, **surface** `#0a0a0a`, **accent** `#22c55e`
 - **Type** Geist Sans throughout
 - The accent becomes `#15803d` in light mode. `#22c55e` is legible on black

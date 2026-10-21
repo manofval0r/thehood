@@ -121,7 +121,11 @@ export default function ResourceCard({
             href={href}
             download
             className={cn(
-              "pressable ml-auto inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors",
+              // The actions sit together on the left. The right corner of a
+              // card is where the floating theme switch lands when the card
+              // is scrolled past, and a small link under a floating control
+              // is a link a reader cannot press.
+              "pressable inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors",
               previewable
                 ? "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 : "bg-accent text-accent-foreground hover:bg-accent/90"

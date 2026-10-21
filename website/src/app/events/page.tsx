@@ -49,12 +49,29 @@ const MONTHS = [
   "Dec",
 ];
 
-function dayLabel(ms: number): { day: string; month: string; weekday: string } {
-  const d = new Date(ms);
+/**
+ * When a competition is, in the reader's own time.
+ *
+ * The feed gives its times in UTC, and a student in Nigeria reads a clock
+ * that is an hour ahead of that. A competition that starts at 23:00 on a
+ * Saturday in UTC starts at midnight on the Sunday here, and a card that
+ * said Saturday would be a day wrong. The rest of the site is in Lagos time
+ * because Lagos is where the students are, and this is the same rule.
+ */
+function dayLabel(ms: number): {
+  day: string;
+  month: string;
+  weekday: string;
+  time: string;
+} {
+  const d = new Date(ms + 60 * 60 * 1000); // Lagos is UTC+1 all year.
   return {
     day: String(d.getUTCDate()),
     month: MONTHS[d.getUTCMonth()],
     weekday: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getUTCDay()],
+    time: `${String(d.getUTCHours()).padStart(2, "0")}:${String(
+      d.getUTCMinutes()
+    ).padStart(2, "0")}`,
   };
 }
 
@@ -161,6 +178,9 @@ export default async function EventsPage() {
                             </span>
                             <span className="mt-1 block text-[10px] uppercase tracking-[0.08em] text-muted">
                               {when.weekday}
+                            </span>
+                            <span className="tnum mt-1 block font-mono text-[10px] text-muted">
+                              {when.time}
                             </span>
                           </span>
 
@@ -322,7 +342,8 @@ export default async function EventsPage() {
         , which asks that it be used for data analysis rather than for copying
         their site. This is a short list with a link back to each event, and
         it is fetched here rather than in your browser. Times are shown in
-        UTC. Ready for the competitions instead?{" "}
+        Lagos time, which is an hour ahead of the times the feed gives. Ready
+        for the competitions instead?{" "}
         <Link href="/careers" className="text-accent underline underline-offset-4">
           Start with the jobs
         </Link>

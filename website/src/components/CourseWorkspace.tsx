@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Download, FileArchive, FolderPlus, Loader2 } from "lucide-react";
@@ -64,15 +64,25 @@ export default function CourseWorkspace({
    * whole workspace would be sent from the browser instead of with the
    * page, and a student on a phone would wait for the script before seeing
    * a single file.
+   *
+   * The address last seen is kept, so a change to it is noticed even when
+   * the files themselves have not changed, which is what happens when the
+   * same course is opened with a different file.
    */
+  const seenSearch = useRef<string | null>(null);
+
   useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get("r");
+    const search = window.location.search;
+    if (seenSearch.current === search) return;
+    seenSearch.current = search;
+
+    const wanted = new URLSearchParams(search).get("r");
     if (!wanted) return;
     const file = files.find((f) => f.id === wanted);
     if (!file) return;
     setPreview(file);
     if (file.folder) setPath(file.folder);
-  }, [files]);
+  });
 
   const tree = useMemo(() => buildTree(files, folders), [files, folders]);
   const here = useMemo(() => contentsAt(tree, path), [tree, path]);

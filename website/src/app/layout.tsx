@@ -5,7 +5,6 @@ import Footer from "@/components/Footer";
 import { ThemeProvider, THEME_BOOTSTRAP } from "@/components/ThemeProvider";
 import { StaffSessionProvider } from "@/components/StaffSession";
 import { NotificationProvider } from "@/components/NotificationProvider";
-import ThemePill from "@/components/ThemePill";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -83,10 +82,6 @@ export default function RootLayout({
                 about how much is unread. */}
             <NotificationProvider>
               <Nav />
-              {/* Floats below the header rather than living inside it: the navbar
-                  carries six things already, and a fixed control outside the bar
-                  cannot change the bar's geometry as the page scrolls. */}
-              <ThemePill />
               {/* pb keeps the last element of any page clear of the footer. Without
                   it, whichever page forgets its own bottom padding sits flush against
                   the footer's top border. */}

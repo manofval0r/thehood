@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions";
 import { useStaffSession } from "@/components/StaffSession";
 import { NotificationBell } from "@/components/NotificationBell";
+import ThemeSwitch from "@/components/ThemeSwitch";
 import type { Permission } from "@/lib/permissions";
 
 /**
@@ -365,6 +366,14 @@ export default function Nav() {
               </div>
             </div>
 
+              {/* ---------- The light and dark switch ----------
+                  It used to float below the bar, which put it on top of the
+                  right hand edge of every page. The pages put links in their
+                  top right corners, and a reader reaching for one of them was
+                  reaching for the switch. The bar is the only place a control
+                  can be that is never in the way. */}
+              <ThemeSwitch />
+
             {/* ---------- The bell ----------
                 What has changed, and the settings for what to be told about.
                 It is the only way into the notification panel, and it sits
@@ -435,12 +444,12 @@ export default function Nav() {
                     <span className="font-mono text-foreground">
                       {next.course.code}
                     </span>
-                    <span aria-hidden="true">·</span>
+                    <span aria-hidden="true">Â·</span>
                     <span>
                       {next.course.dayName},{" "}
                       {formatRange(next.course.startMin, next.course.endMin)}
                     </span>
-                    <span aria-hidden="true">·</span>
+                    <span aria-hidden="true">Â·</span>
                     <span>{next.course.venue}</span>
                   </span>
                   <span className="mt-2 block border-t border-border pt-2 text-[11.5px] text-muted">
