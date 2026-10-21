@@ -55,17 +55,24 @@ export default function CourseWorkspace({
   const [filter, setFilter] = useState<ViewerKind | "all">("all");
   const [preview, setPreview] = useState<FileNode | null>(null);
   const [zipping, setZipping] = useState(false);
-  const params = useSearchParams();
 
-  // Search can deep-link straight to a file: /courses/<slug>?r=<fileId>
+  /**
+   * Search can deep-link straight to a file: /courses/<slug>?r=<fileId>.
+   *
+   * The address is read from the window rather than with `useSearchParams`,
+   * because a component that reads the address is a hole in the page: the
+   * whole workspace would be sent from the browser instead of with the
+   * page, and a student on a phone would wait for the script before seeing
+   * a single file.
+   */
   useEffect(() => {
-    const wanted = params.get("r");
+    const wanted = new URLSearchParams(window.location.search).get("r");
     if (!wanted) return;
     const file = files.find((f) => f.id === wanted);
     if (!file) return;
     setPreview(file);
     if (file.folder) setPath(file.folder);
-  }, [params, files]);
+  }, [files]);
 
   const tree = useMemo(() => buildTree(files, folders), [files, folders]);
   const here = useMemo(() => contentsAt(tree, path), [tree, path]);
