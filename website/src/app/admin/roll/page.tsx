@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { AdminHeader } from "@/components/AdminHeader";
 import { AdminLogin } from "@/components/AdminLogin";
 import { RosterManager } from "@/components/RosterManager";
@@ -43,6 +44,7 @@ function AreaSkeleton() {
 }
 
 async function RollArea() {
+  await connection();
   const me = await currentStaff();
 
   if (!me) {

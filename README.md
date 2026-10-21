@@ -491,9 +491,15 @@ The area is four pages rather than one long one:
 | Page | What it is for | Needs |
 |---|---|---|
 | `/admin` | Who can get in, the review queue, the audit log | Add staff members |
-| `/admin/attendance` | The marking grid | Mark attendance |
-| `/admin/files` | Adding and removing course files | Upload and remove course files |
+| `/admin/attendance` | The marking grid, the register, the blank classes | Mark attendance |
+| `/admin/files` | Adding, renaming and removing course files | Upload and remove course files |
 | `/admin/roll` | Who is on each course | Keep the student roll |
+
+On the attendance page there are two things a lecturer wants beyond the grid:
+a **spreadsheet of the register** (every student, every class, every mark) and
+a list of the **classes that are still blank**. A class counts as marked as
+soon as one mark is in it, because a lecturer who marked twenty of thirty
+people has marked the class.
 
 1. **Get your code.** The first one is made from the command line:
    ```bash
@@ -519,16 +525,20 @@ The area is four pages rather than one long one:
    repository" and have no button, because deleting one from the index would
    leave the file sitting in the public folder with nothing pointing at it.
 
-5. **To mark attendance:** `/admin/attendance`, choose the course, pick the
-   week, and click a box. A panel opens with the five states: present, half,
-   absent, excused, not recorded. Every change is written down with your
-   name on it, and the last day's changes are listed underneath the grid.
+5. **To rename one:** the **Rename** button, which turns the name into a
+   field. Only the title changes. The name of the file itself does not,
+   because changing it would break the link.
 
-6. **To add a colleague:** "Who can get in" on `/admin`. They wait for a
+6. **To mark attendance:** `/admin/attendance`, choose the course, pick the
+   week, and click a box. A panel opens with the five states: present, half,
+   absent, excused, not recorded. Every change is written down with your name
+   on it, and the last day's changes are listed underneath the grid.
+
+7. **To add a colleague:** "Who can get in" on `/admin`. They wait for a
    super admin to approve them, and then their code appears for you to copy
    and pass on, for two days.
 
-7. **To sign out:** the **Sign out** button in the bar. Your session lasts
+8. **To sign out:** the **Sign out** button in the bar. Your session lasts
    twelve hours.
 
 ### Who can get in

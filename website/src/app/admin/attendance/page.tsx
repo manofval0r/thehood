@@ -12,6 +12,7 @@ import {
   getRoster,
   getStanding,
   isConfigured,
+  unmarkedClasses,
 } from "@/lib/attendance-db";
 import { COURSES } from "@/lib/resources";
 import { SCHEDULE } from "@/lib/schedule";
@@ -136,13 +137,14 @@ async function Workspace({
   const days = meetingDays(course.code);
   const dates: GridDate[] = classesInWeek(weekStart, days);
 
-  const [roster, marks, standing] = await Promise.all([
+  const [roster, marks, standing, unmarked] = await Promise.all([
     getRoster(course.code),
     getMarks(
       course.code,
       dates.map((d) => d.iso)
     ),
     getStanding(course.code),
+    unmarkedClasses(course.code),
   ]);
 
   // The correction history for the classes on screen. A record that can be
@@ -224,6 +226,40 @@ async function Workspace({
           </Link>
         ))}
       </nav>
+
+      {/* The two things a lecturer wants from a course: the sheet, and a
+          list of the classes that are still blank. */}
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <a
+          href={`/api/export/attendance?course=${encodeURIComponent(course.code)}`}
+          className="pressable inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+        >
+          Download the register
+          <span className="text-[11px] text-muted">as a spreadsheet</span>
+        </a>
+      </div>
+
+      {unmarked.length > 0 && (
+        <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+          <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
+            Still blank ({unmarked.length})
+          </h3>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+            Classes of the last three weeks with no marks at all. A class with
+            one mark in it counts as marked.
+          </p>
+          <ul className="mt-2.5 flex flex-wrap gap-2">
+            {unmarked.map((u) => (
+              <li
+                key={u.date}
+                className="rounded-md border border-border bg-surface-raised px-2.5 py-1 text-[12px] text-foreground"
+              >
+                {u.day} {u.date} · {u.time}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {roster.length === 0 ? (
         <div className="mt-8 rounded-lg border border-border bg-surface p-5">

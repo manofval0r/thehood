@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { AdminHeader } from "@/components/AdminHeader";
 import { AdminLogin } from "@/components/AdminLogin";
 import { FileManager } from "@/components/FileManager";
@@ -43,6 +44,7 @@ function AreaSkeleton() {
 }
 
 async function FilesArea() {
+  await connection();
   const me = await currentStaff();
 
   if (!me) {

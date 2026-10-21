@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/AdminHeader";
 import { AdminLogin } from "@/components/AdminLogin";
@@ -42,6 +43,7 @@ function AreaSkeleton() {
 }
 
 async function StaffArea() {
+  await connection();
   const me = await currentStaff();
 
   if (!me) {

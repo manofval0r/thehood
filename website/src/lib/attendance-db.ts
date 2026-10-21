@@ -1,6 +1,7 @@
 import "server-only";
 
 import { rest } from "@/lib/rest";
+import { lagosClock, lagosDay } from "@/lib/session-dates";
 
 /** Whether the store is reachable at all. */
 export { isConfigured } from "@/lib/rest";
@@ -275,4 +276,98 @@ export async function getHistory(
     `attendance_log?course=eq.${encodeURIComponent(course)}&session_date=eq.${sessionDate}&select=*&order=changed_at.desc&limit=50`
   );
   return rows ?? [];
+}
+
+export interface UnmarkedClass {
+  /** yyyy-mm-dd */
+  date: string;
+  day: string;
+  time: string;
+  venue: string;
+}
+
+/**
+ * The classes of a course that nobody has marked.
+ *
+ * A class counts as done when at least one mark exists for it, because a
+ * lecturer who marks twenty of thirty people has marked the class. The ones
+ * with no marks at all are the ones somebody needs to know about.
+ *
+ * This is computed for every course at once, because the classes are known
+ * from the timetable and the only thing that needs asking is which of them
+ * have no marks.
+ */
+export async function unmarkedClassesByCourse(
+  days = 21
+): Promise<Record<string, UnmarkedClass[]>> {
+  const { classesInWindow } = await import("@/lib/notifications");
+
+  const from = new Date(Date.now() - days * 86400000);
+  const slots = classesInWindow(from, new Date());
+  const out: Record<string, UnmarkedClass[]> = {};
+  if (slots.length === 0) return out;
+
+  const marked = await rest<{ course: string; session_date: string }[]>(
+    `attendance?session_date=gte.${from.toISOString().slice(0, 10)}&select=course,session_date`
+  );
+  const done = new Set(
+    (marked ?? []).map((m) => `${m.course}|${m.session_date}`)
+  );
+
+  for (const slot of slots) {
+    // The date of a class, in the calendar it happens on for the people
+    // attending it, which is Lagos.
+    const iso = lagosDay(new Date(slot.start));
+    if (done.has(`${slot.course}|${iso}`)) continue;
+
+    const list = (out[slot.course] ??= []);
+    list.push({
+      date: iso,
+      day: slot.day,
+      time: lagosClock(new Date(slot.start)),
+      venue: slot.venue,
+    });
+  }
+
+  return out;
+}
+
+/** The classes of one course that nobody has marked. */
+export async function unmarkedClasses(
+  course: string,
+  days = 21
+): Promise<UnmarkedClass[]> {
+  const all = await unmarkedClassesByCourse(days);
+  return all[course] ?? [];
+}
+
+/**
+ * The whole register for a course, as plain rows.
+ *
+ * A lecturer's actual need is a sheet: every student, every class, every
+ * mark. This is that, in the order it is easiest to read.
+ */
+export async function registerFor(
+  course: string
+): Promise<
+  { matric: string; name: string; date: string; fill: number | null; excused: boolean }[]
+> {
+  const [roster, marks] = await Promise.all([
+    getRoster(course),
+    rest<
+      { matric: string; session_date: string; fill: number | null; excused: boolean }[]
+    >(
+      `attendance?course=eq.${encodeURIComponent(course)}&select=matric,session_date,fill,excused&order=session_date`
+    ),
+  ]);
+
+  const names = new Map(roster.map((r) => [r.matric, r.name]));
+
+  return (marks ?? []).map((m) => ({
+    matric: m.matric,
+    name: names.get(m.matric) ?? m.matric,
+    date: m.session_date,
+    fill: m.fill === null ? null : Number(m.fill),
+    excused: m.excused,
+  }));
 }

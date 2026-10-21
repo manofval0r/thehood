@@ -32,7 +32,7 @@ create table if not exists public.app_config (
 );
 
 insert into public.app_config (key, value)
-values ('site_url', 'https://thehood.vercel.app')
+values ('site_url', 'https://thehood-psi.vercel.app')
 on conflict (key) do update set value = excluded.value;
 
 -- The shared secret, held in the vault so it is not in the function body.

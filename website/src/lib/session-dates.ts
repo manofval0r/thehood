@@ -76,6 +76,45 @@ export interface CalendarDay {
   month: string;
 }
 
+/** Lagos is UTC+1 all year, with no daylight saving. */
+export const LAGOS_OFFSET_MINUTES = 60;
+
+/**
+ * The instant of a time of day, in Lagos, on a given calendar day.
+ *
+ * The class times in the manifest are wall-clock times in Lagos, so the
+ * instant has to be built in Lagos terms. Building it in the server's own
+ * timezone puts every class an hour out on a server running in UTC, which
+ * means every reminder arrives an hour early.
+ */
+export function lagosInstant(iso: string, minutesFromMidnight: number): Date {
+  const d = toUtc(iso);
+  // The whole offset is applied in minutes, in one place. Writing it as
+  // "hours minus the offset" is how an offset of sixty minutes became
+  // sixty hours, and every class in the timetable moved three days.
+  return new Date(
+    d.getTime() + (minutesFromMidnight - LAGOS_OFFSET_MINUTES) * 60 * 1000
+  );
+}
+
+/** The calendar day an instant falls on, in Lagos. */
+export function lagosDay(date: Date): string {
+  return new Date(date.getTime() + LAGOS_OFFSET_MINUTES * 60000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+/** The clock of an instant, in Lagos, as HH:MM. */
+export function lagosClock(date: Date): string {
+  const shifted = new Date(date.getTime() + LAGOS_OFFSET_MINUTES * 60000);
+  return shifted.toISOString().slice(11, 16);
+}
+
+/** The weekday of a calendar day, 0 = Sunday. */
+export function dayOf(iso: string): number {
+  return toUtc(iso).getUTCDay();
+}
+
 export function describe(iso: string): CalendarDay {
   const d = toUtc(iso);
   return {

@@ -5,6 +5,7 @@ import { rest } from "@/lib/rest";
 import { ACADEMIC_CALENDAR_EVENTS } from "@/lib/calendar";
 import { COURSES } from "@/lib/resources";
 import { SCHEDULE } from "@/lib/schedule";
+import { addDays, dayOf, lagosDay, lagosInstant } from "@/lib/session-dates";
 import {
   KINDS,
   KIND_HELP,
@@ -493,25 +494,25 @@ export interface ClassSlot {
  * The classes in a window, as real times.
  *
  * The timetable is a weekly pattern, so a class in a given week is the pattern
- * applied to that week's date. There is no term calendar here on purpose: the
- * dates come from the week the reader is in, and the term dates are used for
- * the reminders that are worth sending.
+ * applied to that week's date. The times are built in Lagos terms, because the
+ * manifest's times are wall-clock times in Lagos and the server runs in UTC.
  */
 export function classesInWindow(
   from: Date,
   to: Date
 ): ClassSlot[] {
   const out: ClassSlot[] = [];
-  const cursor = new Date(from);
-  cursor.setHours(0, 0, 0, 0);
 
-  while (cursor <= to) {
-    const dayIndex = cursor.getDay();
-    for (const c of SCHEDULE.filter((s) => s.dayIndex === dayIndex)) {
-      const start = new Date(cursor);
-      start.setHours(Math.floor(c.startMin / 60), c.startMin % 60, 0, 0);
-      const end = new Date(cursor);
-      end.setHours(Math.floor(c.endMin / 60), c.endMin % 60, 0, 0);
+  // Walk the calendar days in Lagos terms, because that is the day the
+  // class happens on for the people attending it.
+  let iso = lagosDay(from);
+  const last = lagosDay(to);
+
+  while (iso <= last) {
+    const day = dayOf(iso);
+    for (const c of SCHEDULE.filter((s) => s.dayIndex === day)) {
+      const start = lagosInstant(iso, c.startMin);
+      const end = lagosInstant(iso, c.endMin);
       if (start < from || start > to) continue;
       out.push({
         course: c.code,
@@ -519,12 +520,12 @@ export function classesInWindow(
         start: start.getTime(),
         end: end.getTime(),
         day: c.dayName,
-        dayIndex,
+        dayIndex: day,
         venue: c.venue,
         lecturer: c.lecturer,
       });
     }
-    cursor.setDate(cursor.getDate() + 1);
+    iso = addDays(iso, 1);
   }
 
   return out.sort((a, b) => a.start - b.start);

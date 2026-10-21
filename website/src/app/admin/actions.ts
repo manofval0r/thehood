@@ -8,7 +8,7 @@ import {
   setMark,
   setMarksBulk,
 } from "@/lib/attendance-db";
-import { deleteFile, MAX_UPLOAD_BYTES, uploadFile } from "@/lib/files";
+import { deleteFile, MAX_UPLOAD_BYTES, renameFile, uploadFile } from "@/lib/files";
 import { announceApproval, announceMaterial } from "@/lib/push";
 import { COURSES } from "@/lib/resources";
 import {
@@ -325,15 +325,28 @@ export async function readStaffCode(
 export interface UploadState {
   error?: string;
   done?: string;
+  /** The file as it now stands, so the list can be updated without asking again. */
+  file?: {
+    id: string;
+    course: string;
+    title: string;
+    type: string;
+    size: number | null;
+    source: string;
+  };
 }
 
 /**
  * Add a file to a course.
  *
  * The file goes to Supabase Storage and the index row is written after it,
- * so the course page never points at a file that is not there. The index is
- * tagged afterwards, which is what makes the new file appear on the course
- * page, in the search and in the counts without a rebuild.
+ * so the course page never points at a file that is not there. The readers of
+ * that course are told there is something new. This is event-driven: the
+ * upload is the event, so nothing has to be scheduled.
+ *
+ * It is awaited rather than left to itself, because a serverless function
+ * can be put to sleep the moment the response goes out, and a push that was
+ * never sent is a push that never arrives.
  */
 export async function uploadCourseFile(
   _prev: UploadState,
@@ -357,28 +370,30 @@ export async function uploadCourseFile(
   const title =
     String(formData.get("title") ?? "").trim() || file.name.replace(/\.[^.]+$/, "");
 
+  let created;
   try {
-    await uploadFile({ course, title, file, uploadedBy: staff.name });
+    created = await uploadFile({ course, title, file, uploadedBy: staff.name });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "The upload failed." };
   }
 
-  // The readers of that course are told there is something new. This is
-  // event-driven: the upload is the event, so nothing has to be scheduled.
-  // It is awaited rather than left to itself, because a serverless function
-  // can be put to sleep the moment the response goes out, and a push that
-  // was never sent is a push that never arrives.
   await announceMaterial({ course, title, uploadedBy: staff.name });
 
   updateTag("files");
   revalidatePath("/admin");
   revalidatePath(`/courses/${courseSlug(course)}`);
-  // The list on this page is rendered on the server, so the router has to be
-  // asked for it again. Without this the upload succeeds and the file does
-  // not appear in the list until the page is reloaded.
-  refresh();
 
-  return { done: `${title} was added to ${course}.` };
+  return {
+    done: `${title} was added to ${course}.`,
+    file: {
+      id: created.id,
+      course: created.course,
+      title: created.title,
+      type: created.type,
+      size: created.size ?? null,
+      source: created.source,
+    },
+  };
 }
 
 /** Take an uploaded file away. */
@@ -393,7 +408,29 @@ export async function removeCourseFile(id: string): Promise<void> {
   }
   updateTag("files");
   revalidatePath("/admin");
-  refresh();
+}
+
+/**
+ * Rename a file.
+ *
+ * The title is what a student reads on the course page, and a typo in it is
+ * permanent otherwise. The name of the file itself does not change, because
+ * changing it would break the link and the archive would be a lie.
+ */
+export async function renameCourseFile(
+  id: string,
+  title: string
+): Promise<{ file: { id: string; title: string } }> {
+  await requirePermission("files");
+  const clean = title.trim();
+  if (!clean) {
+    throw new Error("A file needs a name.");
+  }
+  await renameFile(id, clean);
+  updateTag("files");
+  revalidatePath("/admin");
+  revalidatePath("/courses");
+  return { file: { id, title: clean } };
 }
 
 /** The slug for a course code, for the path to revalidate. */

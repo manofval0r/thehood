@@ -1,9 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { login, type LoginState } from "@/app/admin/actions";
-import { useStaffSession } from "@/components/StaffSession";
 
 /**
  * The way in.
@@ -17,25 +15,21 @@ export function AdminLogin() {
     login,
     {}
   );
-  const router = useRouter();
-  const { refresh } = useStaffSession();
 
   /**
-   * Signing in does not navigate, it refreshes.
+   * Signing in loads the page again.
    *
-   * The cookie is set on the server, and two things on this page are still
-   * showing what they showed before: the bar, which decides which links to
-   * show, and the page itself, which was rendered for somebody who was not
-   * signed in. Refreshing the session and the route fixes both, and doing it
-   * here rather than with a redirect keeps the reader on the page they were
-   * already on.
+   * Not a soft refresh. The cookie is set on the server, and the page and
+   * the bar are both showing what they showed for somebody who was not
+   * signed in; a soft refresh of a partially prerendered page can leave the
+   * old tree and the new one on the screen together, and the bar has to be
+   * told the session is new anyway. A whole page load is one request with
+   * the cookie on it, and the result is the same on every browser.
    */
   useEffect(() => {
     if (!state.ok) return;
-    void refresh();
-    router.replace("/admin");
-    router.refresh();
-  }, [state.ok, refresh, router]);
+    window.location.assign("/admin");
+  }, [state.ok]);
 
   return (
     <form action={formAction} className="mt-8 max-w-sm">

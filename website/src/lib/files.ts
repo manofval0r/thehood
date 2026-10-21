@@ -307,6 +307,19 @@ export async function deleteFile(id: string): Promise<void> {
   await rest(`files?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
+/**
+ * Change what a file is called.
+ *
+ * Only the title changes. The name of the file itself does not, because
+ * changing it would break the link, and the row in the index is the link.
+ */
+export async function renameFile(id: string, title: string): Promise<void> {
+  await rest(`files?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: { title },
+  });
+}
+
 /** Makes sure the bucket exists. Safe to run again. */
 export async function ensureBucket(): Promise<void> {
   const head = await storage(`bucket/${BUCKET}`);

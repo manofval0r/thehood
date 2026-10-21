@@ -8,6 +8,7 @@ import {
 import { currentStaff } from "@/lib/admin-session";
 import { isSuper } from "@/lib/staff";
 import { rest } from "@/lib/rest";
+import { unmarkedClassesByCourse } from "@/lib/attendance-db";
 import { getCtfEvents } from "@/lib/events";
 
 /**
@@ -50,6 +51,8 @@ export async function GET(request: Request) {
     unread: number;
     classes: ReturnType<typeof classesInWindow>;
     staff: { pending: number; incomplete: number } | null;
+    /** The classes with no marks, by course. For the staff. */
+    blank: Record<string, { date: string; day: string; time: string; venue: string }[]>;
     health: { news: boolean; storage: boolean } | null;
   } = {
     since: sinceIso,
@@ -61,17 +64,22 @@ export async function GET(request: Request) {
     // the reader about them.
     classes: classesInWindow(new Date(), new Date(Date.now() + 36 * 3600000)),
     staff: null,
+    blank: {},
     health: null,
   };
 
   // The staff list, for the people who look after it.
   if (isStaffUser) {
-    const [pending, incomplete, health] = await Promise.all([
+    const [pending, blank, health] = await Promise.all([
       staffPending(),
-      incompleteAttendance(),
+      unmarkedClassesByCourse(),
       systemHealth(isSuperUser),
     ]);
-    body.staff = { pending, incomplete };
+    body.staff = {
+      pending,
+      incomplete: Object.values(blank).reduce((n, list) => n + list.length, 0),
+    };
+    body.blank = blank;
     if (isSuperUser) body.health = health;
   }
 
@@ -96,39 +104,6 @@ async function staffPending(): Promise<number> {
  * when at least one mark exists for it, and a course with nobody on the roll
  * is not a class that was forgotten.
  */
-async function incompleteAttendance(): Promise<number> {
-  const { classesInWindow } = await import("@/lib/notifications");
-
-  const since = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10);
-  const slots = classesInWindow(
-    new Date(`${since}T00:00:00Z`),
-    new Date(Date.now())
-  );
-  if (slots.length === 0) return 0;
-
-  const [marked, onRoll] = await Promise.all([
-    rest<{ course: string; session_date: string }[]>(
-      `attendance?session_date=gte.${since}&select=course,session_date`
-    ),
-    rest<{ course: string }[]>("roster?select=course"),
-  ]);
-
-  const markedSet = new Set(
-    (marked ?? []).map((r) => `${r.course}|${r.session_date}`)
-  );
-  const rollSize = new Map<string, number>();
-  for (const r of onRoll ?? []) {
-    rollSize.set(r.course, (rollSize.get(r.course) ?? 0) + 1);
-  }
-
-  let count = 0;
-  for (const slot of slots) {
-    const date = new Date(slot.start).toISOString().slice(0, 10);
-    if ((rollSize.get(slot.course) ?? 0) === 0) continue;
-    if (!markedSet.has(`${slot.course}|${date}`)) count += 1;
-  }
-  return count;
-}
 
 /** Whether the things the site depends on are working. */
 async function systemHealth(

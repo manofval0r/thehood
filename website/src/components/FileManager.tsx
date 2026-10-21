@@ -3,6 +3,7 @@
 import { useActionState, useCallback, useEffect, useState } from "react";
 import {
   removeCourseFile,
+  renameCourseFile,
   uploadCourseFile,
   type UploadState,
 } from "@/app/admin/actions";
@@ -49,38 +50,49 @@ export function FileManager({
   files: FileRow[];
 }) {
   const [course, setCourse] = useState(courses[0]?.code ?? "");
+  const [renaming, setRenaming] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState<UploadState, FormData>(
     uploadCourseFile,
     {}
   );
 
-  // The list is kept here and refreshed from the endpoint rather than being
-  // pushed down from the server. This page is a partial prerender, and the
-  // part that holds the list is streamed, so asking the router to refetch the
-  // route does not reliably redraw it. Fetching the list here means the
-  // reader sees the file they just added without waiting for a page load,
-  // and it is the same thing the search does.
+  // The list is kept here. It is updated from what the action returns rather
+  // than by asking the server again, because this page is a partial
+  // prerender and a second request can be overtaken by the revalidation the
+  // action itself asks for. The file that was added, renamed or removed comes
+  // back with the action, so the list moves the same moment the action
+  // finishes and there is nothing to race.
   const [rows, setRows] = useState<FileRow[]>(files);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/files", { cache: "no-store" });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (Array.isArray(data)) setRows(data as FileRow[]);
-    } catch {
-      // The list that is already on screen stays. It is the server's copy
-      // and it is not wrong, only a moment behind.
-    }
-  }, []);
-
   useEffect(() => {
-    if (state.done) load();
-  }, [state.done, load]);
+    // The action hands back the file as it now stands, so the list can be
+    // moved without asking the server a second time.
+    if (!state.file) return;
+    const file: FileRow = {
+      id: state.file.id,
+      course: state.file.course,
+      title: state.file.title,
+      type: state.file.type,
+      size: state.file.size,
+      source: "upload",
+    };
+    setRows((r) =>
+      r.some((f) => f.id === file.id)
+        ? r.map((f) => (f.id === file.id ? { ...f, ...file } : f))
+        : [file, ...r]
+    );
+  }, [state.file]);
 
   async function handleRemove(id: string) {
     await removeCourseFile(id);
-    await load();
+    setRows((r) => r.filter((f) => f.id !== id));
+  }
+
+  async function handleRename(id: string, title: string) {
+    const result = await renameCourseFile(id, title);
+    setRows((r) =>
+      r.map((f) => (f.id === id ? { ...f, title: result.file.title } : f))
+    );
   }
 
   const onCourse = rows.filter((f) => f.course === course);
@@ -185,9 +197,28 @@ export function FileManager({
           <ul className="mt-2 divide-y divide-border border-y border-border">
             {onCourse.map((f) => (
               <li key={f.id} className="flex items-center gap-3 py-2 text-[13px]">
-                <span className="min-w-0 flex-1 truncate text-foreground">
-                  {f.title}
-                </span>
+                {renaming === f.id ? (
+                  <input
+                    autoFocus
+                    defaultValue={f.title}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        void handleRename(f.id, e.currentTarget.value);
+                        setRenaming(null);
+                      }
+                      if (e.key === "Escape") setRenaming(null);
+                    }}
+                    onBlur={(e) => {
+                      void handleRename(f.id, e.currentTarget.value);
+                      setRenaming(null);
+                    }}
+                    className="min-w-0 flex-1 rounded border border-border bg-surface px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent"
+                  />
+                ) : (
+                  <span className="min-w-0 flex-1 truncate text-foreground">
+                    {f.title}
+                  </span>
+                )}
                 <span className="shrink-0 font-mono text-[11px] uppercase text-muted">
                   {f.type}
                 </span>
@@ -195,13 +226,22 @@ export function FileManager({
                   {humanSize(f.size)}
                 </span>
                 {f.source === "upload" ? (
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(f.id)}
-                    className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
-                  >
-                    Remove
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setRenaming(f.id)}
+                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                    >
+                      Rename
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(f.id)}
+                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                    >
+                      Remove
+                    </button>
+                  </>
                 ) : (
                   <span
                     className="shrink-0 text-[11px] text-muted"

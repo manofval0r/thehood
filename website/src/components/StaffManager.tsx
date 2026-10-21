@@ -141,7 +141,7 @@ export function StaffManager({
   return (
     <section className="mt-12">
       <h2 className="text-[15px] font-semibold tracking-tight text-foreground">
-        {isSuperUser ? "Who can get in" : "The people you added"}
+        {isSuperUser ? "Everyone on the list" : "The people you added"}
       </h2>
       <p className="mt-1 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
         {isSuperUser

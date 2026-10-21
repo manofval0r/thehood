@@ -4,7 +4,7 @@ import { COURSES } from "@/lib/resources";
 
 /** Canonical origin. Override with NEXT_PUBLIC_SITE_URL on the deployment. */
 const BASE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://thehood.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://thehood-psi.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
