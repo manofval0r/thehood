@@ -2,9 +2,9 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { AdminHeader } from "@/components/AdminHeader";
 import { AdminLogin } from "@/components/AdminLogin";
-import { FileManager } from "@/components/FileManager";
+import FileManager from "@/components/FileManager";
 import { currentStaff } from "@/lib/admin-session";
-import { getAllFiles } from "@/lib/files";
+import { getAllFiles, getFoldersByCourse } from "@/lib/files";
 import { can } from "@/lib/staff";
 import { COURSES } from "@/lib/resources";
 
@@ -65,7 +65,10 @@ async function FilesArea() {
     );
   }
 
-  const files = await getAllFiles();
+  const [files, folders] = await Promise.all([
+    getAllFiles(),
+    getFoldersByCourse(),
+  ]);
 
   return (
     <FileManager
@@ -75,9 +78,12 @@ async function FilesArea() {
         course: f.course,
         title: f.title,
         type: f.type,
+        url: f.url,
         size: f.size,
         source: f.source,
+        folder: f.folder ?? null,
       }))}
+      folders={folders}
     />
   );
 }

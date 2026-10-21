@@ -8,7 +8,16 @@ import {
   setMark,
   setMarksBulk,
 } from "@/lib/attendance-db";
-import { deleteFile, MAX_UPLOAD_BYTES, renameFile, uploadFile } from "@/lib/files";
+import {
+  createFolder,
+  deleteFile,
+  deleteFolder,
+  MAX_UPLOAD_BYTES,
+  moveFileToFolder,
+  renameFile,
+  renameFolder,
+  uploadFile,
+} from "@/lib/files";
 import { announceApproval, announceMaterial } from "@/lib/push";
 import { COURSES } from "@/lib/resources";
 import {
@@ -331,6 +340,7 @@ export interface UploadState {
     course: string;
     title: string;
     type: string;
+    url: string;
     size: number | null;
     source: string;
   };
@@ -355,6 +365,7 @@ export async function uploadCourseFile(
   const staff = await requirePermission("files");
 
   const course = String(formData.get("course") ?? "").trim();
+  const folder = String(formData.get("folder") ?? "").trim();
   const file = formData.get("file");
 
   if (!course) return { error: "Choose the course first." };
@@ -372,7 +383,13 @@ export async function uploadCourseFile(
 
   let created;
   try {
-    created = await uploadFile({ course, title, file, uploadedBy: staff.name });
+    created = await uploadFile({
+      course,
+      title,
+      file,
+      uploadedBy: staff.name,
+      folder,
+    });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "The upload failed." };
   }
@@ -384,16 +401,92 @@ export async function uploadCourseFile(
   revalidatePath(`/courses/${courseSlug(course)}`);
 
   return {
-    done: `${title} was added to ${course}.`,
+    done: `${title} was added to ${course}${folder ? ` in ${folder}` : ""}.`,
     file: {
       id: created.id,
       course: created.course,
       title: created.title,
       type: created.type,
+      url: created.url,
       size: created.size ?? null,
       source: created.source,
     },
   };
+}
+
+/**
+ * Move a file into a folder.
+ *
+ * The file does not move on disk and the object does not move in the bucket.
+ * The index says where it is, and that is what a student is shown and what a
+ * zip is built from. So a move is one column and it is instant.
+ */
+export async function moveCourseFile(
+  id: string,
+  folder: string
+): Promise<void> {
+  await requirePermission("files");
+  try {
+    await moveFileToFolder(id, folder);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The file could not be moved."
+    );
+  }
+  updateTag("files");
+  revalidatePath("/admin");
+}
+
+/** Make a folder in a course. */
+export async function createCourseFolder(
+  course: string,
+  path: string
+): Promise<void> {
+  await requirePermission("files");
+  try {
+    await createFolder(course, path);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The folder could not be made."
+    );
+  }
+  updateTag("files");
+  revalidatePath("/admin");
+}
+
+/** Rename a folder. Everything inside it moves with it. */
+export async function renameCourseFolder(
+  course: string,
+  from: string,
+  to: string
+): Promise<void> {
+  await requirePermission("files");
+  try {
+    await renameFolder(course, from, to);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The folder could not be renamed."
+    );
+  }
+  updateTag("files");
+  revalidatePath("/admin");
+}
+
+/** Remove a folder. Only an empty one. */
+export async function deleteCourseFolder(
+  course: string,
+  path: string
+): Promise<void> {
+  await requirePermission("files");
+  try {
+    await deleteFolder(course, path);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The folder could not be removed."
+    );
+  }
+  updateTag("files");
+  revalidatePath("/admin");
 }
 
 /** Take an uploaded file away. */

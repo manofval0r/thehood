@@ -417,6 +417,35 @@ export async function getCourseFolders(course: string): Promise<string[]> {
 }
 
 /**
+ * The folders staff made, by course.
+ *
+ * These are the folders that exist on their own. The folders that files
+ * imply are worked out from the files themselves, and the two are put
+ * together by the tree.
+ */
+export async function getFoldersByCourse(): Promise<Record<string, string[]>> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("files");
+
+  const out: Record<string, string[]> = {};
+  if (!isConfigured()) return out;
+
+  try {
+    const rows = await rest<{ course: string; path: string }[]>(
+      "course_folders?select=course,path"
+    );
+    for (const row of rows ?? []) {
+      if (!out[row.course]) out[row.course] = [];
+      out[row.course].push(row.path);
+    }
+    return out;
+  } catch {
+    return out;
+  }
+}
+
+/**
  * Put a file in a folder.
  *
  * The file does not move on disk and the object does not move in the
