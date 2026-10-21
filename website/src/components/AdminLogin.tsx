@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import * as React from "react";
+import { usePathname } from "next/navigation";
 import { login, type LoginState } from "@/app/admin/actions";
 
 /**
@@ -9,30 +10,44 @@ import { login, type LoginState } from "@/app/admin/actions";
  * A name and a code of your own. There are no shared accounts, because a
  * shared account cannot say who did what: an attendance record that says
  * "staff" cannot be argued with, and an argument needs a name.
+ *
+ * The form does the work itself rather than using the action state hook,
+ * because the page is taken off the screen the moment the action returns.
+ * The route is re-rendered with the session on it, so the form is replaced
+ * by the page it was protecting, and a component that is not on the screen
+ * cannot navigate or run an effect. The navigation is made in the promise
+ * that comes back from the action, which is still running after the form
+ * has gone.
  */
 export function AdminLogin() {
-  const [state, formAction, pending] = useActionState<LoginState, FormData>(
-    login,
-    {}
-  );
+  const [state, setState] = React.useState<LoginState>({});
+  const [pending, setPending] = React.useState(false);
+  const pathname = usePathname();
 
-  /**
-   * Signing in loads the page again.
-   *
-   * Not a soft refresh. The cookie is set on the server, and the page and
-   * the bar are both showing what they showed for somebody who was not
-   * signed in; a soft refresh of a partially prerendered page can leave the
-   * old tree and the new one on the screen together, and the bar has to be
-   * told the session is new anyway. A whole page load is one request with
-   * the cookie on it, and the result is the same on every browser.
-   */
-  useEffect(() => {
-    if (!state.ok) return;
-    window.location.assign("/admin");
-  }, [state.ok]);
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+
+    const form = new FormData(event.currentTarget);
+    const answer = await login(null, form);
+
+    if (answer.ok) {
+      // The whole page is loaded again, with the cookie on it. The bar is
+      // in the layout, and the layout only knows the session once it has
+      // been told, so a soft refresh would leave a bar showing the
+      // student's links to somebody who had just signed in.
+      window.location.assign(
+        pathname.startsWith("/admin") ? pathname : "/admin"
+      );
+      return;
+    }
+
+    setPending(false);
+    setState(answer);
+  }
 
   return (
-    <form action={formAction} className="mt-8 max-w-sm">
+    <form onSubmit={onSubmit} className="mt-8 max-w-sm">
       <label
         htmlFor="name"
         className="block text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"

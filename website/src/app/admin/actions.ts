@@ -123,7 +123,7 @@ export interface LoginState {
 }
 
 export async function login(
-  _prev: LoginState,
+  _prev: LoginState | null,
   formData: FormData
 ): Promise<LoginState> {
   const name = String(formData.get("name") ?? "").trim();
@@ -164,11 +164,14 @@ export async function login(
   await startSession(member.id);
   await touchStaff(member.id);
 
-  // The cookie is set, but the page the reader is looking at was rendered
-  // before they had it. Without this the action returns only its value, the
-  // route is not re-rendered, and the reader is left looking at the login
-  // form they have just filled in.
-  revalidatePath("/admin");
+  // The page is loaded again by the browser, with the cookie on it.
+  //
+  // The action must not re-render the route it was called from. If it
+  // did, the form that made the action would be taken off the screen, and
+  // a component that is not on the screen cannot navigate: the bar would
+  // go on showing the student's links to somebody who had just signed in.
+  //
+  // So the action says that it worked, and the browser does the loading.
   return { ok: true };
 }
 
