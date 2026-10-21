@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/AdminHeader";
 import { AdminLogin } from "@/components/AdminLogin";
 import { StaffManager } from "@/components/StaffManager";
+import TestNotification from "@/components/TestNotification";
 import { currentStaff } from "@/lib/admin-session";
 import { can, isSuper, listAudit, listPending, listStaff } from "@/lib/staff";
 
@@ -77,12 +78,18 @@ async function StaffArea() {
     : everyone.filter((p) => p.added_by === me.id);
 
   return (
-    <StaffManager
-      me={{ id: me.id, name: me.name, role: me.role }}
-      people={people}
-      pending={pending}
-      audit={audit}
-      super={superUser}
-    />
+    <>
+      <StaffManager
+        me={{ id: me.id, name: me.name, role: me.role }}
+        people={people}
+        pending={pending}
+        audit={audit}
+        super={superUser}
+      />
+
+      {/* Only a super admin, because a test notification is a thing you do
+          when you are checking that the whole chain works. */}
+      {superUser && <TestNotification />}
+    </>
   );
 }

@@ -183,6 +183,31 @@ The choice is remembered in `localStorage` and restored after mount, never
 read during render, or every reader who picked a view would see a flash of the
 other one.
 
+## Breaks
+
+A three hour lecture is not three hours of teaching. It is an hour of
+teaching, a break, an hour of teaching, a break, and the last hour. The break
+falls at the end of each period, and the last period has none in it, so a
+three hour lecture with a ten minute break has two breaks and still ends when
+it was scheduled to end.
+
+- **The length is a decision, not a constant.** Most lectures take ten
+  minutes, some take five, and some take none at all, so it is set per
+  session on `/admin/schedule` and held in `session_breaks`, keyed by the
+  course, the day and the minute the session starts. A course that meets
+  twice a week has two rows.
+- **The arithmetic is in one file** (`src/lib/breaks.ts`), and it is pure, so
+  the countdown in the bar and the timetable cannot disagree about where a
+  break falls. `tools/check-breaks.js` checks the cases that matter.
+- **The timetable draws the breaks as their own rows**, under the lecture
+  they belong to, so a student reading the week can see where the hour
+  turns over.
+- **The countdown knows about them.** While a lecture is running the clock
+  counts down to the break rather than to the end of the lecture, and inside
+  a break it counts down to the class resuming.
+- **The period is the lecture's own.** A lecture that starts at ten past
+  nine breaks at ten to ten, not at ten.
+
 ## Deploy to Vercel
 
 1. Push this repository.

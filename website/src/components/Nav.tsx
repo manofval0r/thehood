@@ -6,6 +6,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import FlipClock from "@/components/FlipClock";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
+import { breakFor, breakPhrase } from "@/lib/breaks";
+import { useBreaks } from "@/components/ScheduleProvider";
 import { formatRange } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions";
@@ -70,6 +72,7 @@ export default function Nav() {
   const tabListRef = useRef<HTMLDivElement>(null);
 
   const countdown = useCountdown();
+  const breaks = useBreaks();
 
   // Milliseconds for the flip clock. Derived from the same formatted string
   // the label uses, so the two can never disagree about what time it is.
@@ -107,13 +110,21 @@ export default function Nav() {
     router.refresh();
   }
 
-  /** The links this bar shows: the staff ones if signed in, else the student's. */
+  /**
+   * The links this bar shows: the staff ones if signed in, else the student's.
+   *
+   * The breaks are for every member of staff, not for one permission, so
+   * they are added rather than filtered.
+   */
   const links: { href: string; label: string; exact?: boolean }[] = isStaff
-    ? ADMIN_TABS.filter(
-        (t) =>
-          session?.role === "super" ||
-          session?.permissions?.includes(t.permission)
-      ).map((t) => ({ href: t.href, label: t.label, exact: t.exact }))
+    ? [
+        ...ADMIN_TABS.filter(
+          (t) =>
+            session?.role === "super" ||
+            session?.permissions?.includes(t.permission)
+        ).map((t) => ({ href: t.href, label: t.label, exact: t.exact })),
+        { href: "/admin/schedule", label: "Breaks" },
+      ]
     : TABS;
 
   const activeHref = links.find((t) =>
@@ -197,6 +208,20 @@ export default function Nav() {
   }, []);
 
   const next = countdown.next;
+
+  // When the lecture has a break in it, and when.
+  const breakNote = next
+    ? breakPhrase(
+        next.course.startMin,
+        next.course.endMin,
+        breakFor(
+          breaks,
+          next.course.code,
+          next.course.dayIndex,
+          next.course.startMin
+        )
+      )
+    : "";
 
   return (
     <>
@@ -444,16 +469,27 @@ export default function Nav() {
                     <span className="font-mono text-foreground">
                       {next.course.code}
                     </span>
-                    <span aria-hidden="true">Â·</span>
+                    <span aria-hidden="true">·</span>
                     <span>
                       {next.course.dayName},{" "}
                       {formatRange(next.course.startMin, next.course.endMin)}
                     </span>
-                    <span aria-hidden="true">Â·</span>
+                    <span aria-hidden="true">·</span>
                     <span>{next.course.venue}</span>
                   </span>
+                  {breakNote && (
+                    <span className="mt-1.5 block text-[11.5px] text-muted">
+                      {breakNote}
+                    </span>
+                  )}
                   <span className="mt-2 block border-t border-border pt-2 text-[11.5px] text-muted">
-                    {next.inProgress ? "In progress now" : "Starts in"}{" "}
+                    {countdown.phase === "in-break"
+                      ? "On a break, ends in"
+                      : countdown.phase === "to-break"
+                        ? "Break in"
+                        : countdown.next?.inProgress
+                          ? "In progress now, ends in"
+                          : "Starts in"}{" "}
                     <span className="font-mono text-foreground">
                       {countdown.text}
                     </span>

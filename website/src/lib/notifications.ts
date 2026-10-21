@@ -304,6 +304,36 @@ async function sendOne(
  * The filters are the reader's own: the kinds they turned on, the courses
  * they care about, and whether it is the middle of the night where they are.
  */
+/**
+ * Send one push to one device.
+ *
+ * The preferences and the quiet hours are not consulted, because this is the
+ * button that checks the whole thing works. A test that does not arrive
+ * because the reader is in their quiet hours, or has turned that kind of
+ * notification off, is a test that says nothing.
+ */
+export async function sendToDevice(
+  deviceId: string,
+  update: Update
+): Promise<"sent" | "not-found" | "failed"> {
+  if (!pushIsConfigured()) return "failed";
+
+  const rows = await rest<Subscription[]>(
+    `push_subscriptions?device_id=eq.${encodeURIComponent(
+      deviceId
+    )}&select=*`
+  );
+  const subscription = rows?.[0];
+  if (!subscription) return "not-found";
+
+  const result = await sendOne(subscription, update);
+  if (result === "gone") {
+    await removeSubscription(subscription.endpoint);
+    return "not-found";
+  }
+  return result === "sent" ? "sent" : "failed";
+}
+
 export async function broadcast(
   update: Update,
   options: { kind?: NotificationKind; course?: string } = {}

@@ -6,6 +6,7 @@ import {
   courseSlug,
   hasBeenSent,
   markSent,
+  sendToDevice,
   type Update,
 } from "@/lib/notifications";
 import { rest } from "@/lib/rest";
@@ -145,6 +146,30 @@ export async function announceClasses(): Promise<{ sent: number }> {
 
 /* ---------------------------------------------------------------- health */
 
+/**
+ * A test notification, to one device.
+ *
+ * This is the button a super admin presses to check that the push keys, the
+ * service worker and the browser are all in order. It goes to the device
+ * that pressed the button and nowhere else, and it ignores the quiet hours,
+ * because a test that does not arrive says nothing about whether the keys
+ * work.
+ */
+export async function announceTest(
+  deviceId: string,
+  by: string
+): Promise<"sent" | "not-found" | "failed"> {
+  const update: Update = {
+    id: `test:${deviceId}:${Date.now()}`,
+    kind: "system",
+    title: "The notifications are working",
+    body: `Sent to ${by}, to check that the push keys, the service worker and this browser are all in order.`,
+    at: new Date().toISOString(),
+    href: "/",
+  };
+
+  return sendToDevice(deviceId, update);
+}
 /**
  * Whether the things the site depends on are working.
  *

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Download } from "lucide-react";
 import { COURSES, resourceUrl, TIMETABLE_PDF } from "@/lib/resources";
 import { SCHEDULE, type ScheduledCourse } from "@/lib/schedule";
+import { getAllBreaks } from "@/lib/break-store";
 import NoteArt from "@/components/NoteArt";
 import PrintButton from "@/components/PrintButton";
 import Reveal from "@/components/Reveal";
@@ -62,8 +63,12 @@ export const metadata = {
   description: "First Semester 2026/2027 weekly timetable for the Cybersecurity 300 Level programme.",
 };
 
-export default function TimetablePage() {
+export default async function TimetablePage() {
   const totalUnits = COURSES.reduce((s, c) => s + c.units, 0);
+
+  // Read here rather than taken from the bar, so that this page's own cache
+  // entry depends on the breaks and a change to one reaches it.
+  const breaks = await getAllBreaks();
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -107,6 +112,7 @@ export default function TimetablePage() {
         totalUnits={totalUnits}
         courseCount={COURSES.length}
         weeklySessions={WEEKLY_SESSIONS}
+        breaks={breaks}
       />
 
       {/* ---------- Notes, each with its own illustration ---------- */}

@@ -19,6 +19,8 @@ import {
   uploadFile,
 } from "@/lib/files";
 import { addVideo, removeVideo, updateVideo } from "@/lib/videos";
+import { setBreak } from "@/lib/break-store";
+import { announceTest } from "@/lib/push";
 import { announceApproval, announceMaterial } from "@/lib/push";
 import { COURSES } from "@/lib/resources";
 import {
@@ -490,8 +492,84 @@ export async function deleteCourseFolder(
   revalidatePath("/admin");
 }
 
-export interface VideoState {
-  error?: string;
+/**
+ * Set the break in a lecture.
+ *
+ * Any member of staff can do this. A break is a fact about a lecture, and
+ * the people who teach are the people who know it. The length is set per
+ * session, because a lecturer's coffee break is not the same as a
+ * practical's, and because one lecture in a week may run straight through
+ * while the other has a proper break.
+ */
+export async function setSessionBreak(args: {
+  course: string;
+  dayIndex: number;
+  startMin: number;
+  breakMin: number;
+}): Promise<void> {
+  const staff = await requireStaff();
+  try {
+    await setBreak({
+      course: args.course,
+      dayIndex: args.dayIndex,
+      startMin: args.startMin,
+      breakMin: args.breakMin,
+      by: staff.name,
+    });
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The break could not be changed."
+    );
+  }
+  revalidatePath("/admin/schedule");
+  revalidatePath("/timetable");
+  // The countdown is in the bar, so the break has to reach the layout and
+  // everything under it, not only the pages that show the timetable.
+  revalidatePath("/", "layout");
+}
+
+/**
+ * Send a test notification to the device that asked for it.
+ *
+ * Only a super admin, and only to one device: the one that pressed the
+ * button. The point is to check that the push keys, the service worker and
+ * the browser are in order, and a test that lands on every reader's phone
+ * is not a test.
+ */
+export async function sendTestNotification(
+  deviceId: string
+): Promise<{ ok: boolean; message: string }> {
+  const staff = await requireSuper();
+  if (!deviceId) {
+    return {
+      ok: false,
+      message: "This browser has no id, so there is nothing to send to.",
+    };
+  }
+
+  const result = await announceTest(deviceId, staff.name);
+
+  if (result === "sent") {
+    return {
+      ok: true,
+      message: "Sent. It should arrive in a moment, even in your quiet hours.",
+    };
+  }
+  if (result === "not-found") {
+    return {
+      ok: false,
+      message:
+        "This browser has no subscription, so there is nothing to send to. Turn the notifications on in the bell first.",
+    };
+  }
+  return {
+    ok: false,
+    message:
+      "The push could not be sent. The keys may be wrong, or the push service may be refusing it.",
+  };
+}
+
+export interface VideoState {  error?: string;
   done?: string;
   /** The video as it now stands, so the list can be updated without asking again. */
   video?: {

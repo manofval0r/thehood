@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  * reads as a real quantity and makes an afternoon feel like a deadline.
  */
 export default function NextClassCountdown({ className }: { className?: string }) {
-  const { text, next, ready } = useCountdown();
+  const { text, next, ready, phase, note } = useCountdown();
   const [ms, setMs] = React.useState(0);
 
   // Track the remaining milliseconds from the same source the text comes
@@ -44,6 +44,12 @@ export default function NextClassCountdown({ className }: { className?: string }
 
   const { course } = next;
   const running = next.inProgress;
+  const onBreak = phase === "in-break";
+  const heading = onBreak
+    ? "On a break"
+    : running
+      ? "In progress now"
+      : "Next class";
 
   return (
     <div className={cn("flex flex-col items-center", className)}>
@@ -51,12 +57,12 @@ export default function NextClassCountdown({ className }: { className?: string }
         <span
           className={cn(
             "h-1.5 w-1.5 rounded-full",
-            running ? "bg-accent" : "bg-muted"
+            running && !onBreak ? "bg-accent" : "bg-muted"
           )}
           aria-hidden="true"
         />
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
-          {running ? "In progress now" : "Next class"}
+          {heading}
         </p>
       </div>
 
@@ -68,9 +74,7 @@ export default function NextClassCountdown({ className }: { className?: string }
         )}
       </div>
 
-      <p className="mt-5 text-[13px] text-muted-foreground">
-        {running ? "until this class ends" : "until it starts"}
-      </p>
+      <p className="mt-5 text-[13px] text-muted-foreground">{note}</p>
 
       {/* The class itself.
 
@@ -128,7 +132,8 @@ export default function NextClassCountdown({ className }: { className?: string }
       </AppleCard>
 
       <p className="mt-3 text-[12px] text-muted">
-        {running ? "Ends" : "Starts"} {ready ? text : "--:--:--"} ·{" "}
+        {onBreak ? "Break ends" : phase === "to-break" ? "Break" : running ? "Ends" : "Starts"}{" "}
+        {ready ? text : "--:--:--"} ·{" "}
         <Link
           href="/timetable"
           className="text-muted-foreground underline underline-offset-2 hover:text-foreground"

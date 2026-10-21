@@ -5,6 +5,8 @@ import Footer from "@/components/Footer";
 import { ThemeProvider, THEME_BOOTSTRAP } from "@/components/ThemeProvider";
 import { StaffSessionProvider } from "@/components/StaffSession";
 import { NotificationProvider } from "@/components/NotificationProvider";
+import { ScheduleProvider } from "@/components/ScheduleProvider";
+import { getAllBreaks } from "@/lib/break-store";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,9 +20,14 @@ export const metadata: Metadata = {
     "Course resources for the Cybersecurity 300 Level programme, First Semester 2026/2027, Nigerian University of Technology and Management.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // The breaks inside each lecture. The countdown and the timetable both
+  // need them, and both run in the browser, so they are read once here and
+  // handed down. Cached, so this costs the same on every page.
+  const breaks = await getAllBreaks();
+
   return (
     <html
       lang="en"
@@ -81,12 +88,17 @@ export default function RootLayout({
                 because the bar, the panel and the timers must not disagree
                 about how much is unread. */}
             <NotificationProvider>
-              <Nav />
-              {/* pb keeps the last element of any page clear of the footer. Without
-                  it, whichever page forgets its own bottom padding sits flush against
-                  the footer's top border. */}
-              <main className="flex-1 pb-16">{children}</main>
-              <Footer />
+              {/* Where the breaks inside a lecture fall. One provider, so
+                  the countdown and the timetable cannot disagree about
+                  them. */}
+              <ScheduleProvider breaks={breaks}>
+                <Nav />
+                {/* pb keeps the last element of any page clear of the footer.
+                    Without it, whichever page forgets its own bottom padding
+                    sits flush against the footer's top border. */}
+                <main className="flex-1 pb-16">{children}</main>
+                <Footer />
+              </ScheduleProvider>
             </NotificationProvider>
           </StaffSessionProvider>
         </ThemeProvider>

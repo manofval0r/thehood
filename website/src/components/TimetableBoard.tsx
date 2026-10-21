@@ -9,6 +9,8 @@ import { SlotStatus, TodayHeading } from "@/components/TodayBadge";
 import AppleCard from "@/components/AppleCard";
 import type { ScheduledCourse } from "@/lib/schedule";
 import { formatRange } from "@/lib/schedule";
+import { breakFor, breaksIn } from "@/lib/breaks";
+import type { BreakSetting } from "@/lib/breaks";
 import { cn } from "@/lib/utils";
 
 /**
@@ -47,11 +49,14 @@ export default function TimetableBoard({
   totalUnits,
   courseCount,
   weeklySessions,
+  breaks,
 }: {
   byDay: Record<string, ScheduledCourse[]>;
   totalUnits: number;
   courseCount: number;
   weeklySessions: number;
+  /** The length of the break in each lecture. */
+  breaks: BreakSetting[];
 }) {
   const [view, setView] = React.useState<View>("grid");
 
@@ -121,45 +126,82 @@ export default function TimetableBoard({
                       </span>
                     </DayGroup>
                     {slots.map((s, i) => (
-                      <Tr key={`${day}-${s.code}-${s.startMin}-${i}`}>
-                        <Td
-                          numeric
-                          className="whitespace-nowrap font-medium text-foreground"
-                        >
-                          {formatRange(s.startMin, s.endMin)}
-                        </Td>
-                        <Td className="whitespace-nowrap">
-                          <span className="inline-flex items-center gap-2">
-                            <Link
-                              href={`/courses/${s.slug}`}
-                              className="pressable rounded font-mono text-[12px] font-bold text-accent underline-offset-4 hover:underline"
-                            >
-                              {s.code}
-                            </Link>
-                            {s.isExtraSession && (
-                              <span
-                                title="An additional weekly meeting of this course"
-                                className="rounded bg-surface-hover px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wide text-muted-foreground"
+                      <Fragment key={`${day}-${s.code}-${s.startMin}-${i}`}>
+                        <Tr>
+                          <Td
+                            numeric
+                            className="whitespace-nowrap font-medium text-foreground"
+                          >
+                            {formatRange(s.startMin, s.endMin)}
+                          </Td>
+                          <Td className="whitespace-nowrap">
+                            <span className="inline-flex items-center gap-2">
+                              <Link
+                                href={`/courses/${s.slug}`}
+                                className="pressable rounded font-mono text-[12px] font-bold text-accent underline-offset-4 hover:underline"
                               >
-                                +1
+                                {s.code}
+                              </Link>
+                              {s.isExtraSession && (
+                                <span
+                                  title="An additional weekly meeting of this course"
+                                  className="rounded bg-surface-hover px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wide text-muted-foreground"
+                                >
+                                  +1
+                                </span>
+                              )}
+                              <SlotStatus
+                                dayIndex={s.dayIndex}
+                                startMin={s.startMin}
+                                endMin={s.endMin}
+                              />
+                            </span>
+                          </Td>
+                          <Td strong className="min-w-[18rem]">
+                            {s.title}
+                          </Td>
+                          <Td numeric align="right">
+                            {s.units}
+                          </Td>
+                          <Td className="whitespace-nowrap">{s.venue}</Td>
+                          <Td className="whitespace-nowrap">{s.lecturer}</Td>
+                        </Tr>
+
+                        {/* The breaks. They are not classes, so they get
+                            their own thin rows under the lecture they belong
+                            to, and a student reading the week can see where
+                            the hour actually turns over. */}
+                        {breaksIn(
+                          s.startMin,
+                          s.endMin,
+                          breakFor(
+                            breaks,
+                            s.code,
+                            s.dayIndex,
+                            s.startMin
+                          )
+                        ).map((b) => (
+                          <Tr key={`${day}-${s.code}-break-${b.from}`}>
+                            <Td
+                              numeric
+                              className="whitespace-nowrap font-mono text-[11.5px] text-muted"
+                            >
+                              {formatRange(b.from, b.to)}
+                            </Td>
+                            <Td className="whitespace-nowrap">
+                              <span className="rounded bg-surface-hover px-1.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-wide text-muted-foreground">
+                                Break
                               </span>
-                            )}
-                            <SlotStatus
-                              dayIndex={s.dayIndex}
-                              startMin={s.startMin}
-                              endMin={s.endMin}
-                            />
-                          </span>
-                        </Td>
-                        <Td strong className="min-w-[18rem]">
-                          {s.title}
-                        </Td>
-                        <Td numeric align="right">
-                          {s.units}
-                        </Td>
-                        <Td className="whitespace-nowrap">{s.venue}</Td>
-                        <Td className="whitespace-nowrap">{s.lecturer}</Td>
-                      </Tr>
+                            </Td>
+                            <Td className="min-w-[18rem] text-[12.5px] text-muted">
+                              {b.to - b.from} minute break
+                            </Td>
+                            <Td />
+                            <Td />
+                            <Td />
+                          </Tr>
+                        ))}
+                      </Fragment>
                     ))}
                   </Fragment>
                 );
