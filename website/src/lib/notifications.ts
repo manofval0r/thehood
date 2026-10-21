@@ -45,6 +45,10 @@ export interface Update {
   /** Where it goes when it is clicked. */
   href?: string;
   course?: string;
+  /** The announcement this is, when it is one. */
+  announcementId?: string;
+  /** Whether the reader is asked to say they have seen it. */
+  needsAck?: boolean;
 }
 
 export interface Prefs {
@@ -336,12 +340,33 @@ export async function sendToDevice(
 
 export async function broadcast(
   update: Update,
-  options: { kind?: NotificationKind; course?: string } = {}
-): Promise<{ sent: number; skipped: number; gone: number }> {
-  if (!pushIsConfigured()) return { sent: 0, skipped: 0, gone: 0 };
+  options: {
+    kind?: NotificationKind;
+    course?: string;
+    /**
+     * Whether the quiet hours are ignored.
+     *
+     * A quiet hour is a request not to be interrupted, and a class that is
+     * not running at nine in the morning is worth waking somebody up for.
+     * Urgent is the one thing that overrides it, and it overrides nothing
+     * else: a reader who has turned a kind off does not get that kind
+     * either, because being muted is their decision and not a mistake.
+     */
+    urgent?: boolean;
+  } = {}
+): Promise<{
+  sent: number;
+  skipped: number;
+  gone: number;
+  /** The push service refused it. */
+  failed: number;
+}> {
+  if (!pushIsConfigured()) return { sent: 0, skipped: 0, gone: 0, failed: 0 };
 
   const subscriptions = await listSubscriptions();
-  if (subscriptions.length === 0) return { sent: 0, skipped: 0, gone: 0 };
+  if (subscriptions.length === 0) {
+    return { sent: 0, skipped: 0, gone: 0, failed: 0 };
+  }
 
   const devices = new Map<string, Subscription>();
   for (const s of subscriptions) devices.set(s.device_id, s);
@@ -349,6 +374,7 @@ export async function broadcast(
   let sent = 0;
   let skipped = 0;
   let gone = 0;
+  let failed = 0;
 
   for (const [deviceId, subscription] of devices) {
     const prefs = await getPrefs(deviceId);
@@ -365,7 +391,7 @@ export async function broadcast(
       skipped += 1;
       continue;
     }
-    if (inQuietHours(prefs)) {
+    if (!options.urgent && inQuietHours(prefs)) {
       skipped += 1;
       continue;
     }
@@ -375,12 +401,14 @@ export async function broadcast(
     else if (result === "gone") {
       gone += 1;
       await removeSubscription(subscription.endpoint);
+    } else {
+      failed += 1;
     }
   }
 
   if (sent > 0) await markSent(update);
 
-  return { sent, skipped, gone };
+  return { sent, skipped, gone, failed };
 }
 
 /* ---------------------------------------------------------- what changed */
@@ -475,6 +503,41 @@ export async function changesSince(
       at: c.changed_at,
       href: "/admin/attendance",
       course: c.course,
+    });
+  }
+
+  // The messages a super admin has sent.
+  //
+  // A push is for the student who has the site closed. The one with the
+  // site open should see the same thing in the bell, or the message only
+  // reaches the people who happened not to be looking.
+  const announcements = await rest<
+    {
+      id: string;
+      title: string;
+      body: string;
+      kind: string;
+      course: string | null;
+      href: string | null;
+      needs_ack: boolean;
+      created_at: string;
+    }[]
+  >(
+    `announcements?status=eq.sent&created_at=gte.${stamp}&select=id,title,body,kind,course,href,needs_ack,created_at&order=created_at.desc&limit=20`
+  );
+
+  for (const a of announcements ?? []) {
+    if (options.course && a.course && a.course !== options.course) continue;
+    out.push({
+      id: `announcement:${a.id}`,
+      kind: (a.kind as NotificationKind) ?? "system",
+      title: a.title,
+      body: a.body,
+      at: a.created_at,
+      href: a.href ?? "/",
+      course: a.course ?? undefined,
+      announcementId: a.id,
+      needsAck: a.needs_ack,
     });
   }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { useNotifications } from "@/components/NotificationProvider";
 import { KIND_HELP, KIND_LABEL, type NotificationKind } from "@/lib/notification-kinds";
 
@@ -52,6 +53,7 @@ export function NotificationBell() {
     updates,
     upcoming,
     unread,
+    acked,
     staff,
     health,
     turnOn,
@@ -59,6 +61,7 @@ export function NotificationBell() {
     setKinds,
     setQuiet,
     markRead,
+    acknowledge,
   } = useNotifications();
 
   const [open, setOpen] = useState(false);
@@ -209,22 +212,49 @@ export function NotificationBell() {
             </p>
           ) : (
             <ul className="mt-1.5 max-h-52 space-y-1.5 overflow-y-auto">
-              {updates.slice(0, 12).map((u) => (
-                <li key={u.id}>
-                  <Link
-                    href={u.href ?? "/"}
-                    onClick={() => setOpen(false)}
-                    className="pressable block rounded-md px-1.5 py-1 hover:bg-surface-hover"
-                  >
-                    <span className="block text-[12.5px] font-medium leading-snug text-foreground">
-                      {u.title}
-                    </span>
-                    <span className="block text-[11.5px] leading-snug text-muted">
-                      {u.body} · {when(u.at)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
+              {updates.slice(0, 12).map((u) => {
+                const seen =
+                  !!u.announcementId && acked.includes(u.announcementId);
+                return (
+                  <li key={u.id}>
+                    <Link
+                      href={u.href ?? "/"}
+                      onClick={() => setOpen(false)}
+                      className="pressable block rounded-md px-1.5 py-1 hover:bg-surface-hover"
+                    >
+                      <span className="block text-[12.5px] font-medium leading-snug text-foreground">
+                        {u.title}
+                      </span>
+                      <span className="block text-[11.5px] leading-snug text-muted">
+                        {u.body} · {when(u.at)}
+                      </span>
+                    </Link>
+
+                    {/* A message can ask to be acknowledged, so that the
+                        person who sent it knows it was seen. A class that is
+                        not running is worth knowing about. */}
+                    {u.needsAck && u.announcementId && (
+                      <div className="px-1.5 pb-1">
+                        {seen ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-accent">
+                            <Check size={11} />
+                            You have seen this
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => void acknowledge(u.announcementId!)}
+                            className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                          >
+                            <Check size={11} />
+                            Got it
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
 

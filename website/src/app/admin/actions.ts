@@ -21,8 +21,19 @@ import {
 import { addVideo, removeVideo, updateVideo } from "@/lib/videos";
 import { setBreak } from "@/lib/break-store";
 import { announceTest } from "@/lib/push";
-import { announceApproval, announceMaterial } from "@/lib/push";
+import { announceApproval, announceMaterial, announceBroadcast } from "@/lib/push";
+import {
+  cancelAnnouncement as cancelAnnouncementRow,
+  createAnnouncement,
+  getAnnouncement,
+  recordDelivery,
+} from "@/lib/announcements";
+import {
+  TEMPLATE_BY_ID,
+  type AnnouncementTemplate,
+} from "@/lib/announcement-templates";
 import { COURSES } from "@/lib/resources";
+import { randomUUID } from "node:crypto";
 import {
   clearFailures,
   currentStaff,
@@ -567,6 +578,187 @@ export async function sendTestNotification(
     message:
       "The push could not be sent. The keys may be wrong, or the push service may be refusing it.",
   };
+}
+
+/* --------------------------------------------------------- announcements */
+
+export interface AnnouncementState {
+  error?: string;
+  done?: string;
+  /** How many devices it reached, how many it did not. */
+  counts?: { sent: number; skipped: number; gone: number; failed: number };
+  /** The id, so the composer can clear itself and the history can show it. */
+  id?: string;
+  /** Whether it was sent now or left for later. */
+  scheduled?: boolean;
+}
+
+/**
+ * Send a message to the students.
+ *
+ * Only a super admin. This is the one thing on the site that says something
+ * to everybody at once, and a message that says the wrong thing at the
+ * wrong time is not a mistake an ordinary admin should be able to make.
+ *
+ * It is awaited rather than left to itself, because a serverless function
+ * can be put to sleep the moment the response goes out, and a push that was
+ * never sent is a push that never arrives.
+ */
+export async function sendAnnouncement(
+  _prev: AnnouncementState,
+  formData: FormData
+): Promise<AnnouncementState> {
+  const staff = await requireSuper();
+
+  const template = String(formData.get("template") ?? "message") as
+    | AnnouncementTemplate
+    | "message";
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  const course = String(formData.get("course") ?? "").trim() || null;
+  const href = String(formData.get("href") ?? "").trim() || null;
+  const urgent = formData.get("urgent") === "on";
+  const needsAck = formData.get("needsAck") === "on";
+  const when = String(formData.get("when") ?? "").trim();
+
+  if (!title) return { error: "The message needs a title." };
+  if (!body) return { error: "The message needs something to say." };
+  if (title.length > 120) {
+    return { error: "The title is too long. Notifications show about a line." };
+  }
+  if (body.length > 300) {
+    return { error: "The message is too long. Notifications show about three lines." };
+  }
+
+  // A scheduled message is a message for a particular moment, and the
+  // moment is in Lagos, because the students are in Lagos and the server
+  // is not.
+  let scheduledFor: string | null = null;
+  if (when) {
+    const parsed = new Date(when);
+    if (Number.isNaN(parsed.getTime())) {
+      return { error: "That is not a time we can read." };
+    }
+    if (parsed.getTime() <= Date.now()) {
+      return { error: "That time has already passed." };
+    }
+    scheduledFor = parsed.toISOString();
+  }
+
+  const kind = TEMPLATE_BY_ID[template]?.kind ?? "system";
+
+  const id = `an_${randomUUID().slice(0, 8)}`;
+
+  await createAnnouncement({
+    id,
+    title,
+    body,
+    kind,
+    course,
+    href,
+    urgent,
+    needsAck,
+    status: scheduledFor ? "scheduled" : "sent",
+    scheduledFor,
+    by: { id: staff.id, name: staff.name },
+  });
+
+  await writeAudit({
+    actor: staff,
+    action: scheduledFor ? "scheduled" : "announced",
+    targetId: id,
+    targetName: title,
+    detail: [
+      course ? `for ${course}` : "for everybody",
+      urgent ? "urgent" : null,
+      needsAck ? "asking for a confirmation" : null,
+      scheduledFor ? `for ${scheduledFor}` : null,
+    ]
+      .filter(Boolean)
+      .join(", "),
+  });
+
+  // A message left for later is sent by the scheduler, which runs every
+  // five minutes, so it goes out within five minutes of its time.
+  if (scheduledFor) {
+    revalidatePath("/admin/announce");
+    return {
+      done: "It will go out at the time you asked for.",
+      id,
+      scheduled: true,
+    };
+  }
+
+  const counts = await announceBroadcast({
+    id,
+    title,
+    body,
+    kind,
+    course,
+    href,
+    urgent,
+  });
+
+  await recordDelivery(id, counts);
+
+  revalidatePath("/admin/announce");
+  revalidatePath("/", "layout");
+
+  return {
+    done: whatHappened(counts),
+    counts,
+    id,
+  };
+}
+
+/**
+ * What the send actually did.
+ *
+ * The three failures are different and the person who sent the message
+ * needs to be able to tell them apart. "Nobody has turned their
+ * notifications on" is a fact about the readers. "The push service
+ * refused it" is a fact about the site, and it is the one that needs
+ * somebody to do something about it.
+ */
+function whatHappened(counts: {
+  sent: number;
+  skipped: number;
+  gone: number;
+  failed: number;
+}): string {
+  if (counts.sent > 0) {
+    return `Sent to ${counts.sent} device${counts.sent === 1 ? "" : "s"}.`;
+  }
+  if (counts.failed > 0) {
+    return "The push service refused it, so it did not go out. The push keys may be wrong.";
+  }
+  if (counts.gone > 0) {
+    return "Every subscription for it had gone, so it did not go out. Nobody will see it.";
+  }
+  if (counts.skipped > 0) {
+    return "Nobody was sent it. Every device had turned that kind off, or was in their quiet hours.";
+  }
+  return "There is nobody to send it to yet. Nobody has turned their notifications on.";
+}
+
+/** Stop a message that has not gone out yet. */
+export async function cancelScheduledAnnouncement(id: string): Promise<void> {
+  const staff = await requireSuper();
+  const announcement = await getAnnouncement(id);
+  if (!announcement) throw new Error("That message is not there.");
+  if (announcement.status !== "scheduled") {
+    throw new Error("That message has already gone out.");
+  }
+
+  await cancelAnnouncementRow(id);
+  await writeAudit({
+    actor: staff,
+    action: "cancelled",
+    targetId: id,
+    targetName: announcement.title,
+    detail: "It was going to be sent later and will not be.",
+  });
+  revalidatePath("/admin/announce");
 }
 
 export interface VideoState {  error?: string;

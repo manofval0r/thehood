@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  acknowledge,
   deviceId,
   ensureWorker,
   fetchUpdates,
@@ -56,6 +57,8 @@ interface NotificationValue {
   updates: Update[];
   upcoming: Update[];
   unread: number;
+  /** The announcements this device has said it has seen. */
+  acked: string[];
   staff: { pending: number; incomplete: number } | null;
   health: { news: boolean; storage: boolean } | null;
   /** Turn notifications on. Asks the browser for permission. */
@@ -70,6 +73,8 @@ interface NotificationValue {
   refresh: () => Promise<void>;
   /** Say the notifications have been read. */
   markRead: () => void;
+  /** Say that this device has seen an announcement. */
+  acknowledge: (announcementId: string) => Promise<void>;
 }
 
 const DEFAULT_PREFS: Prefs = {
@@ -89,6 +94,7 @@ const NotificationContext = createContext<NotificationValue>({
   updates: [],
   upcoming: [],
   unread: 0,
+  acked: [],
   staff: null,
   health: null,
   turnOn: async () => false,
@@ -97,6 +103,7 @@ const NotificationContext = createContext<NotificationValue>({
   setQuiet: async () => {},
   refresh: async () => {},
   markRead: () => {},
+  acknowledge: async () => {},
 });
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
@@ -110,6 +117,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [updates, setUpdates] = useState<Update[]>([]);
   const [upcoming, setUpcoming] = useState<Update[]>([]);
   const [unread, setUnread] = useState(0);
+  const [acked, setAcked] = useState<string[]>([]);
   const [staff, setStaff] = useState<{ pending: number; incomplete: number } | null>(null);
   const [health, setHealth] = useState<{ news: boolean; storage: boolean } | null>(null);
   const [classes, setClasses] = useState<ClassSlot[]>([]);
@@ -125,9 +133,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     const payload = await fetchUpdates();
     if (!payload || !mounted.current) return;
-    setUpdates(payload.updates);
+
+    // The messages still waiting for a confirmation go in first, because
+    // they are the ones that have not been dealt with. The rest follow.
+    const pending = payload.pending ?? [];
+    const pendingIds = new Set(pending.map((p) => p.id));
+    const merged = [
+      ...pending,
+      ...payload.updates.filter((u) => !pendingIds.has(u.id)),
+    ];
+
+    setUpdates(merged);
     setUpcoming(payload.upcoming);
     setUnread(payload.unread);
+    setAcked(payload.acked ?? []);
     setStaff(payload.staff);
     setHealth(payload.health);
     setClasses(payload.classes ?? []);
@@ -241,6 +260,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setCursor(new Date().toISOString());
   }, []);
 
+  /**
+   * Say that this device has seen an announcement.
+   *
+   * The list is updated here as well as on the server, so the item goes
+   * straight away rather than waiting for the next poll, and the button
+   * stops asking.
+   */
+  const acknowledgeOne = useCallback(async (announcementId: string) => {
+    const ok = await acknowledge(announcementId);
+    if (!ok || !mounted.current) return;
+    setAcked((current) =>
+      current.includes(announcementId) ? current : [...current, announcementId]
+    );
+    setUpdates((current) =>
+      current.filter((u) => u.announcementId !== announcementId)
+    );
+  }, []);
+
   const value = useMemo(
     () => ({
       supported,
@@ -251,6 +288,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       updates,
       upcoming,
       unread,
+      acked,
       staff,
       health,
       turnOn,
@@ -259,6 +297,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setQuiet,
       refresh,
       markRead,
+      acknowledge: acknowledgeOne,
     }),
     [
       supported,
@@ -269,6 +308,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       updates,
       upcoming,
       unread,
+      acked,
       staff,
       health,
       turnOn,
@@ -277,6 +317,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setQuiet,
       refresh,
       markRead,
+      acknowledgeOne,
     ]
   );
 

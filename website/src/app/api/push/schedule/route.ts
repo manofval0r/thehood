@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { announceClasses } from "@/lib/push";
+import { announceClasses, announceBroadcast } from "@/lib/push";
 import { getCtfEvents } from "@/lib/events";
+import { listDueAnnouncements, recordDelivery } from "@/lib/announcements";
 import { recordHealth } from "@/lib/push";
 
 /**
@@ -24,6 +25,28 @@ async function run(request: Request) {
 
   const result = await announceClasses();
 
+  /* The messages that were written for a particular moment. */
+  //
+  // The scheduler runs every five minutes, so a message written for seven
+  // in the morning goes out at about five past. It is sent here rather than
+  // by a timer in the browser, because the student who needs to know is the
+  // one who has the site closed.
+  let announced = 0;
+  const due = await listDueAnnouncements();
+  for (const a of due) {
+    const counts = await announceBroadcast({
+      id: a.id,
+      title: a.title,
+      body: a.body,
+      kind: a.kind,
+      course: a.course,
+      href: a.href,
+      urgent: a.urgent,
+    });
+    await recordDelivery(a.id, counts);
+    announced += 1;
+  }
+
   // The competitions feed is the one thing that can break without anybody
   // noticing, so the scheduler checks it and writes down what it found.
   try {
@@ -41,7 +64,7 @@ async function run(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true, ...result });
+  return NextResponse.json({ ok: true, ...result, announced });
 }
 
 /**

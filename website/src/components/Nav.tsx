@@ -134,7 +134,9 @@ export default function Nav() {
    * The links this bar shows: the staff ones if signed in, else the student's.
    *
    * The breaks are for every member of staff, not for one permission, so
-   * they are added rather than filtered.
+   * they are added rather than filtered. So is the message to the students,
+   * which is for a super admin only, because a message that goes to every
+   * student at once is not an ordinary admin's to send.
    */
   const links: { href: string; label: string; exact?: boolean }[] = isStaff
     ? [
@@ -144,6 +146,9 @@ export default function Nav() {
             session?.permissions?.includes(t.permission)
         ).map((t) => ({ href: t.href, label: t.label, exact: t.exact })),
         { href: "/admin/schedule", label: "Breaks" },
+        ...(session?.role === "super"
+          ? [{ href: "/admin/announce", label: "Announce" }]
+          : []),
       ]
     : TABS;
 

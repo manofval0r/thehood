@@ -23,6 +23,10 @@ export interface Update {
   at: string;
   href?: string;
   course?: string;
+  /** The announcement this is, when it is one. */
+  announcementId?: string;
+  /** Whether the reader is asked to say they have seen it. */
+  needsAck?: boolean;
 }
 
 export interface ClassSlot {
@@ -47,6 +51,16 @@ export interface UpdatesPayload {
   updates: Update[];
   upcoming: Update[];
   unread: number;
+  /** The announcements this device has already said it has seen. */
+  acked: string[];
+  /**
+   * The announcements still waiting for a confirmation.
+   *
+   * These stay in the list until the reader says they have seen them, even
+   * after the cursor has moved past them. A class that is not running has
+   * to stay in front of the reader until they know.
+   */
+  pending: Update[];
   /** The next day of classes, so the browser can time the reminders itself. */
   classes: ClassSlot[];
   staff: { pending: number; incomplete: number } | null;
@@ -252,6 +266,27 @@ export async function fetchUpdates(since?: string): Promise<UpdatesPayload | nul
     return (await res.json()) as UpdatesPayload;
   } catch {
     return null;
+  }
+}
+
+/* ------------------------------------------------------------- the acks */
+
+/**
+ * Say that this device has seen an announcement.
+ *
+ * A message can ask for a confirmation, and this is where the confirmation
+ * goes. It is a device and not a person, because the students have no
+ * accounts, so there is nothing here that says who is holding the phone.
+ */
+export async function acknowledge(announcementId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/announcements/${encodeURIComponent(announcementId)}/ack`, {
+      method: "POST",
+      headers: { "x-device-id": deviceId() },
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 

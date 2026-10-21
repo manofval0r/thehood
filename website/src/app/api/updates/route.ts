@@ -5,6 +5,7 @@ import {
   upcomingCalendar,
   type NotificationKind,
 } from "@/lib/notifications";
+import { listAcks, listPendingAnnouncements } from "@/lib/announcements";
 import { currentStaff } from "@/lib/admin-session";
 import { isSuper } from "@/lib/staff";
 import { rest } from "@/lib/rest";
@@ -37,6 +38,13 @@ export async function GET(request: Request) {
   const isStaffUser = Boolean(staff);
   const isSuperUser = isSuper(staff);
 
+  // Which announcements this device has already said it has seen, so the
+  // bell can say "seen" instead of asking again.
+  const device = request.headers.get("x-device-id");
+  const acked = device && device.length >= 8 && device.length <= 64
+    ? await listAcks(device)
+    : [];
+
   const changes = await changesSince(from, { course });
   const upcoming = upcomingCalendar(14);
 
@@ -44,11 +52,33 @@ export async function GET(request: Request) {
     ? changes.filter((c) => c.kind === kind)
     : changes;
 
+  // The messages that are still waiting to be confirmed. They stay in the
+  // list until the reader says they have seen them, whatever the cursor
+  // says, because a cancellation that scrolls away unseen is a cancellation
+  // that did not happen.
+  const pending = device
+    ? (await listPendingAnnouncements(device)).map((a) => ({
+        id: `announcement:${a.id}`,
+        kind: (a.kind as NotificationKind) ?? "system",
+        title: a.title,
+        body: a.body,
+        at: a.created_at,
+        href: a.href ?? "/",
+        course: a.course ?? undefined,
+        announcementId: a.id,
+        needsAck: true,
+      }))
+    : [];
+
   const body: {
     since: string;
     updates: typeof filtered;
     upcoming: typeof upcoming;
     unread: number;
+    /** The announcements this device has said it has seen. */
+    acked: string[];
+    /** The announcements still waiting for a confirmation. */
+    pending: typeof pending;
     classes: ReturnType<typeof classesInWindow>;
     staff: { pending: number; incomplete: number } | null;
     /** The classes with no marks, by course. For the staff. */
@@ -59,6 +89,8 @@ export async function GET(request: Request) {
     updates: filtered,
     upcoming,
     unread: filtered.length,
+    acked,
+    pending,
     // The next day's classes, so the browser can time the reminders on its
     // own. The times are known in advance and do not need a server to tell
     // the reader about them.

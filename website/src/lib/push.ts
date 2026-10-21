@@ -9,6 +9,7 @@ import {
   sendToDevice,
   type Update,
 } from "@/lib/notifications";
+import type { NotificationKind } from "@/lib/notification-kinds";
 import { rest } from "@/lib/rest";
 
 /**
@@ -144,8 +145,47 @@ export async function announceClasses(): Promise<{ sent: number }> {
   return { sent };
 }
 
-/* ---------------------------------------------------------------- health */
+/* ------------------------------------------------------------ announcements */
 
+/**
+ * Send an announcement.
+ *
+ * The one everybody sends is "the class is cancelled today", and the whole
+ * point is that it reaches the student who has the site closed and the app
+ * backgrounded, which is the student who would otherwise turn up.
+ *
+ * The counts come back so they can be written down. "We told them" is a
+ * claim about an intention; "eighteen devices were told" is a claim about a
+ * fact, and only the second one is worth being able to look at afterwards.
+ */
+export async function announceBroadcast(announcement: {
+  id: string;
+  title: string;
+  body: string;
+  kind: NotificationKind;
+  course: string | null;
+  href: string | null;
+  urgent: boolean;
+}): Promise<{ sent: number; skipped: number; gone: number; failed: number }> {
+  const update: Update = {
+    id: `announcement:${announcement.id}`,
+    kind: announcement.kind,
+    title: announcement.title,
+    body: announcement.body,
+    at: new Date().toISOString(),
+    href: announcement.href ?? "/",
+    course: announcement.course ?? undefined,
+    announcementId: announcement.id,
+  };
+
+  return broadcast(update, {
+    kind: announcement.kind,
+    course: announcement.course ?? undefined,
+    urgent: announcement.urgent,
+  });
+}
+
+/* ---------------------------------------------------------------- health */
 /**
  * A test notification, to one device.
  *
