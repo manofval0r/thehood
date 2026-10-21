@@ -30,6 +30,12 @@ export function generateStaticParams() {
   );
 }
 
+/**
+ * The page reads the file index, which is not part of the build, so it is
+ * rendered when it is asked for rather than baked into the build.
+ */
+export const instant = false;
+
 export async function generateMetadata({
   params,
 }: {

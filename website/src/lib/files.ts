@@ -200,12 +200,13 @@ export async function getFilesByCourse(): Promise<Record<string, CourseFile[]>> 
  * The viewer is addressed by the file's id rather than by its address, so
  * that a link to a file keeps working when the file is renamed, and so that
  * the id is the only thing in the address that can be guessed.
+ *
+ * Not cached, and that is deliberate. The archive is part of the code rather
+ * than part of the database, and a cached copy of it would go on serving the
+ * list the site had when it was last built. The index read inside it is
+ * cached, so this costs the same as the index does.
  */
 export async function getFileById(id: string): Promise<CourseFile | null> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("files");
-
   if (!id) return null;
   const all = await getAllFiles();
   return all.find((f) => f.id === id) ?? null;
