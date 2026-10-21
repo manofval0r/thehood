@@ -313,6 +313,121 @@ const MOTIFS = {
     rect(g, 2, 17, 7, 2, "d");
     rect(g, 3, 17, 5, 1, "m");
   },
+
+  /** Slides: a screen on a stand, with a chart on it. */
+  slides(g) {
+    // The screen and its frame.
+    rect(g, 1, 3, 18, 12, "d");
+    rect(g, 1, 3, 18, 1, "m");
+    rect(g, 2, 4, 16, 10, "m");
+    rect(g, 3, 5, 14, 8, "d");
+    // Three bars, rising.
+    rect(g, 5, 10, 2, 2, "a");
+    rect(g, 9, 8, 2, 4, "a");
+    rect(g, 13, 6, 2, 6, "a");
+    // The stand.
+    rect(g, 9, 15, 2, 2, "d");
+    rect(g, 9, 16, 1, 1, "l");
+    rect(g, 7, 17, 6, 1, "d");
+  },
+
+  /** Folder: a tab on the top left and a body with a label on it. */
+  folder(g) {
+    // The tab.
+    rect(g, 2, 5, 6, 3, "d");
+    // The body.
+    rect(g, 2, 7, 16, 10, "d");
+    // The lip along the top, catching the light.
+    rect(g, 2, 7, 16, 1, "l");
+    rect(g, 2, 7, 1, 10, "m");
+    // A label on the front.
+    rect(g, 5, 11, 9, 1, "a");
+    rect(g, 5, 13, 6, 1, "m");
+  },
+
+  /** Code: a pair of braces with a colon between them. */
+  code(g) {
+    // The left brace: two hooks joined by a stem.
+    put(g, 4, 4, "d");
+    put(g, 3, 5, "d");
+    rect(g, 2, 6, 2, 8, "d");
+    put(g, 3, 14, "d");
+    put(g, 4, 15, "d");
+    // The right brace, mirrored.
+    put(g, 15, 4, "d");
+    put(g, 16, 5, "d");
+    rect(g, 16, 6, 2, 8, "d");
+    put(g, 16, 14, "d");
+    put(g, 15, 15, "d");
+    // The colon, in the accent.
+    rect(g, 9, 7, 2, 2, "a");
+    rect(g, 9, 11, 2, 2, "a");
+  },
+
+  /** Table: a grid of cells with a ruled header. */
+  table(g) {
+    rect(g, 2, 3, 16, 14, "d");
+    rect(g, 2, 3, 16, 1, "l");
+    // The header band.
+    rect(g, 3, 5, 14, 3, "m");
+    rect(g, 3, 5, 14, 1, "a");
+    // The rules.
+    for (let i = 0; i < 3; i++) rect(g, 3, 10 + i * 3, 14, 1, "m");
+    rect(g, 9, 9, 1, 8, "m");
+    rect(g, 14, 9, 1, 8, "m");
+  },
+
+  /** Sheet: a spreadsheet, with one cell picked out. */
+  sheet(g) {
+    rect(g, 2, 3, 16, 14, "d");
+    rect(g, 2, 3, 16, 1, "l");
+    // The header band.
+    rect(g, 3, 4, 14, 3, "m");
+    rect(g, 3, 4, 14, 1, "a");
+    // The rules.
+    for (let i = 0; i < 4; i++) rect(g, 3, 9 + i * 2, 14, 1, "m");
+    for (let x = 4; x < 17; x += 4) rect(g, x, 8, 1, 9, "m");
+    // The cell the cursor is in.
+    rect(g, 12, 9, 4, 2, "a");
+  },
+
+  /** Message: an envelope with its flap folded down. */
+  mail(g) {
+    rect(g, 2, 5, 16, 11, "d");
+    rect(g, 2, 5, 16, 1, "l");
+    // The flap, a V from the two top corners.
+    for (let i = 0; i < 7; i++) {
+      put(g, 2 + i, 5 + i, "m");
+      put(g, 17 - i, 5 + i, "m");
+    }
+    put(g, 9, 12, "m");
+    put(g, 10, 12, "m");
+    // The seal.
+    rect(g, 9, 13, 2, 2, "a");
+  },
+
+  /** Image: a framed picture with a sun and a hill in it. */
+  image(g) {
+    rect(g, 2, 3, 16, 14, "d");
+    rect(g, 2, 3, 16, 1, "l");
+    rect(g, 3, 4, 14, 12, "m");
+    // The sun.
+    disc(g, 7, 8, 2, "a");
+    // The hill, falling away to the right.
+    for (let i = 0; i < 6; i++) rect(g, 4 + i, 15 - i, 12 - i * 2, 1, "d");
+  },
+
+  /** Box: a closed archive with a lid and a seal. */
+  box(g) {
+    // The lid.
+    rect(g, 2, 5, 16, 3, "d");
+    rect(g, 2, 5, 16, 1, "l");
+    // The body.
+    rect(g, 3, 8, 14, 9, "d");
+    rect(g, 3, 8, 14, 1, "m");
+    // The seal down the middle.
+    rect(g, 9, 10, 2, 4, "a");
+  },
 };
 
 /* ---------------- emit ---------------- */
@@ -344,6 +459,14 @@ const ACCENTS = {
   trophy: ["#e2e8f0", "#64748b"],
   route: ["#818cf8", "#4338ca"],
   flag: ["#a3e635", "#4d7c0f"],
+  slides: ["#fb923c", "#c2410c"],
+  folder: ["#f59e0b", "#b45309"],
+  code: ["#22c55e", "#15803d"],
+  table: ["#38bdf8", "#0369a1"],
+  sheet: ["#4ade80", "#15803d"],
+  mail: ["#c084fc", "#7e22ce"],
+  image: ["#f472b6", "#be185d"],
+  box: ["#94a3b8", "#475569"],
 };
 
 const entries = Object.keys(MOTIFS);

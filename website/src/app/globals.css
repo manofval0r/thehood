@@ -1126,6 +1126,38 @@ html:hover {
 }
 
 /* ============================================================
+   THE SLIDE DECK
+   The deck is drawn by a library that brings its own frame
+   and its own round grey buttons. The buttons go, because this
+   site has its own controls and two sets of them is one set
+   too many. The frame keeps its white background, because a
+   slide is white, and it loses the black one, because the
+   page is not a cinema.
+   ============================================================ */
+
+.pptx-host .pptx-preview-wrapper {
+  background: transparent !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+  max-width: 100%;
+}
+
+.pptx-host .pptx-preview-wrapper-next {
+  display: none !important;
+}
+
+.pptx-host .pptx-preview-wrapper-pagination {
+  display: none !important;
+}
+
+.pptx-host .pptx-preview-slide-wrapper {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--lift-shadow);
+  max-width: 100%;
+}
+
+/* ============================================================
    PRINT
    The timetable and the registration list are the two pages
    people actually put on a desk, so they get a real print

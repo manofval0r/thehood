@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { COURSES, getCourse } from "@/lib/resources";
+import { COURSES, getCourse, resourceUrl } from "@/lib/resources";
 import { getCourseFiles, fileSize } from "@/lib/files";
 import CourseClient from "./client";
 
@@ -41,12 +41,14 @@ export default async function CoursePage({
   // site having to be rebuilt.
   const files = await getCourseFiles(course.code);
 
-  // The card wants a size a human can read, not a number of bytes.
+  // The card wants a size a human can read, not a number of bytes. The
+  // address is encoded here rather than at each use, so the card, the panel
+  // and the viewer all point at the same working address.
   const resources = files.map((f) => ({
     id: f.id,
     title: f.title,
     type: f.type,
-    url: f.url,
+    url: resourceUrl(f.url),
     size: fileSize(f.size),
   }));
 
