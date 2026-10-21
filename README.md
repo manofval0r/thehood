@@ -50,40 +50,57 @@ npm start        # serve the build
 | Route | What it does |
 |---|---|
 | `/` | All ten courses, live countdown to the next class, search across courses **and files** |
-| `/courses/<slug>` | Course detail, resource type filters, PDF preview dialog, batch download |
+| `/courses/<slug>` | The course, its workspace of files and folders, and its videos |
+| `/view/<id>` | The viewer: a deck, a document, a table, a message, all read in the browser |
 | `/timetable` | Weekly timetable, today marked, running class marked, printable. Grid or Perspective view |
 | `/registration` | The registration list, printable |
 | `/timeline` | Academic calendar with a draggable session rail, category filters, `.ics` download |
 | `/resources` | Papers, lecture channels, practice platforms and tools |
-| `/news` | Security headlines from eight feeds, fetched server-side and reissued hourly |
-| `/careers` | The eight jobs this programme feeds, the certifications that count, and where to practise |
+| `/careers` | The eight jobs this programme feeds, the certifications that count, where to practise, and the week's security news |
 | `/careers/<role>` | One job in depth, and the courses here that feed it |
-| `/events` | Competitions you can enter, the department's calendar, and the events that happen every year |
-| `/admin` | The staff area, behind one shared code. Mark attendance, manage the roll, upload course files |
+| `/events` | The competitions you can enter from here, the department's calendar, and the events that happen every year |
+| `/admin` | The staff area, behind one code per person. The roll, the attendance, the files, the videos, the staff |
+| `/admin/attendance` | The marking grid, the register as a spreadsheet, the classes that are still blank |
+| `/admin/files` | The file manager: folders, drag and drop, rename, move, remove, upload |
+| `/admin/videos` | The videos of a course, with their titles and a line about each |
+| `/admin/roll` | Who is on each course |
 | `/contact` | Who teaches each course, when and where, and how to reach them |
 | `/calendar.ics` | The whole session as an importable calendar file |
 | `/sitemap.xml`, `/robots.txt` | Generated from `src/app/` |
 
 ## Adding a resource
 
-There is no admin interface yet, so resources are added in the manifest.
+**Files can be added from the staff area now.** A member of staff with the
+files permission drags them onto `/admin/files` and they are on the course
+page within a request or two, with no commit and no redeploy.
+
+The repository route is still there, and it is still the right one for a
+file that belongs to the course itself rather than to a week of it:
 
 1. Put the file in `website/public/courses/<Course Folder>/`.
-2. Add one entry to `website/src/lib/resources.ts` under that course's
-   `resources` array:
+2. Run `node tools/scan-archive.js`, which walks that folder and writes
+   what is in it to `src/lib/archive.ts`. The scan is the truth about what
+   exists: the manifest lists the files it knows about, and the scan finds
+   the ones it does not.
+3. To give a file a title of its own, add one entry to
+   `website/src/lib/resources.ts` under that course's `resources` array:
 
 ```ts
 {
   id: "csc309-lecture-1",
-  title: "Lecture 1 – Intro to AI",
+  title: "Lecture 1 - Intro to AI",
   type: "pptx",          // "pdf" | "pptx" | "xlsx" | "doc" | "other"
-  url: "/courses/Artificial Intelligence/Lecture 1 – Intro to AI.pptx",
+  url: "/courses/Artificial Intelligence/Lecture 1 - Intro to AI.pptx",
 },
 ```
 
-3. Commit and push. Vercel redeploys.
+4. Commit and push. Vercel redeploys.
 
-`resources.ts` is the single source of truth the site reads. A future admin CMS
+The scan is written at build time rather than read at request time because
+the serverless function does not have the public folder on its disk. The
+folder is served by the CDN.
+
+`resources.ts` is the source of truth for the titles. A future admin CMS
 would write to the same data rather than replace the shape of it.
 
 ### A course that meets twice
@@ -304,8 +321,11 @@ quantity and makes an afternoon feel like a deadline.
 
 ## News
 
-`/news` shows security headlines from eight feeds. The details of how, because
-it is easy to get each one wrong and each one has a consequence:
+The security news lives on `/careers`, at the bottom of the page. A job
+title is an abstraction, and the week's breaches and advisories are what
+the work behind it actually looks like. The details of how the feed is
+read, because it is easy to get each part wrong and each part has a
+consequence:
 
 - **Fetched server-side, never from the browser.** The reader's browser talks to
   this site once and to no feed. There are no third-party images, so a feed
@@ -393,23 +413,77 @@ nothing pointing at it.
 
 ### The index
 
-`files` table: course, title, type, url, size, and which of the two kinds it
-is. It is read through `/api/files`, which is the endpoint the manifest used
-to be, and the search uses it so a file staff uploaded is findable by name.
+`files` table: course, title, type, url, size, folder, and which of the two
+kinds it is. It is read through `/api/files`, which is the endpoint the
+manifest used to be, and the search uses it so a file staff uploaded is
+findable by name.
 
 The index is cached and tagged. An upload calls `updateTag("files")`, so the
 course page, the search and the counts all pick the change up on the next
 request rather than waiting for the cache to age out.
 
+**The archive is merged in outside the cache.** The archive is part of the
+code rather than part of the database, and a cached copy of it would go on
+serving the list the site had when it was last built. The index is cached
+on its own; the merge is not.
+
 **The manifest still carries the original file list**, for two reasons. It is
 the fallback when the database cannot be reached, because a course page that
 shows nothing because a table was not populated is a worse failure than a
-duplicated row. And `tools/migrate-files.js` reads it to index the archive.
-Once the CMS is trusted, that array can go.
+duplicated row. And it decides the title and the id of the files it knows
+about, where the scan decides only that they exist.
 
 The upload itself is capped at 25 MB. The file is stored first and indexed
 second, so a course page never points at a file that is not there: the other
 order would leave an index row pointing at a file that was never stored.
+
+### Folders
+
+A course's material is a tree, and the site shows it as one. A file's
+folder is a column on the index. **Moving a file is one column**: the file
+does not move on disk and the object does not move in the bucket, so a move
+is instant, it costs nothing, and the folder a student sees is the folder
+the index says.
+
+A file with nothing in the index takes the folder its address implies,
+which is how the files in the repository keep the folders they already have
+on disk. `course_folders` holds the folders that exist on their own, so
+that "Assessment 1" can be made before anything is put in it.
+
+### The viewer
+
+`/view/<id>` reads a file in the browser rather than sending the reader
+somewhere else to open it.
+
+- **A deck is drawn.** A `.pptx` is a zip of XML, and `pptx-preview` unzips
+  it and lays each slide out as HTML. It is not a perfect reproduction of
+  PowerPoint, and it does not need to be, because a student with no
+  PowerPoint can see what the lecturer put on the screen.
+- **A table is a table.** The parser does quoted fields, doubled quotes and
+  line breaks inside a quoted field, because splitting on commas gets all
+  three wrong.
+- **A message is a message.** The `.eml` reader unfolds the headers, decodes
+  the MIME encoded words, finds the text part of a multipart body and undoes
+  the transfer encoding.
+- **JSON is a tree.** What a key holds is easier to read as a tree than as
+  a wall of braces, and the raw text is one click away.
+
+The files are public course resources. A reader who can download one can
+read one, so the browser asks for it where it lives rather than the site
+fetching it and passing it along.
+
+### Videos
+
+A lecture recording, or a recording of somebody else's lecture that is worth
+a student's afternoon, is indexed with the course. The staff area is
+`/admin/videos`.
+
+**The picture is kept on this site.** The server fetches it from YouTube
+once and the reader gets it from this site's own address, because a page
+that asks somebody else's server for an image tells that server who was
+reading. The video itself is YouTube's and is only loaded when somebody
+presses play, from the embed that does not set tracking cookies until
+then.
 
 ## Attendance
 
@@ -486,14 +560,23 @@ student's page is, and a **Sign out** button appears. The staff links are
 whatever that person is allowed to do, so somebody who may only mark
 attendance sees only "Attendance".
 
-The area is four pages rather than one long one:
+The area is five pages rather than one long one:
 
 | Page | What it is for | Needs |
 |---|---|---|
 | `/admin` | Who can get in, the review queue, the audit log | Add staff members |
 | `/admin/attendance` | The marking grid, the register, the blank classes | Mark attendance |
-| `/admin/files` | Adding, renaming and removing course files | Upload and remove course files |
+| `/admin/files` | The file manager: folders, drag and drop, rename, move, remove | Upload and remove course files |
+| `/admin/videos` | The videos of a course, and a line about each | Upload and remove course files |
 | `/admin/roll` | Who is on each course | Keep the student roll |
+
+The file manager is a file manager rather than a form: a folder tree, a
+list of what is in the folder you are in, and a file dragged onto the
+folder it belongs in. The drag is built on pointer events rather than the
+browser's own dragging, because the browser's dragging does not work on a
+touch screen, and a touch drag has to be a held drag or every attempt to
+scroll the list would pick a file up instead. Every gesture also has a
+button, because a drag is never the only way to do something.
 
 On the attendance page there are two things a lecturer wants beyond the grid:
 a **spreadsheet of the register** (every student, every class, every mark) and
@@ -747,6 +830,14 @@ notifications on again.
 There is a service worker, so the site can be added to a home screen and
 opens without a network. `public/offline.html` is what it shows when there
 is no signal.
+
+**The payload of a partly prerendered page is never served from the cache.**
+Next sends it as an ordinary fetch, so a cache-first worker hands back the
+page as it was when it was last visited. On a course page that means a file
+that has been added and a video that has been put up are both missing, and
+the page says they are not there. The people who hit it hardest are the
+people who installed the site, which is to say the people who use it most.
+The cache is still a fallback for when there is no signal.
 
 ## Data sources
 
