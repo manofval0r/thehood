@@ -361,6 +361,19 @@ export function resourceUrl(url: string) {
 export const TIMETABLE_PDF = "/docs/300L_Cyber-Security_Timetable (1).pdf";
 export const REGISTRATION_PDF = "/docs/300 Level CyberSecurity Course Registration List .pdf";
 
+/**
+ * The shared Drive folder, with every course in it.
+ *
+ * The department keeps the course material on Google Drive, and this is
+ * where it lives. The site's own copies are the ones that can be read in
+ * the browser, so this is offered as the shared folder rather than as a
+ * replacement for them: a student who wants the whole programme in one
+ * place follows this, and a student who wants to read a file follows the
+ * search.
+ */
+export const DRIVE_FOLDER =
+  "https://drive.google.com/drive/folders/1LWs8PQH4gtgH44L06cGi3PVJpr7frIb5?usp=sharing";
+
 export const ALL_RESOURCES = COURSES.flatMap((c) =>
   c.resources.map((r) => ({ ...r, course: c }))
 );

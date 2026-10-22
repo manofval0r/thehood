@@ -1,5 +1,7 @@
 // Parsed from docs/NUTM_2026-2027_Unified_Academic_Calendar.md
 // Source: Office of the Registrar, Nigerian University of Technology and Management, Apapa, Lagos
+import { todayIso } from "@/lib/session-dates";
+
 export type Category =
   | "Academic"
   | "Exams & Results"
@@ -16,6 +18,16 @@ export interface CalendarEvent {
   /** Resolved start/end where the row is a single day or a span. */
   start: Date | null;
   end: Date | null;
+  /**
+   * The calendar day, as "2026-10-22".
+   *
+   * A date is an instant and an instant is not a day: the same row read on a
+   * server in UTC and in a browser in Lagos is two different days once the
+   * clock is involved, and a reader in Lagos then never sees today's row
+   * marked as today. So the day is written down as text when the row is
+   * parsed, and everything that asks "is this today" compares text.
+   */
+  iso: string | null;
 }
 
 const MONTHS: Record<string, number> = {
@@ -73,7 +85,7 @@ function parseDate(date: string, month: string): { start: Date | null; end: Date
   return none;
 }
 
-type RawEvent = Omit<CalendarEvent, "start" | "end">;
+type RawEvent = Omit<CalendarEvent, "start" | "end" | "iso">;
 
 const RAW: RawEvent[] = [
   { month: "September 2026", date: "September 28, 2026", day: "Monday", activity: "Staff Training for New Session", category: "Statutory Meetings" },
@@ -132,10 +144,22 @@ const RAW: RawEvent[] = [
   { month: "July 2027", date: "July 23, 2027", day: "Friday", activity: "End of Academic Session", category: "Academic" },
 ];
 
-export const ACADEMIC_CALENDAR_EVENTS: CalendarEvent[] = RAW.map((e) => ({
-  ...e,
-  ...parseDate(e.date, e.month),
-}));
+/**
+ * The calendar day a date falls on, as "2026-10-22".
+ *
+ * The date was built from the row's own year, month and day, so its local
+ * components are the day the Registrar published, whatever timezone the
+ * server happens to run in.
+ */
+function dayOf(date: Date): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`;
+}
+
+export const ACADEMIC_CALENDAR_EVENTS: CalendarEvent[] = RAW.map((e) => {
+  const { start, end } = parseDate(e.date, e.month);
+  return { ...e, start, end, iso: start ? dayOf(start) : null };
+});
 
 export const CATEGORY_STYLE: Record<
   Category,
@@ -239,9 +263,15 @@ export function isPast(e: CalendarEvent, now: Date) {
   return e.end.getTime() < now.getTime();
 }
 
+/**
+ * Whether a row falls on the day the reader is on.
+ *
+ * The comparison is between two calendar days written as text, so it says
+ * the same thing in Lagos as it does on a server in UTC. Comparing instants
+ * against the reader's midnight made today's row lose its badge for
+ * anybody east of Greenwich, which is everybody the site is for.
+ */
 export function isToday(e: CalendarEvent, now: Date) {
-  if (!e.start) return false;
-  const d = new Date(now);
-  d.setHours(0, 0, 0, 0);
-  return e.start.getTime() === d.getTime();
+  if (!e.iso) return false;
+  return e.iso === todayIso(now.getTime());
 }

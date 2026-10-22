@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Download } from "lucide-react";
-import { COURSES } from "@/lib/resources";
+import { ArrowRight, ArrowUpRight, Download } from "lucide-react";
+import { COURSES, DRIVE_FOLDER } from "@/lib/resources";
 import { getAllFiles } from "@/lib/files";
 import SearchBar from "@/components/SearchBar";
 import { CourseCard } from "@/components/CourseCard";
 import PixelArt from "@/components/PixelArt";
+import PixelMotif from "@/components/PixelMotif";
 import Reveal from "@/components/Reveal";
 import NextClassCountdown from "@/components/NextClassCountdown";
 
@@ -101,6 +102,39 @@ export default async function Home() {
                 >
                   <SearchBar />
                 </div>
+
+                {/* The whole programme on one drive. The department keeps the
+                    course material there, so the folder is offered next to
+                    the search rather than instead of it: the search reads
+                    the files in the browser, the folder is where they are
+                    kept. */}
+                <a
+                  href={DRIVE_FOLDER}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="pressable rise mt-4 inline-flex max-w-xl items-center gap-3.5 rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover"
+                  style={{ animationDelay: "280ms" }}
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10">
+                    <PixelMotif
+                      kind="folder"
+                      title="A folder with every course in it"
+                      className="h-5 w-5"
+                    />
+                  </span>
+                  <span className="min-w-0 text-left">
+                    <span className="block text-[13.5px] font-medium leading-snug text-foreground">
+                      All the courses on Google Drive
+                    </span>
+                    <span className="block text-[12.5px] leading-snug text-muted-foreground">
+                      The whole programme in one shared folder
+                    </span>
+                  </span>
+                  <ArrowUpRight
+                    size={16}
+                    className="ml-auto shrink-0 text-muted-foreground"
+                  />
+                </a>
 
                 <div
                   className="rise mt-12 flex flex-wrap items-center gap-x-12 gap-y-6 border-t border-border pt-8"

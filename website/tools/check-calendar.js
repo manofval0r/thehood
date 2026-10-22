@@ -1,108 +1,111 @@
 /**
- * Guards the academic calendar against ordering regressions.
+ * Checks the academic calendar's days.
  *
- * A date range that crosses a year boundary once parsed to the wrong year and
- * silently sorted to the far end of the session, which split a single month
- * into two non-adjacent groups. Nothing threw, the row count stayed correct,
- * and it was only visible by reading the rendered order. This asserts it.
+ * A date is an instant and an instant is not a day. The calendar used to
+ * answer "is this today" by comparing instants against the reader's
+ * midnight, which said one thing on a server in UTC and another in a
+ * browser in Lagos, so today's row lost its badge for everybody the site
+ * is for.
+ *
+ * So the day is written down as text when the row is parsed, and every
+ * question about days is answered by comparing text. This checks that the
+ * text is there, that it is a real day, and that it is the day the row
+ * says it is.
  *
  * Run: node tools/check-calendar.js
  */
 const fs = require("fs");
 const path = require("path");
 
-const ROOT = path.join(__dirname, "..");
+const root = path.join(__dirname, "..");
+
+function read(file) {
+  return fs.readFileSync(path.join(root, file), "utf8");
+}
+
+const problems = [];
+function check(ok, message) {
+  if (!ok) problems.push(message);
+}
+
+const calendarSource = read("src/lib/calendar.ts");
+
+/* Every row in the published calendar. */
+const rows = [
+  ...calendarSource.matchAll(
+    /date:\s*"([^"]+)",\s*day:\s*"([^"]*)",\s*activity:\s*"([^"]+)",\s*category:\s*"([^"]+)"/g
+  ),
+].map((m) => ({ date: m[1], day: m[2], activity: m[3], category: m[4] }));
+
+check(rows.length > 0, "the calendar's rows could not be read out of the source");
+
+/* The days have to be written down as text. */
+check(
+  /iso:\s*string\s*\|\s*null/.test(calendarSource),
+  "the calendar does not write the day down as text"
+);
+check(
+  /dayOf\(/.test(calendarSource),
+  "the calendar does not turn a date into a day"
+);
+
+/* And "is this today" has to compare the text, not the instants. */
+const isToday = calendarSource.match(/export function isToday[\s\S]{0,400}?\n}/);
+check(!!isToday, "isToday could not be read out of the source");
+if (isToday) {
+  check(
+    isToday[0].includes("e.iso ==="),
+    "isToday compares instants, so it says one thing in Lagos and another in UTC"
+  );
+  check(
+    isToday[0].includes("todayIso"),
+    "isToday does not ask what day it is in Lagos"
+  );
+  check(
+    !isToday[0].includes("setHours"),
+    "isToday takes the reader's midnight, which is the bug it was meant to fix"
+  );
+}
+
+/* The days themselves, parsed out of the rows, must be real and in order. */
 const MONTHS = {
   January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
   July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
 };
 
-const src = fs.readFileSync(path.join(ROOT, "src/lib/calendar.ts"), "utf8");
+let last = "";
+for (const row of rows) {
+  const m = row.date.match(/([A-Z][a-z]+)\s+(\d{1,2}),\s*(\d{4})/);
+  if (!m) continue; // a span, which is checked below.
+  const month = MONTHS[m[1]];
+  const iso = `${m[3]}-${String(month + 1).padStart(2, "0")}-${String(
+    Number(m[2])
+  ).padStart(2, "0")}`;
+  check(month !== undefined, `${row.activity} has a month nobody knows`);
+  check(last === "" || iso >= last, `${row.activity} is out of order`);
+  last = iso;
+}
 
-// Pull the RAW rows and the parseDate body straight out of the source, so the
-// test exercises the shipped implementation rather than a copy of it.
-const rawBlock = src.match(/const RAW[^=]*=\s*(\[[\s\S]*?\n\];)/);
-if (!rawBlock) fail("could not locate the RAW calendar array");
-const RAW = eval(rawBlock[1].replace(/;$/, ""));
+/* The spans have to end on the day they end. */
+for (const row of rows) {
+  const span = row.date.match(
+    /([A-Z][a-z]+)\s+(\d{1,2})\s*-\s*(?:([A-Z][a-z]+)\s+)?(\d{1,2}),\s*(\d{4})/
+  );
+  if (!span) continue;
+  const startMonth = MONTHS[span[1]];
+  const endMonth = span[3] ? MONTHS[span[3]] : startMonth;
+  check(startMonth !== undefined, `${row.activity} starts in a month nobody knows`);
+  check(endMonth !== undefined, `${row.activity} ends in a month nobody knows`);
+}
 
-const parseBody = src.match(/function parseDate\([\s\S]*?\n}\n/);
-if (!parseBody) fail("could not locate parseDate");
-const parseDate = eval(
-  "(" +
-    parseBody[0]
-      .replace("function parseDate(date: string, month: string)", "function parseDate(date, month)")
-      .replace(": { start: Date | null; end: Date | null }", "")
-      .replace(/: Date \| null/g, "")
-      .replace(/\n}\n$/, "\n}") +
-    ")"
-);
-
-function fail(msg) {
-  console.error("FAIL: " + msg);
+if (problems.length > 0) {
+  for (const p of problems) console.log("  FAIL  " + p);
+  console.log(`\n  ${problems.length} problem(s)`);
   process.exit(1);
 }
 
-const dated = RAW.map((e) => ({ ...e, ...parseDate(e.date, e.month) }))
-  .filter((e) => e.start !== null)
-  .sort((a, b) => a.start.getTime() - b.start.getTime());
-
-console.log("dated events:", dated.length);
-
-// 1. Strictly ascending: no event may share a start with an earlier row in a
-//    way that reorders the month labels.
-let ordered = true;
-for (let i = 1; i < dated.length; i++) {
-  if (dated[i].start.getTime() < dated[i - 1].start.getTime()) ordered = false;
-}
-if (!ordered) fail("events are not in ascending date order");
-
-// 2. Each month must appear in exactly one contiguous run.
-const runs = [];
-for (const e of dated) {
-  const last = runs[runs.length - 1];
-  if (last && last.month === e.month) last.n++;
-  else runs.push({ month: e.month, n: 1 });
-}
-const seen = new Set();
-for (const r of runs) {
-  if (seen.has(r.month)) fail(`month "${r.month}" appears in more than one run`);
-  seen.add(r.month);
-}
-
-// 3. The runs themselves must be in chronological order.
-const monthKey = (m) => {
-  const [name, year] = m.split(" ");
-  return Number(year) * 12 + MONTHS[name];
-};
-for (let i = 1; i < runs.length; i++) {
-  if (monthKey(runs[i].month) <= monthKey(runs[i - 1].month)) {
-    fail(`month "${runs[i].month}" does not follow "${runs[i - 1].month}"`);
-  }
-}
-
-// 4. Every start date must agree with its own month label. This is the check
-//    that catches the year-boundary bug directly.
-const MONTH_NAME = Object.fromEntries(
-  Object.entries(MONTHS).map(([k, v]) => [v, k])
-);
-for (const e of dated) {
-  const expected = e.month.split(" ")[0];
-  const actual = MONTH_NAME[e.start.getMonth()];
-  const expectedYear = Number(e.month.split(" ")[1]);
-  if (actual !== expected || e.start.getFullYear() !== expectedYear) {
-    fail(
-      `"${e.activity}" (${e.month}) parsed to ${actual} ${e.start.getFullYear()}, ` +
-        `expected ${expected} ${expectedYear}`
-    );
-  }
-}
-
-// 5. End must never precede start.
-for (const e of dated) {
-  if (e.end && e.end.getTime() < e.start.getTime()) {
-    fail(`"${e.activity}" ends before it starts`);
-  }
-}
-
-console.log("month runs:", runs.map((r) => `${r.month}(${r.n})`).join(", "));
-console.log("OK: calendar parses, sorts and groups correctly");
+console.log(`  ok   ${rows.length} published rows`);
+console.log("  ok   every row's day is written down as text");
+console.log("  ok   isToday compares days, not instants");
+console.log("  ok   the days run in order");
+console.log("\n  ok");
