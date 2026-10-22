@@ -1,20 +1,26 @@
-# The project builds from the website folder, so nothing outside it is
-# needed. The courses folder at the top of the repository is the same
-# material the site serves out of website/public/courses, and the launch
-# film folder is a render that is not part of the site.
+# What the upload leaves out.
 #
-# Without this the upload carries forty megabytes of films and duplicated
-# decks that the build never reads, and the upload is slow enough to time
-# out.
-courses
-docs
-audio
-MEMORY.md
-report.md
-**/MEMORY.md
-**/report.md
+# The site serves its own copies of the course material and the timetable
+# PDF from website/public, so the copies at the top of the repository are
+# duplicates that the build never reads. The launch film is the same: it is
+# rendered from its own folder and it is not part of the site.
+#
+# The leading slash matters. A pattern with no slash matches at any depth,
+# and "courses" on its own would take website/src/app/courses with it, which
+# is the route the whole course page lives on, and website/public/courses,
+# which is every lecture note and handout on the site. A pattern with a
+# leading slash is anchored to the top of the repository and leaves those
+# alone.
+/courses
+/docs
+/audio
 
-# The workspace files.
+# The notes at the top of the repository, which are for whoever works on
+# this and not for whoever reads it.
+/MEMORY.md
+/report.md
+
+# The build's own scratch, which is never uploaded anyway.
 **/node_modules
 **/.next
 **/.vercel
