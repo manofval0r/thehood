@@ -2,6 +2,7 @@ import "server-only";
 
 import webpush from "web-push";
 import { rest } from "@/lib/rest";
+import { kindIsEnabled } from "@/lib/notification-settings";
 import { ACADEMIC_CALENDAR_EVENTS } from "@/lib/calendar";
 import { COURSES } from "@/lib/resources";
 import { SCHEDULE } from "@/lib/schedule";
@@ -353,6 +354,13 @@ export async function broadcast(
      * either, because being muted is their decision and not a mistake.
      */
     urgent?: boolean;
+    /**
+     * Whether a person wrote this.
+     *
+     * A message a super admin wrote by hand is not a kind anybody can
+     * mute, so it is sent whatever the site has been told not to send.
+     */
+    manual?: boolean;
   } = {}
 ): Promise<{
   sent: number;
@@ -362,6 +370,12 @@ export async function broadcast(
   failed: number;
 }> {
   if (!pushIsConfigured()) return { sent: 0, skipped: 0, gone: 0, failed: 0 };
+
+  // A kind the site has been told not to send is not sent, whoever asked
+  // for it.
+  if (!options.manual && !(await kindIsEnabled(update.kind))) {
+    return { sent: 0, skipped: 0, gone: 0, failed: 0 };
+  }
 
   const subscriptions = await listSubscriptions();
   if (subscriptions.length === 0) {

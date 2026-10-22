@@ -869,6 +869,20 @@ whether the keys work.
 | K | Something the site depends on has broken | The scheduler checks a feed that fails quietly |
 | L | A message from the department | A super admin writes one (see above) |
 
+### What the site is allowed to send
+
+The same page, further down. A reader chooses what they want to be told
+about, in the bell. This is the other half: what the site is allowed to
+tell anybody, for the case where a kind is wrong for a while. Switch a
+kind off and nobody is interrupted by it, whatever they asked for.
+
+Only the kinds that are off are written down, so a kind added to the code
+later starts on, which is the right way round.
+
+A message a super admin writes by hand is not affected. The point of those
+is that they are not a kind anybody can mute, and a class that is not
+running gets through whatever is switched off here.
+
 ### Saying something to everybody
 
 `/admin/announce`, for a super admin. A message goes to every device that

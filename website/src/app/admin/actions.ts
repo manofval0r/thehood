@@ -33,6 +33,8 @@ import {
   type AnnouncementTemplate,
 } from "@/lib/announcement-templates";
 import { CATALOGUE, sampleFor } from "@/lib/notification-catalogue";
+import { setKindEnabled } from "@/lib/notification-settings";
+import { KINDS, type NotificationKind } from "@/lib/notification-kinds";
 import { COURSES } from "@/lib/resources";
 import { randomUUID } from "node:crypto";
 import {
@@ -763,6 +765,26 @@ export async function cancelScheduledAnnouncement(id: string): Promise<void> {
     detail: "It was going to be sent later and will not be.",
   });
   revalidatePath("/admin/announce");
+}
+
+/**
+ * Turn a kind of notification on or off, for everybody.
+ *
+ * Only a super admin. A reader chooses what they want to be told about;
+ * this is what the site is allowed to tell anybody.
+ */
+export async function setNotificationKind(
+  kind: string,
+  enabled: boolean
+): Promise<void> {
+  await requireSuper();
+
+  if (!(KINDS as string[]).includes(kind)) {
+    throw new Error("There is no such kind of notification.");
+  }
+
+  await setKindEnabled(kind as NotificationKind, enabled);
+  revalidatePath("/admin/notifications");
 }
 
 /**

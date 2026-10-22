@@ -3,8 +3,10 @@ import { connection } from "next/server";
 import { AdminHeader } from "@/components/AdminHeader";
 import { AdminLogin } from "@/components/AdminLogin";
 import NotificationCatalogue from "@/components/NotificationCatalogue";
+import NotificationKindSwitches from "@/components/NotificationKindSwitches";
 import { currentStaff } from "@/lib/admin-session";
 import { isSuper } from "@/lib/staff";
+import { getDisabledKinds } from "@/lib/notification-settings";
 
 export const metadata = {
   title: "What can be told about · Cybersecurity 300L",
@@ -68,5 +70,12 @@ async function CatalogueArea() {
     );
   }
 
-  return <NotificationCatalogue />;
+  const disabled = await getDisabledKinds();
+
+  return (
+    <>
+      <NotificationCatalogue disabledKinds={disabled} />
+      <NotificationKindSwitches disabled={disabled} />
+    </>
+  );
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useFormStatus } from "react-dom";
-import { Bell, Check, Loader2 } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import {
   CATALOGUE,
   type CatalogueId,
@@ -27,15 +26,16 @@ import { sendNotificationTest } from "@/app/admin/actions";
  * nothing about whether the keys work.
  */
 function TestButton({ id, label }: { id: CatalogueId; label: string }) {
-  const { pending } = useFormStatus();
+  const [busy, setBusy] = React.useState(false);
   const [result, setResult] = React.useState<string | null>(null);
 
   return (
     <div className="flex flex-col items-end gap-1.5">
       <button
         type="button"
-        disabled={pending}
+        disabled={busy}
         onClick={async () => {
+          setBusy(true);
           setResult(null);
           try {
             const answer = await sendNotificationTest(id, deviceId());
@@ -46,16 +46,18 @@ function TestButton({ id, label }: { id: CatalogueId; label: string }) {
                 ? error.message
                 : "The test could not be sent."
             );
+          } finally {
+            setBusy(false);
           }
         }}
         className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-50"
       >
-        {pending ? (
+        {busy ? (
           <Loader2 size={12} className="animate-spin" />
         ) : (
           <Bell size={12} />
         )}
-        {pending ? "Sending" : "Send a test"}
+        {busy ? "Sending" : "Send a test"}
       </button>
       {result && (
         <span
@@ -69,7 +71,11 @@ function TestButton({ id, label }: { id: CatalogueId; label: string }) {
   );
 }
 
-export default function NotificationCatalogue() {
+export default function NotificationCatalogue({
+  disabledKinds,
+}: {
+  disabledKinds: string[];
+}) {
   return (
     <div className="mt-10">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -110,6 +116,14 @@ export default function NotificationCatalogue() {
                   <>
                     <span aria-hidden="true">·</span>
                     <span className="text-accent">sent by hand</span>
+                  </>
+                )}
+                {disabledKinds.includes(entry.kind) && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span className="text-red-300">
+                      switched off for everybody
+                    </span>
                   </>
                 )}
               </p>

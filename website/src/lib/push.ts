@@ -235,6 +235,8 @@ export async function announceBroadcast(announcement: {
     kind: announcement.kind,
     course: announcement.course ?? undefined,
     urgent: announcement.urgent,
+    // A message a person wrote is not a kind anybody can mute.
+    manual: true,
   });
 }
 
