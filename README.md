@@ -66,6 +66,7 @@ npm start        # serve the build
 | `/admin/roll` | Who is on each course |
 | `/contact` | Who teaches each course, when and where, and how to reach them |
 | `/calendar.ics` | The whole session as an importable calendar file |
+| `/timetable.ics` | Every lecture, on its real dates, as an importable calendar file |
 | `/sitemap.xml`, `/robots.txt` | Generated from `src/app/` |
 
 ## Adding a resource
@@ -1011,9 +1012,6 @@ node tools/gen-timetable-wallpapers.js
 
 Deliberately left out, and why:
 
-- **Recurring weekly lectures in the `.ics`.** Would require inventing term
-  start and end dates. A subscription that ignores exam week and public
-  holidays is worse than no subscription.
 - **Admin CMS.** Needs an auth decision that has not been made.
 - **Attendance.** Blocked on the same auth decision as the CMS, since a student
   has to be identifiable before anything can be recorded against them. The shape

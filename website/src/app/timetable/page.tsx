@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Download } from "lucide-react";
+import { CalendarPlus, Download } from "lucide-react";
 import { COURSES, resourceUrl, TIMETABLE_PDF } from "@/lib/resources";
 import { SCHEDULE, type ScheduledCourse } from "@/lib/schedule";
 import { getAllBreaks } from "@/lib/break-store";
@@ -102,6 +102,20 @@ export default async function TimetablePage() {
               <Download size={15} />
               Download PDF
             </a>
+
+            {/* The lectures as a calendar. The examination weeks and the
+                public holidays are left out, because the academic calendar
+                says which days they are and a class on a public holiday is
+                not a class. */}
+            <a
+              href="/timetable.ics"
+              download
+              className="print-hide pressable inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+            >
+              <CalendarPlus size={15} className="text-accent" />
+              Add to your calendar
+            </a>
+
             <PrintButton />
           </div>
         </div>
