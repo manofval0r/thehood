@@ -32,6 +32,7 @@ import {
   TEMPLATE_BY_ID,
   type AnnouncementTemplate,
 } from "@/lib/announcement-templates";
+import { CATALOGUE, sampleFor } from "@/lib/notification-catalogue";
 import { COURSES } from "@/lib/resources";
 import { randomUUID } from "node:crypto";
 import {
@@ -762,6 +763,69 @@ export async function cancelScheduledAnnouncement(id: string): Promise<void> {
     detail: "It was going to be sent later and will not be.",
   });
   revalidatePath("/admin/announce");
+}
+
+/**
+ * Send one of the site's notifications to this device, to see what it
+ * looks like.
+ *
+ * Only a super admin, and only to one device: the one that pressed the
+ * button. The point is to find out whether the push keys, the service
+ * worker and the browser are in order, and a test that lands on every
+ * reader's phone is not a test.
+ *
+ * It ignores the quiet hours, because a test that does not arrive because
+ * it is the middle of the night says nothing about the keys.
+ */
+export async function sendNotificationTest(
+  id: string,
+  deviceId: string
+): Promise<{ ok: boolean; message: string }> {
+  const staff = await requireSuper();
+
+  if (!deviceId) {
+    return {
+      ok: false,
+      message: "This browser has no id, so there is nothing to send to.",
+    };
+  }
+
+  const entry = CATALOGUE.find((c) => c.id === id);
+  if (!entry) {
+    return { ok: false, message: "There is no such notification." };
+  }
+
+  const sample = sampleFor(entry.id);
+  const result = await announceTest(
+    deviceId,
+    staff.name,
+    {
+      kind: entry.kind,
+      title: sample.title,
+      body: sample.body,
+      href: sample.href,
+      course: sample.course,
+    }
+  );
+
+  if (result === "sent") {
+    return {
+      ok: true,
+      message: `Sent. "${sample.title}" should arrive in a moment.`,
+    };
+  }
+  if (result === "not-found") {
+    return {
+      ok: false,
+      message:
+        "This browser has no subscription, so there is nothing to send to. Turn the notifications on in the bell first.",
+    };
+  }
+  return {
+    ok: false,
+    message:
+      "The push could not be sent. The keys may be wrong, or the push service may be refusing it.",
+  };
 }
 
 export interface VideoState {  error?: string;

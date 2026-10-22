@@ -581,6 +581,9 @@ export interface ClassSlot {
   dayIndex: number;
   venue: string;
   lecturer: string;
+  /** Minutes from midnight, so the breaks in it can be worked out. */
+  startMin: number;
+  endMin: number;
 }
 
 /**
@@ -616,6 +619,8 @@ export function classesInWindow(
         dayIndex: day,
         venue: c.venue,
         lecturer: c.lecturer,
+        startMin: c.startMin,
+        endMin: c.endMin,
       });
     }
     iso = addDays(iso, 1);

@@ -11,6 +11,8 @@ import {
 } from "@/lib/notifications";
 import type { NotificationKind } from "@/lib/notification-kinds";
 import { rest } from "@/lib/rest";
+import { getAllBreaks } from "@/lib/break-store";
+import { breakFor, breaksIn, clockLabel } from "@/lib/breaks";
 
 /**
  * The pushes that happen because something happened.
@@ -98,6 +100,11 @@ export async function announceClasses(): Promise<{ sent: number }> {
     new Date(now + 30 * 60 * 1000)
   );
 
+  // The breaks, because a lecture is not one thing but a series of periods
+  // with a pause in each of them, and a reader who does not know a pause is
+  // coming will sit there for ten minutes wondering.
+  const settings = await getAllBreaks();
+
   let sent = 0;
 
   for (const slot of slots) {
@@ -138,6 +145,52 @@ export async function announceClasses(): Promise<{ sent: number }> {
         const result = await broadcast(update, { kind: "classes", course: slot.course });
         sent += result.sent;
         await markSent(update);
+      }
+    }
+
+    /* The breaks inside it. */
+    const length = breakFor(settings, slot.course, slot.dayIndex, slot.startMin);
+    for (const pause of breaksIn(slot.startMin, slot.endMin, length)) {
+      // The break is a set of minutes from the start of the session, and
+      // the session has a real time, so the break does too.
+      const pauseStart = slot.start + (pause.from - slot.startMin) * 60 * 1000;
+      const pauseEnd = slot.start + (pause.to - slot.startMin) * 60 * 1000;
+
+      /* Five minutes before the pause. */
+      const beforePause = pauseStart - 5 * 60 * 1000;
+      if (beforePause <= now && now < pauseStart + 60 * 1000) {
+        const update: Update = {
+          id: `break-soon:${slot.course}:${pauseStart}`,
+          kind: "classes",
+          title: `${slot.course} has a break in five minutes`,
+          body: `The lecture pauses at ${clockLabel(pause.from)}. It is ${pause.to - pause.from} minutes long.`,
+          at: new Date().toISOString(),
+          href: "/timetable",
+          course: slot.course,
+        };
+        if (!(await hasBeenSent(update.id))) {
+          const result = await broadcast(update, { kind: "classes", course: slot.course });
+          sent += result.sent;
+          await markSent(update);
+        }
+      }
+
+      /* The pause is over. */
+      if (pauseEnd <= now && now < pauseEnd + 60 * 1000) {
+        const update: Update = {
+          id: `break-over:${slot.course}:${pauseEnd}`,
+          kind: "classes",
+          title: `The break in ${slot.course} is over`,
+          body: `The lecture is teaching again. It runs until ${clockLabel(slot.endMin)}.`,
+          at: new Date().toISOString(),
+          href: "/timetable",
+          course: slot.course,
+        };
+        if (!(await hasBeenSent(update.id))) {
+          const result = await broadcast(update, { kind: "classes", course: slot.course });
+          sent += result.sent;
+          await markSent(update);
+        }
       }
     }
   }
@@ -197,15 +250,25 @@ export async function announceBroadcast(announcement: {
  */
 export async function announceTest(
   deviceId: string,
-  by: string
+  by: string,
+  sample?: {
+    kind?: NotificationKind;
+    title?: string;
+    body?: string;
+    href?: string;
+    course?: string;
+  }
 ): Promise<"sent" | "not-found" | "failed"> {
   const update: Update = {
     id: `test:${deviceId}:${Date.now()}`,
-    kind: "system",
-    title: "The notifications are working",
-    body: `Sent to ${by}, to check that the push keys, the service worker and this browser are all in order.`,
+    kind: sample?.kind ?? "system",
+    title: sample?.title ?? "The notifications are working",
+    body:
+      sample?.body ??
+      `Sent to ${by}, to check that the push keys, the service worker and this browser are all in order.`,
     at: new Date().toISOString(),
-    href: "/",
+    href: sample?.href ?? "/",
+    course: sample?.course,
   };
 
   return sendToDevice(deviceId, update);

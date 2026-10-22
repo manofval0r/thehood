@@ -15,54 +15,34 @@ import { cn } from "@/lib/utils";
  * The thumb sits under the icon of the mode that is on, so the control
  * answers "which mode am I in" without being read at all. The thumb slides
  * on transform only, so switching themes never triggers layout on the page.
- *
- * Two sizes, because the control lives in two places. The bar on a phone has
- * room for a button and not for a slider, and a switch that is a different
- * size in the bar and out of it is a switch that has to be learned twice.
- * The small size is the segmented form, which fits where a slider cannot.
  */
 
 /**
- * The dimensions of each size, in one place so the two cannot drift.
+ * The dimensions, in one place so they cannot drift.
  *
  * The travel is the distance from the first face to the second, so the
  * thumb lands exactly under the icon of the mode that is on. A thumb that
  * lands four pixels off looks like a mistake, and it is the kind of mistake
  * nobody reports but everybody sees.
  */
-const SIZES = {
-  /** In the bar. Two small faces side by side. */
-  sm: {
-    h: "h-7",
-    thumb: "h-5 w-5",
-    icon: 11,
-    /** How far the thumb travels to the light end. */
-    travel: "translate-x-5",
-  },
-  /** Floating under the bar. Two round faces on a round track. */
-  md: {
-    h: "h-9",
-    thumb: "h-7 w-7",
-    icon: 14,
-    /** How far the thumb travels to the light end. */
-    travel: "translate-x-7",
-  },
+const SIZE = {
+  h: "h-9",
+  thumb: "h-7 w-7",
+  icon: 14,
+  /** How far the thumb travels to the light end. */
+  travel: "translate-x-7",
 } as const;
 
-export type ThemeSliderSize = keyof typeof SIZES;
-
 export default function ThemeSlider({
-  size = "md",
   className,
   ref,
 }: {
-  size?: ThemeSliderSize;
   className?: string;
   ref?: React.Ref<HTMLButtonElement>;
 }) {
   const { theme, toggle, ready } = useTheme();
   const light = theme === "light";
-  const s = SIZES[size];
+  const s = SIZE;
 
   return (
     <button

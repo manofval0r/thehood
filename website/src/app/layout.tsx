@@ -94,11 +94,12 @@ export default async function RootLayout({
                   them. */}
               <ScheduleProvider breaks={breaks}>
                 <Nav />
-                {/* The light and dark switch. It floats below the bar on a
-                    screen with room for it, and lives in the bar on a
-                    narrow one, where a floating control would sit on top of
-                    the page. */}
-                <ThemePill className="hidden lg:block" />
+                {/* The light and dark switch. It floats below the bar on
+                    every screen, because it is put in the page's own top
+                    padding, and the top of a page is the one place on it
+                    that is always empty. The bar keeps its room for the
+                    links, the clock and the bell. */}
+                <ThemePill />
                 {/* pb keeps the last element of any page clear of the footer.
                     Without it, whichever page forgets its own bottom padding
                     sits flush against the footer's top border. */}

@@ -223,13 +223,12 @@ Dark is the brand and the default. Light mode re-points the tokens rather than
 overriding utilities one at a time, so a new component is theme-correct for
 free by using the tokens and nothing else.
 
-- **The light and dark switch is in the bar**, next to the bell. It used to
-  float below the header, and it looked good there, but a floating control is
-  on top of something, and the pages put links in their top right corners. A
-  reader reaching for a download button was reaching for the switch. At a
-  narrow width it was covering the rightmost sixty pixels of the content,
-  which is a fifth of a phone. The bar is the only place a control can be
-  that is never in the way.
+- **The light and dark switch floats below the header**, on every screen. It
+  is put in the page's own top padding, and the top of a page is the one
+  place on it that is always empty, so it never covers anything. The bar
+  keeps its room for the links, the clock and the bell. And it only takes
+  the click when the pointer is near it, so a reader reaching for
+  something underneath it is reaching for that thing.
 - **Ground** `#000000`, **surface** `#0a0a0a`, **accent** `#22c55e`
 - **Type** Geist Sans throughout
 - The accent becomes `#15803d` in light mode. `#22c55e` is legible on black
@@ -248,9 +247,6 @@ free by using the tokens and nothing else.
   and would pin the card flat forever.
 - The theme is applied by an inline script in `<head>`, before first paint, so
   a light-mode reader never sees a flash of dark.
-- The light/dark switch floats below the header rather than sitting inside it.
-  The navbar was already carrying six things, and a fixed control outside the
-  bar cannot change the bar's geometry as the page scrolls.
 
 ## Contacting the reps
 
@@ -841,6 +837,37 @@ and refuses a build that asks for more.
 
 If neither cron is working, the class reminders still arrive for anybody who
 has the site open, because the browser times them itself.
+
+### What can be told about
+
+`/admin/notifications`, for a super admin. The list of everything the site
+is able to send, in one place, with a button to send each one to this
+device so that somebody can see what it looks like before a hundred people
+get it.
+
+A push is the only way to reach somebody who is not looking at the site,
+and there are three things in it that can each be wrong on their own: the
+push keys, the service worker and the browser's own permission. None of
+them can be checked by looking at the server, so every one of the
+notifications can be sent on demand, to the device that pressed the
+button, and it comes even in the quiet hours, because a test that does
+not arrive because it is the middle of the night says nothing about
+whether the keys work.
+
+| | Notification | When it happens |
+|---|---|---|
+| A | A class starts in five minutes | Five minutes before every class |
+| B | A class has just ended | The moment a class finishes |
+| C | A class has a break in five minutes | Five minutes before a break inside a lecture |
+| D | A break is over | The moment a break inside a lecture ends |
+| E | New material for a course | A deck or a handout is uploaded |
+| F | Attendance recorded | The marks for a class are saved |
+| G | A mark was changed | Somebody corrects a mark |
+| H | Something in the academic calendar | An exam or a registration comes up |
+| I | Somebody is waiting to be approved | An admin adds somebody to the staff list |
+| J | A class has not been marked | A class finishes and the marks are not in |
+| K | Something the site depends on has broken | The scheduler checks a feed that fails quietly |
+| L | A message from the department | A super admin writes one (see above) |
 
 ### Saying something to everybody
 

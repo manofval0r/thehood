@@ -133,7 +133,6 @@ export default function ThemePill({ className }: { className?: string }) {
       )}
     >
       <ThemeSlider
-        size="md"
         className={cn(
           "pointer-events-auto",
           // At the top of the page the switch is over the page's own

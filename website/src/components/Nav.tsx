@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions";
 import { useStaffSession } from "@/components/StaffSession";
 import { NotificationBell } from "@/components/NotificationBell";
-import ThemeSlider from "@/components/ThemeSlider";
 import type { Permission } from "@/lib/permissions";
 
 /**
@@ -134,9 +133,9 @@ export default function Nav() {
    * The links this bar shows: the staff ones if signed in, else the student's.
    *
    * The breaks are for every member of staff, not for one permission, so
-   * they are added rather than filtered. So is the message to the students,
-   * which is for a super admin only, because a message that goes to every
-   * student at once is not an ordinary admin's to send.
+   * they are added rather than filtered. So are the two pages a super admin
+   * alone has: a message to every student, and the list of everything the
+   * site can say, with a button to try each one.
    */
   const links: { href: string; label: string; exact?: boolean }[] = isStaff
     ? [
@@ -147,7 +146,10 @@ export default function Nav() {
         ).map((t) => ({ href: t.href, label: t.label, exact: t.exact })),
         { href: "/admin/schedule", label: "Breaks" },
         ...(session?.role === "super"
-          ? [{ href: "/admin/announce", label: "Announce" }]
+          ? [
+              { href: "/admin/announce", label: "Announce" },
+              { href: "/admin/notifications", label: "Alerts" },
+            ]
           : []),
       ]
     : TABS;
@@ -204,6 +206,24 @@ export default function Nav() {
         height: el.offsetHeight,
         ready: true,
       });
+
+      // Bring the active link into view.
+      //
+      // The rail scrolls when there are more links than fit, and there are
+      // eight of them for a super admin on a laptop. The link you are on
+      // can be past the end of the rail, and then the bar is saying you
+      // are somewhere you cannot see.
+      const rail = list.parentElement;
+      if (!rail) return;
+      if (rail.scrollWidth <= rail.clientWidth) return;
+
+      const link = el.getBoundingClientRect();
+      const box = rail.getBoundingClientRect();
+      if (link.right > box.right) {
+        rail.scrollLeft += link.right - box.right + 12;
+      } else if (link.left < box.left) {
+        rail.scrollLeft -= box.left - link.left + 12;
+      }
     };
 
     measure();
@@ -415,13 +435,6 @@ export default function Nav() {
                 })}
               </div>
             </div>
-
-                {/* ---------- The light and dark switch ----------
-                    On a narrow screen the floating switch would sit on top of
-                    the page, so it lives in the bar here instead. It is the
-                    same slider, in its small size, so a reader who meets it
-                    on one screen meets the same control on the next. */}
-                <ThemeSlider size="sm" className="lg:hidden" />
 
             {/* ---------- The bell ----------
                 What has changed, and the settings for what to be told about.
