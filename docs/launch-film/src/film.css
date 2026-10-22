@@ -1,0 +1,196 @@
+/* ============================================================
+   BRAND-NATIVE — the stage is the app's own palette.
+
+   Every value below is lifted from website/src/app/globals.css.
+   The app is never restyled: this file only dresses the stage
+   around it, and the stage is the app's own black.
+   ============================================================ */
+
+:root {
+  /* --- the app's tokens, verbatim --- */
+  --bg: #000000;          /* --background        */
+  --ink: #ffffff;         /* --foreground        */
+  --ink2: #9a9a9a;        /* --muted-foreground  */
+  --ink3: #6b6b6b;        /* --muted             */
+  --hair: #1f1f1f;        /* --border            */
+  --hair2: #2e2e2e;       /* --border-strong     */
+  --accent: #22c55e;      /* --accent            */
+  --accentInk: #04140a;   /* --accent-foreground */
+  --surface: #0a0a0a;     /* --surface           */
+  --surfaceRaised: #1a1a1a; /* --surface-raised   */
+
+  /* The app uses accent/10 .. accent/12 for chips. Written out so the
+     same value can be used in box-shadow and background alike. */
+  --accent10: rgba(34, 197, 94, 0.10);
+  --accent12: rgba(34, 197, 94, 0.12);
+  --accent14: rgba(34, 197, 94, 0.14);
+  --accent30: rgba(34, 197, 94, 0.30);
+  --accent55: rgba(34, 197, 94, 0.55);
+
+  /* --- window and desktop --- */
+  --winBg: #000000;
+  --side: #0a0a0a;
+  --menuBg: rgba(6, 6, 6, 0.72);
+  --menuInk: #ffffff;
+  --dockBg: rgba(20, 20, 20, 0.66);
+  --tile0: #161616;
+  --tile1: #1f1f1f;
+  --tile2: #121212;
+  --iconBg: #0a0a0a;
+  --metal1: #2b2b2d;
+  --metal2: #101011;
+  --shade: #000000;
+  --edge: rgba(255, 255, 255, 0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Geist", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+}
+
+#stage { position: relative; overflow: hidden; background: var(--bg); contain: strict; }
+
+.cam { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.full { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.abs { position: absolute; }
+.row { display: flex; align-items: center; }
+.center { display: flex; align-items: center; justify-content: center; }
+.mask { overflow: hidden; }
+.t { display: inline-block; white-space: nowrap; line-height: 1.3; vertical-align: top; }
+i { display: block; font-style: normal; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   THE APP, REBUILT
+
+   These are the app's own shapes at the app's own point sizes.
+   Nothing here is invented: a chip is a chip, a flap is a flap.
+   ============================================================ */
+
+/* --- split-flap card, from globals.css .flip --- */
+.flip {
+  position: relative;
+  display: block;
+  width: var(--flap-w);
+  height: var(--flap-h);
+  font-size: calc(var(--flap-h) * 1.18);
+  font-weight: 700;
+  line-height: var(--flap-h);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--surface);
+  border-radius: calc(var(--flap-h) * 0.13);
+  box-shadow:
+    0 10px 26px -14px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+.flip-half { display: block; overflow: hidden; background: var(--surface); width: 100%; height: calc(var(--flap-h) / 2); }
+.flip-top { border-radius: calc(var(--flap-h) * 0.13) calc(var(--flap-h) * 0.13) 0 0; box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.55); }
+.flip-bottom { border-radius: 0 0 calc(var(--flap-h) * 0.13) calc(var(--flap-h) * 0.13); box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.55); }
+.flip-glyph { display: block; height: var(--flap-h); line-height: var(--flap-h); text-align: center; }
+.flip-glyph-low { transform: translateY(-50%); }
+.flip-colon {
+  display: flex;
+  align-items: center;
+  height: var(--flap-h);
+  font-weight: 700;
+  color: var(--ink3);
+  line-height: 1;
+}
+.flip-leaf { position: absolute; inset: 0; display: block; pointer-events: none; backface-visibility: hidden; }
+.leaf-top,
+.leaf-bottom {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: calc(var(--flap-h) / 2);
+  background: var(--surface);
+  overflow: hidden;
+}
+.leaf-top {
+  top: 0;
+  border-radius: calc(var(--flap-h) * 0.13) calc(var(--flap-h) * 0.13) 0 0;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.55);
+}
+.leaf-bottom {
+  top: calc(var(--flap-h) / 2);
+  border-radius: 0 0 calc(var(--flap-h) * 0.13) calc(var(--flap-h) * 0.13);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.55);
+}
+
+/* --- the chip the course code sits in --- */
+.chip {
+  border-radius: 4px;
+  background: var(--accent12);
+  color: var(--accent);
+  font-family: "Geist", monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* --- the app's own card, with its hairline and no border glow --- */
+.card {
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+/* --- the app's own search field --- */
+.field {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  padding: 0 24px;
+  font-size: 15px;
+  color: var(--ink2);
+}
+.field.on {
+  border-color: rgba(34, 197, 94, 0.50);
+  background: var(--surfaceRaised);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.10), 0 10px 30px -12px rgba(34, 197, 94, 0.35);
+}
+
+/* --- the results panel, from SearchBar's own classes --- */
+.panel {
+  border: 1px solid var(--hair2);
+  border-radius: 8px;
+  background: var(--surfaceRaised);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+.groupHead {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+.hit { display: flex; align-items: center; gap: 12px; border-radius: 6px; padding: 10px; }
+.hit.sel { background: var(--accent12); }
+
+/* --- the timetable's grid rules --- */
+.th { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink3); }
+.td { font-size: 13px; color: var(--ink2); }
+.tdCode { font-family: "Geist", monospace; font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.tdTime { font-size: 13px; color: var(--ink); }
+
+/* --- the nav's own pill indicator --- */
+.navPill {
+  position: absolute;
+  border-radius: 8px;
+  background: var(--accent14);
+  box-shadow: inset 0 0 0 1px var(--accent30);
+}
+
+/* --- the app's own live dot --- */
+.dot { border-radius: 50%; background: var(--accent); }

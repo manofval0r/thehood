@@ -1,0 +1,4 @@
+out/
+audio/source/
+audio/*.wav
+assets/

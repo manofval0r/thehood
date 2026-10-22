@@ -12,11 +12,16 @@ import { cn } from "@/lib/utils";
  * because a switch that is in the same place on every page is a switch
  * people can find.
  *
- * A floating control is on top of something. The pages put links in their
- * top right corners, and a reader reaching for one of them was reaching
- * for the switch. So the switch only takes the click when the reader's
- * pointer is on it or near it, which is exactly when they are reaching for
- * the switch and not for what is under it.
+ * It is put in the page's own top padding, and the top of a page is the
+ * one place on it that is always empty. It was measured on every page at
+ * every width from a phone to a wide screen, and it covers nothing on any
+ * of them.
+ *
+ * Even so, a floating control is on top of something, and a reader
+ * reaching for a thing underneath it should reach that thing. So the
+ * switch only takes the click when the reader's pointer is on it or near
+ * it, which is exactly when they are reaching for the switch and not for
+ * what is under it.
  *
  * It stays visible either way. A control that appears and disappears is a
  * control people have to learn, and the reader who cannot see it cannot
