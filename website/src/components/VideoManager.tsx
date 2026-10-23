@@ -29,16 +29,19 @@ export interface VideoRow {
 }
 
 export default function VideoManager({
-  courses,
+  course,
+  courseTitle,
   videos,
   thumbBase,
 }: {
-  courses: { code: string; title: string }[];
+  /** The course the manager is working on, chosen once for both tabs. */
+  course: string;
+  /** The full name, so the course is never identified by its code alone. */
+  courseTitle: string;
   videos: VideoRow[];
   /** The address the pictures are served from, on this site. */
   thumbBase: string;
 }) {
-  const [course, setCourse] = useState(courses[0]?.code ?? "");
   const [rows, setRows] = useState<VideoRow[]>(videos);
   const [state, setState] = useState<VideoState>({});
   const [pending, setPending] = useState(false);
@@ -78,33 +81,24 @@ export default function VideoManager({
   };
 
   return (
-    <section className="rounded-lg border border-border bg-surface p-5">
-      <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-foreground">
-        Course videos
-      </h2>
-      <p className="mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
+    <section className="rounded-lg border border-border bg-surface p-4 sm:p-5">
+      <div className="min-w-0">
+        <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-foreground">
+          Videos
+        </h2>
+        <p className="mt-1 text-[12px] font-medium text-muted-foreground">
+          {courseTitle}
+          <span className="ml-1.5 font-mono text-[10.5px] text-muted">
+            {course}
+          </span>
+        </p>
+      </div>
+      <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
         A lecture recording, or a recording worth a student&apos;s afternoon.
         The picture is fetched by the server and kept on this site, so a
         reader&apos;s browser never asks YouTube for it. The video is played
         from YouTube when somebody presses play.
       </p>
-
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {courses.map((c) => (
-          <button
-            key={c.code}
-            type="button"
-            onClick={() => setCourse(c.code)}
-            className={`pressable rounded-full border px-3 py-1 text-[12px] font-medium transition-colors ${
-              c.code === course
-                ? "border-accent text-accent"
-                : "border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {c.code}
-          </button>
-        ))}
-      </div>
 
       {state.error && (
         <p
@@ -128,6 +122,11 @@ export default function VideoManager({
         action={submit}
       >
         <input type="hidden" name="course" value={course} />
+        <p className="text-[11.5px] leading-relaxed text-muted-foreground sm:col-span-2">
+          Adding to{" "}
+          <span className="font-medium text-foreground">{courseTitle}</span>{" "}
+          <span className="font-mono text-[10.5px]">({course})</span>
+        </p>
         <label className="block sm:col-span-2">
           <span className="text-[11.5px] text-muted">The link</span>
           <input
@@ -173,7 +172,7 @@ export default function VideoManager({
       <ul className="mt-5 divide-y divide-border border-y border-border">
         {here.length === 0 ? (
           <li className="py-6 text-center text-[13px] text-muted-foreground">
-            No videos on {course} yet.
+            No videos on {courseTitle} yet.
           </li>
         ) : (
           here.map((video) => (

@@ -548,7 +548,7 @@ export async function setSessionBreak(args: {
       e instanceof Error ? e.message : "The break could not be changed."
     );
   }
-  revalidatePath("/admin/schedule");
+  revalidatePath("/admin/settings/breaks");
   revalidatePath("/timetable");
   // The countdown is in the bar, so the break has to reach the layout and
   // everything under it, not only the pages that show the timetable.
@@ -794,7 +794,7 @@ export async function setNotificationKind(
   }
 
   await setKindEnabled(kind as NotificationKind, enabled);
-  revalidatePath("/admin/notifications");
+  revalidatePath("/admin/settings/notifications");
 }
 
 /**
@@ -905,7 +905,7 @@ export async function addCourseVideo(
     });
 
     updateTag("videos");
-    revalidatePath("/admin/videos");
+    revalidatePath("/admin/resources");
 
     return {
       done: `Added to ${course}.`,
@@ -935,7 +935,7 @@ export async function removeCourseVideo(id: string): Promise<void> {
     );
   }
   updateTag("videos");
-  revalidatePath("/admin/videos");
+  revalidatePath("/admin/resources");
 }
 
 /** Change what a video is called and what it says. */
@@ -953,7 +953,7 @@ export async function updateCourseVideo(
     );
   }
   updateTag("videos");
-  revalidatePath("/admin/videos");
+  revalidatePath("/admin/resources");
 }
 
 /** Take an uploaded file away. */

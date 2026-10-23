@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -16,7 +15,6 @@ import {
 } from "lucide-react";
 import PixelMotif from "@/components/PixelMotif";
 import {
-  KIND_COLOUR,
   KIND_SHORT,
   MOTIF_TITLE,
   kindOf,
@@ -71,15 +69,22 @@ export interface FileRow {
 }
 
 interface Props {
-  courses: { code: string; title: string }[];
+  /** The course the manager is working on, chosen once for both tabs. */
+  course: string;
+  /** The full name, so the course is never identified by its code alone. */
+  courseTitle: string;
   files: FileRow[];
   /** The folders staff made, by course. */
   folders: Record<string, string[]>;
 }
 
-export default function FileManager({ courses, files, folders }: Props) {
+export default function FileManager({
+  course,
+  courseTitle,
+  files,
+  folders,
+}: Props) {
   const router = useRouter();
-  const [course, setCourse] = useState(courses[0]?.code ?? "");
   const [path, setPath] = useState("");
   const [rows, setRows] = useState<FileRow[]>(files);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -464,11 +469,19 @@ export default function FileManager({ courses, files, folders }: Props) {
   /* ---------------------------------------------------------------- render */
 
   return (
-    <section className="rounded-lg border border-border bg-surface p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-foreground">
-          Course files
-        </h2>
+    <section className="rounded-lg border border-border bg-surface p-4 sm:p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-foreground">
+            Files
+          </h2>
+          <p className="mt-1 text-[12px] font-medium text-muted-foreground">
+            {courseTitle}
+            <span className="ml-1.5 font-mono text-[10.5px] text-muted">
+              {course}
+            </span>
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -481,33 +494,11 @@ export default function FileManager({ courses, files, folders }: Props) {
         </div>
       </div>
 
-      <p className="mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
         A file added here appears on the course page, in the search and in
         the counts within a request or two. Twenty-five megabytes is the
         limit. Drag a file onto a folder to move it there.
       </p>
-
-      {/* The courses */}
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {courses.map((c) => (
-          <button
-            key={c.code}
-            type="button"
-            onClick={() => {
-              setCourse(c.code);
-              setPath("");
-              setSelected(new Set());
-            }}
-            className={`pressable rounded-full border px-3 py-1 text-[12px] font-medium transition-colors ${
-              c.code === course
-                ? "border-accent text-accent"
-                : "border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {c.code}
-          </button>
-        ))}
-      </div>
 
       {(notice || problem) && (
         <p
@@ -581,9 +572,10 @@ export default function FileManager({ courses, files, folders }: Props) {
             <button
               type="button"
               onClick={() => setPath("")}
-              className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground"
+              title={`${courseTitle} (${course})`}
+              className="pressable max-w-full rounded px-1.5 py-1 text-left font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {course}
+              {courseTitle}
             </button>
             {chain.slice(1).map((part) => (
               <span key={part} className="flex items-center gap-1">
@@ -651,7 +643,7 @@ export default function FileManager({ courses, files, folders }: Props) {
               <p className="text-[12.5px] text-muted-foreground">
                 Drop files here to add them to{" "}
                 <span className="text-foreground">
-                  {path ? `${course} / ${path}` : course}
+                  {path ? `${courseTitle} / ${path}` : courseTitle}
                 </span>
                 .
               </p>

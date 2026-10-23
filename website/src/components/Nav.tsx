@@ -57,8 +57,7 @@ const ADMIN_TABS: {
   exact?: boolean;
 }[] = [
   { href: "/admin/attendance", label: "Attendance", permission: "attendance" },
-  { href: "/admin/files", label: "Files", permission: "files" },
-  { href: "/admin/videos", label: "Videos", permission: "files" },
+  { href: "/admin/resources", label: "Resources", permission: "files" },
   { href: "/admin/roll", label: "Roll", permission: "roster" },
   { href: "/admin", label: "Staff", permission: "staff", exact: true },
 ];
@@ -132,10 +131,9 @@ export default function Nav() {
   /**
    * The links this bar shows: the staff ones if signed in, else the student's.
    *
-   * The breaks are for every member of staff, not for one permission, so
-   * they are added rather than filtered. So are the two pages a super admin
-   * alone has: a message to every student, and the list of everything the
-   * site can say, with a button to try each one.
+   * Settings belongs to every member of staff, not to one permission, so it
+   * is added rather than filtered. Announce is the one page a super admin
+   * alone has: a message to every student.
    */
   const links: { href: string; label: string; exact?: boolean }[] = session
     ? isStaff
@@ -145,13 +143,10 @@ export default function Nav() {
               session?.role === "super" ||
               session?.permissions?.includes(t.permission)
           ).map((t) => ({ href: t.href, label: t.label, exact: t.exact })),
-          { href: "/admin/schedule", label: "Breaks" },
           ...(session?.role === "super"
-            ? [
-                { href: "/admin/announce", label: "Announce" },
-                { href: "/admin/notifications", label: "Alerts" },
-              ]
+            ? [{ href: "/admin/announce", label: "Announce" }]
             : []),
+          { href: "/admin/settings", label: "Settings" },
         ]
       : TABS
     : [];
