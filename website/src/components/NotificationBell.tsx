@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useNotifications } from "@/components/NotificationProvider";
 import { KIND_HELP, KIND_LABEL, type NotificationKind } from "@/lib/notification-kinds";
 
@@ -105,7 +105,7 @@ export function NotificationBell() {
     prefs.kinds.length === 0 || prefs.kinds.includes(kind);
 
   return (
-    <div className="relative shrink-0">
+    <div className="shrink-0 sm:relative">
       <button
         ref={button}
         type="button"
@@ -150,8 +150,28 @@ export function NotificationBell() {
           ref={panel}
           role="dialog"
           aria-label="Notifications"
-          className="absolute right-0 sm:right-0 top-full z-50 mt-2 w-full sm:w-80 origin-top-left sm:origin-top-right rounded-lg border border-border-strong bg-surface-raised p-3 shadow-lift"
+          className="absolute right-0 top-full z-50 mt-2 flex max-h-[calc(100dvh-5.5rem)] w-[calc(100vw-2rem)] max-w-sm origin-top-right flex-col overflow-hidden rounded-xl border border-border-strong bg-surface-raised shadow-lift sm:max-h-[32rem] sm:w-80"
         >
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-[12.5px] font-semibold text-foreground">
+                Notifications
+              </p>
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-muted">
+                {unread > 0 ? `${unread} unread` : "Up to date"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close notifications"
+              className="pressable -mr-0.5 -mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
           {!supported && (
             <p className="text-[12.5px] leading-relaxed text-muted-foreground">
               This browser cannot show notifications. Everything is still on the
@@ -216,7 +236,7 @@ export function NotificationBell() {
             </p>
           ) : (
             <div className="mt-1.5 space-y-1">
-              <ul className="max-h-52 space-y-1.5 overflow-y-auto">
+              <ul className="space-y-1.5 overflow-y-auto sm:max-h-52">
                 {updates.slice(0, 12).map((u) => {
                   const seen =
                     !!u.announcementId && acked.includes(u.announcementId);
@@ -276,7 +296,7 @@ export function NotificationBell() {
               <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
                 Coming up
               </p>
-              <ul className="mt-1.5 max-h-32 space-y-1 overflow-y-auto">
+              <ul className="mt-1.5 space-y-1 overflow-y-auto sm:max-h-32">
                 {upcoming.slice(0, 6).map((u) => (
                   <li key={u.id} className="px-1.5 py-0.5">
                     <span className="block text-[12.5px] leading-snug text-foreground">
@@ -324,7 +344,7 @@ export function NotificationBell() {
                   </label>
                 ))}
 
-                <div className="mt-3 flex items-center gap-2 text-[11.5px] text-muted-foreground">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11.5px] text-muted-foreground">
                   <span>Quiet between</span>
                   <input
                     type="time"
@@ -381,6 +401,7 @@ export function NotificationBell() {
                 </div>
               </div>
             )}
+          </div>
           </div>
         </div>
       )}
