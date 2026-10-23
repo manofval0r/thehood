@@ -1,150 +1,63 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { useCountdown } from "@/hooks/useCountdown";
 import { FlipClock } from "@/components/FlipClock";
-import { cn } from "@/lib/utils";
 
 /**
- * Countdown floating below the navbar, on mobile only.
+ * The next class, floating below the navbar on a phone.
  *
- * The bar is already carrying the wordmark, the links, the bell and the
- * wordmark, so on a phone there is no room for a countdown inside it.
- * Instead the clock floats below the bar, exactly like the light/dark
- * slider, and it is measured so it never covers a link a reader might be
- * reaching for.
+ * The bar already carries the wordmark, the links and the bell, so there is no
+ * room for a clock inside it on a narrow screen. This is the one thing a
+ * student opens the site to check, so it gets its own strip in the page's top
+ * padding rather than a tiny pill in the corner.
  *
- * When there are days to count the session is more than a day away, so the
- * clock gets the small mobile size and shows the days flap. When the class
- * is today (Monday through Thursday, the whole working week), there are no
- * days and the clock shrinks to just hours:minutes:seconds.
+ * The old version was only six tiny flaps with no course and no label, and it
+ * sat directly on top of the light/dark switch. The switch now lives at the
+ * bottom of a phone screen; this strip has the whole width, names the class,
+ * and says what is being counted down to.
  */
-
-const REACH = 56;
-
-function useCoarsePointer() {
-  const [coarse, setCoarse] = React.useState(false);
-
-  React.useEffect(() => {
-    const mq = window.matchMedia?.("(pointer: coarse)");
-    if (!mq) return;
-    const onChange = () => setCoarse(mq.matches);
-    onChange();
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
-  return coarse;
-}
-
 export default function CountdownPill() {
-  const [lifted, setLifted] = React.useState(false);
-  const [near, setNear] = React.useState(false);
-  const coarse = useCoarsePointer();
-  const buttonRef = React.useRef<HTMLAnchorElement>(null);
-  const pointer = React.useRef({ x: -9999, y: -9999 });
-  const { text, next, ready } = useCountdown();
+  const { text, next, ready, phase, note } = useCountdown();
 
-  const [ms, setMs] = React.useState(0);
-  React.useEffect(() => {
-    if (!ready) return;
-    const [h, m, s] = text.split(":").map(Number);
-    setMs(((h || 0) * 3600 + (m || 0) * 60 + (s || 0)) * 1000);
-  }, [text, ready]);
+  // The first render has no clock, because the countdown is worked out in the
+  // browser. Rendering nothing until it is ready keeps the server and client
+  // markup identical and avoids a flash of a class that has already started.
+  if (!ready || !next) return null;
 
-  /*
-   * Every hook runs before the guard below.
-   *
-   * The first render has no next class yet, because the countdown is worked
-   * out in the browser. Returning before this effect would mean the render
-   * with a class had one more hook than the render without one, and React
-   * refuses that with "rendered more hooks than during the previous render",
-   * which takes the whole page down with it.
-   */
-  React.useEffect(() => {
-    let frame = 0;
+  const [h, m, s] = text.split(":").map(Number);
+  const ms = ((h || 0) * 3600 + (m || 0) * 60 + (s || 0)) * 1000;
 
-    const check = () => {
-      frame = 0;
-      const el = buttonRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const p = pointer.current;
-      setNear(
-        p.x >= r.left - REACH &&
-          p.x <= r.right + REACH &&
-          p.y >= r.top - REACH &&
-          p.y <= r.bottom + REACH
-      );
-    };
-
-    const schedule = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(check);
-    };
-
-    const onScroll = () => {
-      setLifted(window.scrollY > 24);
-      schedule();
-    };
-
-    const onPointerMove = (e: PointerEvent) => {
-      pointer.current = { x: e.clientX, y: e.clientY };
-      schedule();
-    };
-
-    const onPointerLeave = () => {
-      pointer.current = { x: -9999, y: -9999 };
-      setNear(false);
-    };
-
-    check();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    document.addEventListener("pointerleave", onPointerLeave, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("pointermove", onPointerMove);
-      document.removeEventListener("pointerleave", onPointerLeave);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  if (!next) return null;
-
-  const days = Math.floor(
-    (next.startsAt.getTime() - new Date().getTime()) / 86400000
-  );
-  const live = near || coarse;
+  const label =
+    phase === "in-break"
+      ? "On a break"
+      : next.inProgress
+        ? "In progress"
+        : "Next class";
 
   return (
-    <div
-      className={cn(
-        "pointer-events-none fixed z-40",
-        // Below the bar, inside the page gutter. The same spot the switch
-        // floats in, so the two share the one empty place on the page.
-        "top-[calc(var(--nav-h,4rem)+0.75rem)] right-3 sm:right-5 lg:right-7",
-        // Mobile only. On desktop the clock stays in the bar where there is
-        // room for it.
-        "sm:hidden"
-      )}
-    >
+    <div className="fixed inset-x-3 top-[calc(var(--nav-h,4rem)+0.5rem)] z-30 sm:hidden">
       <Link
         href="/timetable"
-        ref={buttonRef}
-        className={cn(
-          "pressable relative inline-flex shrink-0 items-center rounded-full p-1",
-          "border border-border bg-surface transition-colors",
-          lifted ? "border-border-strong bg-surface shadow-lift" : "border-transparent bg-transparent",
-          // It only takes the click when the reader is reaching for it.
-          // On a touch screen there is no reaching, so it is always live.
-          !live && "pointer-events-none"
-        )}
-        aria-label={`Next class: ${next.course.title}, ${next.course.code}, in ${text}`}
+        aria-label={`${label}: ${next.course.title}, ${next.course.code}, ${note} ${text}`}
+        className="pressable flex min-h-11 items-center justify-between gap-3 rounded-2xl border border-border-strong bg-surface/95 px-3 py-1.5 shadow-lift backdrop-blur-xl"
       >
-        <FlipClock ms={ms} size={days > 0 ? "mobile" : "nav"} />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-accent">
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+              aria-hidden="true"
+            />
+            {label}
+          </span>
+          <span className="mt-0.5 block truncate text-[11.5px] font-medium leading-snug text-foreground">
+            {next.course.code} · {next.course.title}
+          </span>
+        </span>
+
+        <span className="shrink-0">
+          <FlipClock ms={ms} size="dock" />
+        </span>
       </Link>
     </div>
   );

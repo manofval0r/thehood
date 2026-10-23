@@ -127,20 +127,29 @@ export default function ThemePill({ className }: { className?: string }) {
    * A coarse pointer means there is no reaching, so it is always live.
    */
   const live = near || coarse;
+  const solid = lifted || coarse;
 
   return (
     <div
       className={cn(
-        "pointer-events-none fixed z-40",
-        // Clear of the header, and inside the page gutter on wide screens.
-        "top-[calc(var(--nav-h,4rem)+0.75rem)] right-3 sm:right-5 lg:right-7",
+        "pointer-events-none fixed z-30",
+        // A phone has a next-class strip under the bar and no room beside it,
+        // so the switch moves to the bottom corner where the page's own
+        // bottom padding keeps it clear of the content. From a tablet up it
+        // goes back under the header.
+        "bottom-[max(1rem,env(safe-area-inset-bottom))] right-3",
+        "sm:bottom-auto sm:top-[calc(var(--nav-h,4rem)+0.75rem)] sm:right-5 lg:right-7",
         className
       )}
     >
       <ThemeSlider
         className={cn(
           "pointer-events-auto",
-          // At the top of the page the switch is over the page's own
+          // On a phone it is always over content at the bottom of the
+          // viewport, so it is solid there from the first paint. The max-sm
+          // classes cover the frame before the pointer type is known.
+          "max-sm:border-border-strong max-sm:bg-surface max-sm:shadow-lift",
+          // At the top of a desktop page the switch is over the page's own
           // background, and a control with a surface and a border on a
           // surface is a shape nobody looks at. It rests there.
           //
@@ -148,7 +157,7 @@ export default function ThemePill({ className }: { className?: string }) {
           // control floating over a section is invisible against a light
           // one and dominant over a dark one. It becomes a real control:
           // a solid surface, a border and a lift.
-          lifted
+          solid
             ? "border-border-strong bg-surface shadow-lift"
             : "border-transparent bg-transparent",
           // It only takes the click when the reader is reaching for it.

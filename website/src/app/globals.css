@@ -613,6 +613,26 @@ body {
   font-size: 7.5px;
 }
 
+/* The next-class strip below the bar on a phone. Bigger than the old floating
+   clock because it now has a whole row to itself, and labelled because the
+   reader should not have to work out which pair of digits is which. */
+.flip-clock-dock {
+  --flap-h: clamp(0.8rem, 3.4vw, 1.05rem);
+  --flap-w: calc(var(--flap-h) * 0.92);
+  --flip-gap: 1px;
+}
+
+.flip-clock-dock .flip-colon {
+  font-size: calc(var(--flap-h) * 0.34);
+  padding: 0 1px;
+}
+
+.flip-clock-dock .flip-group-label {
+  margin-top: 0.25rem;
+  font-size: 7.5px;
+  letter-spacing: 0.1em;
+}
+
 /* The separators between HOURS, MINUTES and SECONDS. Kept, because without
    them six digits in a row read as one long number. Tighter than the hero
    version: in the navbar every pixel is competing with the link rail, so the

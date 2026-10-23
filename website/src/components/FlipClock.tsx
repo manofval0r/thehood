@@ -83,10 +83,11 @@ interface FlipClockProps {
   ms: number;
   className?: string;
   /**
-   * "hero" is the landing page, "nav" is the compact navbar variant. They
-   * share every rule; only the flap size differs.
+   * "hero" is the landing page, "nav" is the compact navbar variant, and
+   * "dock" is the floating next-class strip on a phone. They share every
+   * rule; only the flap size differs.
    */
-  size?: "hero" | "nav" | "mobile";
+  size?: "hero" | "nav" | "mobile" | "dock";
 }
 
 /**
@@ -129,7 +130,9 @@ export function FlipClock({ ms, className, size = "hero" }: FlipClockProps) {
           ? "flip-clock-nav"
           : size === "mobile"
             ? "flip-clock-mobile"
-            : "flip-clock-hero",
+            : size === "dock"
+              ? "flip-clock-dock"
+              : "flip-clock-hero",
         className
       )}
       role="timer"
