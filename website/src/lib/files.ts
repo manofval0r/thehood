@@ -743,10 +743,15 @@ export async function deleteFolder(course: string, path: string): Promise<void> 
   const folders = await rest<{ id: string; path: string }[]>(
     `course_folders?course=eq.${encodeURIComponent(course)}&select=id,path`
   );
-  const under = (folders ?? []).filter((folder) =>
-    isUnder(folder.path, target)
+  /*
+   * The folder itself may not have a row: a parent can exist only because a
+   * child path was declared. Any row below the target, including one of
+   * those implicit parents' children, means this is not a leaf.
+   */
+  const hasChildFolder = (folders ?? []).some(
+    (folder) => folder.path !== target && isUnder(folder.path, target)
   );
-  if (under.length > 1) {
+  if (hasChildFolder) {
     throw new Error("That folder has folders inside it. Empty them first.");
   }
 
