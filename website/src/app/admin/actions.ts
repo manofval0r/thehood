@@ -227,6 +227,13 @@ export async function addStaffMember(
     return { error: "Give them at least one thing to be allowed to do." };
   }
 
+  // Only a super admin can make somebody a super admin. Anybody else who can
+  // add staff makes them an ordinary admin.
+  const role =
+    staff.role === "super" && formData.get("role") === "super"
+      ? "super"
+      : "admin";
+
   const { listStaff } = await import("@/lib/staff");
   const existing = await listStaff();
   if (existing.some((m) => m.name.toLowerCase() === name.toLowerCase() && m.status !== "revoked")) {
@@ -239,6 +246,7 @@ export async function addStaffMember(
     permissions,
     addedBy: staff.id,
     addedByName: staff.name,
+    role,
   });
 
   await writeAudit({

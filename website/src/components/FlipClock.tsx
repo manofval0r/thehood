@@ -86,7 +86,7 @@ interface FlipClockProps {
    * "hero" is the landing page, "nav" is the compact navbar variant. They
    * share every rule; only the flap size differs.
    */
-  size?: "hero" | "nav";
+  size?: "hero" | "nav" | "mobile";
 }
 
 /**
@@ -125,7 +125,11 @@ export function FlipClock({ ms, className, size = "hero" }: FlipClockProps) {
     <div
       className={cn(
         "flip-clock",
-        size === "nav" ? "flip-clock-nav" : "flip-clock-hero",
+        size === "nav"
+          ? "flip-clock-nav"
+          : size === "mobile"
+            ? "flip-clock-mobile"
+            : "flip-clock-hero",
         className
       )}
       role="timer"

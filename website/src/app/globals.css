@@ -594,6 +594,25 @@ body {
   --flip-gap: 1px;
 }
 
+/* The floating mobile switch below the bar. Even smaller than the bar size:
+   when there are days to count the clock shows four groups instead of three,
+   so the flaps shrink further. No labels — a floating control has no room
+   for them, and the reader knows what hours/minutes/seconds means. */
+.flip-clock-mobile {
+  --flap-h: clamp(0.65rem, 2.6vw, 0.95rem);
+  --flap-w: calc(var(--flap-h) * 0.92);
+  --flip-gap: 0.5px;
+}
+
+.flip-clock-mobile .flip-colon {
+  font-size: calc(var(--flap-h) * 0.34);
+  padding: 0 0.5px;
+}
+
+.flip-clock-mobile .flip-group-label {
+  font-size: 7.5px;
+}
+
 /* The separators between HOURS, MINUTES and SECONDS. Kept, because without
    them six digits in a row read as one long number. Tighter than the hero
    version: in the navbar every pixel is competing with the link rail, so the

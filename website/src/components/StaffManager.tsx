@@ -231,6 +231,35 @@ export function StaffManager({
               placeholder="Optional"
             />
           </div>
+
+          {isSuperUser && (
+            <div>
+              <label
+                htmlFor="staff-super"
+                className="block text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
+              >
+                Super admin
+              </label>
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  id="staff-super"
+                  name="role"
+                  type="checkbox"
+                  value="super"
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[var(--accent)]"
+                />
+                <span>
+                  <span className="block font-medium text-foreground">
+                    Make them a super admin
+                  </span>
+                  <span className="block text-[11px] text-muted">
+                    Super admins can approve staff, change any role, and send
+                    announcements to everybody. Off by default.
+                  </span>
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <fieldset className="mt-4">

@@ -137,22 +137,24 @@ export default function Nav() {
    * alone has: a message to every student, and the list of everything the
    * site can say, with a button to try each one.
    */
-  const links: { href: string; label: string; exact?: boolean }[] = isStaff
-    ? [
-        ...ADMIN_TABS.filter(
-          (t) =>
-            session?.role === "super" ||
-            session?.permissions?.includes(t.permission)
-        ).map((t) => ({ href: t.href, label: t.label, exact: t.exact })),
-        { href: "/admin/schedule", label: "Breaks" },
-        ...(session?.role === "super"
-          ? [
-              { href: "/admin/announce", label: "Announce" },
-              { href: "/admin/notifications", label: "Alerts" },
-            ]
-          : []),
-      ]
-    : TABS;
+  const links: { href: string; label: string; exact?: boolean }[] = session
+    ? isStaff
+      ? [
+          ...ADMIN_TABS.filter(
+            (t) =>
+              session?.role === "super" ||
+              session?.permissions?.includes(t.permission)
+          ).map((t) => ({ href: t.href, label: t.label, exact: t.exact })),
+          { href: "/admin/schedule", label: "Breaks" },
+          ...(session?.role === "super"
+            ? [
+                { href: "/admin/announce", label: "Announce" },
+                { href: "/admin/notifications", label: "Alerts" },
+              ]
+            : []),
+        ]
+      : TABS
+    : [];
 
   const activeHref = links.find((t) =>
     t.exact ? pathname === t.href : pathname.startsWith(t.href)
@@ -462,7 +464,7 @@ export default function Nav() {
             {next && (
               <Link
                 href="/timetable"
-                className="pressable group/cd ml-1.5 flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface py-1 pl-2 pr-2.5 transition-colors hover:border-border-strong hover:bg-surface-hover sm:ml-2 sm:gap-2 sm:pl-2.5 sm:pr-3"
+                className="pressable group/cd ml-1.5 flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface py-1 pl-2 pr-2.5 transition-colors hover:border-border-strong hover:bg-surface-hover sm:ml-2 sm:gap-2 sm:pl-2.5 sm:pr-3 hidden sm:flex"
                 aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
               >
                 {/* The live-dot only earns its width once there is room for

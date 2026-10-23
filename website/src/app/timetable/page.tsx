@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarPlus, Download } from "lucide-react";
+import TakeawayPills from "@/components/TakeawayPills";
 import { COURSES, resourceUrl, TIMETABLE_PDF } from "@/lib/resources";
 import { SCHEDULE, type ScheduledCourse } from "@/lib/schedule";
 import { getAllBreaks } from "@/lib/break-store";

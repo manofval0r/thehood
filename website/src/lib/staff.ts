@@ -215,6 +215,8 @@ export async function requestStaff(args: {
   permissions: Permission[];
   addedBy: string;
   addedByName: string;
+  /** Whether they are a super admin. Defaults to admin. */
+  role?: StaffRole;
 }): Promise<StaffMember> {
   const id = `st_${randomUUID().slice(0, 8)}`;
 
@@ -224,7 +226,7 @@ export async function requestStaff(args: {
       id,
       name: args.name,
       email: args.email?.trim() || null,
-      role: "admin",
+      role: args.role ?? "admin",
       status: "pending",
       permissions: args.permissions,
       added_by: args.addedBy,

@@ -7,6 +7,7 @@ import { StaffSessionProvider } from "@/components/StaffSession";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import { ScheduleProvider } from "@/components/ScheduleProvider";
 import ThemePill from "@/components/ThemePill";
+import CountdownPill from "@/components/CountdownPill";
 import { getAllBreaks } from "@/lib/break-store";
 import "./globals.css";
 
@@ -100,6 +101,10 @@ export default async function RootLayout({
                     that is always empty. The bar keeps its room for the
                     links, the clock and the bell. */}
                 <ThemePill />
+                {/* The countdown floats below the bar on a phone, like the
+                    switch, so the bar keeps its room for the links. On a
+                    desktop it stays in the bar where there is room. */}
+                <CountdownPill />
                 {/* pb keeps the last element of any page clear of the footer.
                     Without it, whichever page forgets its own bottom padding
                     sits flush against the footer's top border. */}

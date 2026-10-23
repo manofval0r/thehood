@@ -146,7 +146,7 @@ export function NotificationBell() {
           ref={panel}
           role="dialog"
           aria-label="Notifications"
-          className="absolute right-0 top-full z-50 mt-2 w-80 origin-top-right rounded-lg border border-border-strong bg-surface-raised p-3 shadow-lift"
+          className="absolute right-0 sm:right-0 top-full z-50 mt-2 w-full sm:w-80 origin-top-left sm:origin-top-right rounded-lg border border-border-strong bg-surface-raised p-3 shadow-lift"
         >
           {!supported && (
             <p className="text-[12.5px] leading-relaxed text-muted-foreground">
