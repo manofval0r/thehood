@@ -2,6 +2,12 @@ import "server-only";
 
 import { cacheLife, cacheTag, updateTag } from "next/cache";
 import { rest, storage, storeConfig } from "@/lib/rest";
+import {
+  cleanPath,
+  folderName,
+  parentPath,
+  pathChain,
+} from "@/lib/file-tree";
 import { COURSES } from "@/lib/resources";
 import { ARCHIVE } from "@/lib/archive";
 
@@ -289,7 +295,7 @@ export async function uploadFile(args: {
     throw new Error(`The upload was refused: ${res.status} ${await res.text()}`);
   }
 
-  const folder = args.folder?.trim() || null;
+  const folder = args.folder ? cleanPath(args.folder) || null : null;
 
   const row = {
     id: `up_${crypto.randomUUID().slice(0, 8)}_${Date.now().toString(36)}`,
@@ -394,6 +400,22 @@ export async function ensureBucket(): Promise<void> {
 /* -------------------------------------------------------------- folders */
 
 /**
+ * Whether a path is the folder itself or something inside it.
+ *
+ * `startsWith` alone is not enough: "Foo" starts with "F", and "Foobar"
+ * starts with "Foo", but neither is inside the other. The slash is what
+ * makes a path a path.
+ */
+function isUnder(path: string, root: string): boolean {
+  return path === root || path.startsWith(`${root}/`);
+}
+
+/** Change the start of a path, keeping everything below it. */
+function replaceRoot(path: string, from: string, to: string): string {
+  return path === from ? to : `${to}${path.slice(from.length)}`;
+}
+
+/**
  * The folders staff made in a course.
  *
  * These are the folders that exist on their own. The folders that files
@@ -459,20 +481,20 @@ export async function moveFileToFolder(
 ): Promise<void> {
   await rest(`files?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
-    body: { folder: folder.trim() || null },
+    body: { folder: cleanPath(folder) || null },
   });
   updateTag("files");
 }
 
-/** Make a folder in a course. */
+/** Make a folder in a course. A slash in the path makes nested folders. */
 export async function createFolder(course: string, path: string): Promise<void> {
-  const clean = path.trim();
+  const clean = cleanPath(path);
   if (!clean) throw new Error("A folder needs a name.");
 
   await rest("course_folders", {
     method: "POST",
     body: {
-      id: `fd_${crypto.randomUUID().slice(0, 8)}_${Date.now().toString(36)}`,
+      id: `fd_${crypto.randomUUID()}`,
       course,
       path: clean,
     },
@@ -482,49 +504,216 @@ export async function createFolder(course: string, path: string): Promise<void> 
 }
 
 /**
+ * Make several folders in one request.
+ *
+ * A folder upload can bring a whole tree with it: Week 1, Week 1/Slides,
+ * Week 1/Source. Sending one action per folder would be slow and would
+ * revalidate the page after every insert, so the paths go together and a
+ * path that already exists is ignored rather than treated as a mistake.
+ */
+export async function createFolders(
+  course: string,
+  paths: string[]
+): Promise<void> {
+  const clean = [
+    ...new Set(paths.map((path) => cleanPath(path)).filter(Boolean)),
+  ];
+  if (clean.length === 0) return;
+
+  await rest("course_folders", {
+    method: "POST",
+    body: clean.map((path) => ({
+      id: `fd_${crypto.randomUUID()}`,
+      course,
+      path,
+    })),
+    prefer: "resolution=ignore-duplicates,return=minimal",
+  });
+  updateTag("files");
+}
+
+/**
+ * Move a folder and everything under it into another folder.
+ *
+ * A folder is a prefix on the files below it, not a row that owns them, so a
+ * move rewrites the prefix on every file and every declared folder in the
+ * subtree. The whole tree moves or none of it does: the collisions are all
+ * checked before the first write.
+ */
+async function relocateFolder(
+  course: string,
+  from: string,
+  target: string
+): Promise<void> {
+  const source = cleanPath(from);
+  const destination = cleanPath(target);
+  if (!source) throw new Error("The top of the course cannot be moved.");
+  if (!destination) throw new Error("A folder needs a name.");
+  if (source === destination) return;
+  if (isUnder(destination, source)) {
+    throw new Error("A folder cannot be moved inside itself.");
+  }
+
+  type FileFolderRow = { id: string; title: string; folder: string | null };
+
+  const [files, folders] = await Promise.all([
+    rest<FileFolderRow[]>(
+      `files?course=eq.${encodeURIComponent(course)}&select=id,title,folder`
+    ),
+    rest<{ id: string; path: string }[]>(
+      `course_folders?course=eq.${encodeURIComponent(course)}&select=id,path`
+    ),
+  ]);
+
+  /*
+   * Every folder that exists, whether staff declared it or a file implies
+   * it. The ancestors are included, because a declared "A/B" means "A" is a
+   * folder even when it has no row of its own.
+   */
+  const allFolders = new Set<string>();
+  for (const row of folders ?? []) {
+    for (const path of pathChain(row.path)) {
+      if (path) allFolders.add(path);
+    }
+  }
+  for (const file of files ?? []) {
+    if (!file.folder) continue;
+    for (const path of pathChain(file.folder)) {
+      if (path) allFolders.add(path);
+    }
+  }
+
+  if (!allFolders.has(source)) {
+    throw new Error("That folder no longer exists. Refresh and try again.");
+  }
+
+  const parent = parentPath(destination);
+  if (parent && !allFolders.has(parent)) {
+    throw new Error("The destination folder no longer exists.");
+  }
+  if (allFolders.has(destination)) {
+    throw new Error(
+      `There is already a folder called "${folderName(destination)}" in ${
+        parent || "the top of the course"
+      }.`
+    );
+  }
+
+  const movedFiles = (files ?? []).filter(
+    (file): file is FileFolderRow & { folder: string } =>
+      typeof file.folder === "string" && isUnder(file.folder, source)
+  );
+  const movedIds = new Set(movedFiles.map((file) => file.id));
+
+  // A file moved into a folder that already has the same title would break
+  // the index's uniqueness rule halfway through the move.
+  const occupied = new Set<string>();
+  for (const file of files ?? []) {
+    if (movedIds.has(file.id)) continue;
+    occupied.add(`${file.folder ?? ""}\u0000${file.title}`);
+  }
+  for (const file of movedFiles) {
+    const folder = replaceRoot(file.folder, source, destination);
+    const key = `${folder}\u0000${file.title}`;
+    if (occupied.has(key)) {
+      throw new Error(
+        `"${file.title}" already exists in ${
+          parent || "the top of the course"
+        }. Rename it or move it first.`
+      );
+    }
+    occupied.add(key);
+  }
+
+  // A folder path collision would leave two branches claiming one name.
+  const stayingFolders = new Set<string>();
+  for (const path of allFolders) {
+    if (!isUnder(path, source)) stayingFolders.add(path);
+  }
+  for (const path of allFolders) {
+    if (path === source || !isUnder(path, source)) continue;
+    const next = replaceRoot(path, source, destination);
+    if (stayingFolders.has(next)) {
+      throw new Error(`There is already a folder at "${next}".`);
+    }
+  }
+
+  for (const file of movedFiles) {
+    await rest(`files?id=eq.${encodeURIComponent(file.id)}`, {
+      method: "PATCH",
+      body: { folder: replaceRoot(file.folder, source, destination) },
+    });
+  }
+
+  const movingFolders = (folders ?? []).filter((folder) =>
+    isUnder(folder.path, source)
+  );
+  for (const folder of movingFolders) {
+    await rest(`course_folders?id=eq.${encodeURIComponent(folder.id)}`, {
+      method: "PATCH",
+      body: { path: replaceRoot(folder.path, source, destination) },
+    });
+  }
+
+  // A folder that only existed because files were in it has no row to move.
+  if (!movingFolders.some((folder) => folder.path === source)) {
+    await rest("course_folders", {
+      method: "POST",
+      body: {
+        id: `fd_${crypto.randomUUID()}`,
+        course,
+        path: destination,
+      },
+      prefer: "resolution=merge-duplicates,return=minimal",
+    });
+  }
+
+  updateTag("files");
+}
+
+/**
+ * Move a folder into another folder, keeping its own name.
+ *
+ * `toParent` is the folder it should sit in; an empty string is the top of
+ * the course. The source folder cannot be moved into itself or one of its
+ * own children.
+ */
+export async function moveFolder(
+  course: string,
+  from: string,
+  toParent: string
+): Promise<void> {
+  const source = cleanPath(from);
+  if (!source) throw new Error("The top of the course cannot be moved.");
+  const parent = cleanPath(toParent);
+  const target = parent ? `${parent}/${folderName(source)}` : folderName(source);
+  await relocateFolder(course, source, target);
+}
+
+/**
  * Rename a folder.
  *
  * Everything inside it moves with it, so a student looking for the manual
- * finds it under the new name and not under the old one.
+ * finds it under the new name and not under the old one. A slash is not
+ * allowed: this is a rename, not a move. Use `moveFolder` for that.
  */
 export async function renameFolder(
   course: string,
   from: string,
   to: string
 ): Promise<void> {
-  const target = to.trim();
-  if (!target) throw new Error("A folder needs a name.");
-  if (from === target) return;
-
-  // The files inside the folder, and inside anything under it.
-  const files = await rest<(CourseFile & { folder: string | null })[]>(
-    `files?course=eq.${encodeURIComponent(course)}&select=id,folder`
-  );
-  const inside = (files ?? []).filter(
-    (f) => typeof f.folder === "string" && f.folder.startsWith(from)
-  );
-
-  for (const file of inside) {
-    const folder = (file.folder as string).replace(from, target);
-    await rest(`files?id=eq.${encodeURIComponent(file.id)}`, {
-      method: "PATCH",
-      body: { folder },
-    });
+  const source = cleanPath(from);
+  const name = cleanPath(to);
+  if (!source) throw new Error("The top of the course cannot be renamed.");
+  if (!name || name.includes("/")) {
+    throw new Error("A folder name cannot contain a slash.");
   }
-
-  // The folders under it, including itself.
-  const folders = await rest<{ id: string; path: string }[]>(
-    `course_folders?course=eq.${encodeURIComponent(course)}&select=id,path`
+  const parent = parentPath(source);
+  await relocateFolder(
+    course,
+    source,
+    parent ? `${parent}/${name}` : name
   );
-  for (const folder of folders ?? []) {
-    if (!folder.path.startsWith(from)) continue;
-    await rest(`course_folders?id=eq.${encodeURIComponent(folder.id)}`, {
-      method: "PATCH",
-      body: { path: folder.path.replace(from, target) },
-    });
-  }
-
-  updateTag("files");
 }
 
 /**
@@ -535,11 +724,15 @@ export async function renameFolder(
  * wanted the folder gone and not the material.
  */
 export async function deleteFolder(course: string, path: string): Promise<void> {
+  const target = cleanPath(path);
+  if (!target) throw new Error("The top of the course cannot be removed.");
+
   const files = await rest<{ id: string; folder: string | null }[]>(
     `files?course=eq.${encodeURIComponent(course)}&select=id,folder`
   );
   const occupied = (files ?? []).some(
-    (f) => typeof f.folder === "string" && f.folder.startsWith(path)
+    (file) =>
+      typeof file.folder === "string" && isUnder(file.folder, target)
   );
   if (occupied) {
     throw new Error(
@@ -550,13 +743,16 @@ export async function deleteFolder(course: string, path: string): Promise<void> 
   const folders = await rest<{ id: string; path: string }[]>(
     `course_folders?course=eq.${encodeURIComponent(course)}&select=id,path`
   );
-  const under = (folders ?? []).filter((f) => f.path.startsWith(path));
+  const under = (folders ?? []).filter((folder) =>
+    isUnder(folder.path, target)
+  );
   if (under.length > 1) {
     throw new Error("That folder has folders inside it. Empty them first.");
   }
 
-  await rest(`course_folders?course=eq.${encodeURIComponent(course)}&path=eq.${encodeURIComponent(path)}`, {
-    method: "DELETE",
-  });
+  await rest(
+    `course_folders?course=eq.${encodeURIComponent(course)}&path=eq.${encodeURIComponent(target)}`,
+    { method: "DELETE" }
+  );
   updateTag("files");
 }

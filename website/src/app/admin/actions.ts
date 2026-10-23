@@ -10,10 +10,12 @@ import {
 } from "@/lib/attendance-db";
 import {
   createFolder,
+  createFolders,
   deleteFile,
   deleteFolder,
   MAX_UPLOAD_BYTES,
   moveFileToFolder,
+  moveFolder,
   renameFile,
   renameFolder,
   uploadFile,
@@ -395,6 +397,7 @@ export async function uploadCourseFile(
 
   const course = String(formData.get("course") ?? "").trim();
   const folder = String(formData.get("folder") ?? "").trim();
+  const notify = String(formData.get("notify") ?? "1") !== "0";
   const file = formData.get("file");
 
   if (!course) return { error: "Choose the course first." };
@@ -423,10 +426,15 @@ export async function uploadCourseFile(
     return { error: e instanceof Error ? e.message : "The upload failed." };
   }
 
-  await announceMaterial({ course, title, uploadedBy: staff.name });
+  // A folder upload sends a batch of files with this turned off and one
+  // summary at the end, so a new week of material is one notification and
+  // not one per handout.
+  if (notify) {
+    await announceMaterial({ course, title, uploadedBy: staff.name });
+  }
 
   updateTag("files");
-  revalidatePath("/admin");
+  revalidatePath("/admin/resources");
   revalidatePath(`/courses/${courseSlug(course)}`);
 
   return {
@@ -442,6 +450,29 @@ export async function uploadCourseFile(
       folder: created.folder ?? null,
     },
   };
+}
+
+/**
+ * One notification for a whole folder upload.
+ *
+ * A folder of twenty handouts should not send twenty pushes. The individual
+ * uploads are quiet and this is the one sentence that tells the course there
+ * is new material, with the folder it landed in.
+ */
+export async function announceCourseFolder(
+  course: string,
+  label: string,
+  count: number
+): Promise<void> {
+  await requirePermission("files");
+  const files = Math.max(0, Math.floor(count));
+  if (!course || files === 0) return;
+
+  const where = label.trim() || "the course";
+  await announceMaterial({
+    course,
+    title: `${files} file${files === 1 ? "" : "s"} added to ${where}`,
+  });
 }
 
 /**
@@ -464,10 +495,10 @@ export async function moveCourseFile(
     );
   }
   updateTag("files");
-  revalidatePath("/admin");
+  revalidatePath("/admin/resources");
 }
 
-/** Make a folder in a course. */
+/** Make a folder in a course. A slash in the path makes nested folders. */
 export async function createCourseFolder(
   course: string,
   path: string
@@ -481,7 +512,47 @@ export async function createCourseFolder(
     );
   }
   updateTag("files");
-  revalidatePath("/admin");
+  revalidatePath("/admin/resources");
+}
+
+/** Make a whole tree of folders in one request, for a folder upload. */
+export async function createCourseFolders(
+  course: string,
+  paths: string[]
+): Promise<void> {
+  await requirePermission("files");
+  try {
+    await createFolders(course, paths);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The folders could not be made."
+    );
+  }
+  updateTag("files");
+  revalidatePath("/admin/resources");
+}
+
+/**
+ * Move a folder into another folder.
+ *
+ * `toParent` is the folder it will sit in. An empty string moves it to the
+ * top of the course. A folder cannot go inside itself or its own children.
+ */
+export async function moveCourseFolder(
+  course: string,
+  from: string,
+  toParent: string
+): Promise<void> {
+  await requirePermission("files");
+  try {
+    await moveFolder(course, from, toParent);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error ? e.message : "The folder could not be moved."
+    );
+  }
+  updateTag("files");
+  revalidatePath("/admin/resources");
 }
 
 /** Rename a folder. Everything inside it moves with it. */
@@ -499,7 +570,7 @@ export async function renameCourseFolder(
     );
   }
   updateTag("files");
-  revalidatePath("/admin");
+  revalidatePath("/admin/resources");
 }
 
 /** Remove a folder. Only an empty one. */
@@ -516,7 +587,7 @@ export async function deleteCourseFolder(
     );
   }
   updateTag("files");
-  revalidatePath("/admin");
+  revalidatePath("/admin/resources");
 }
 
 /**
@@ -967,7 +1038,7 @@ export async function removeCourseFile(id: string): Promise<void> {
     );
   }
   updateTag("files");
-  revalidatePath("/admin");
+  revalidatePath("/admin/resources");
 }
 
 /**
@@ -988,7 +1059,7 @@ export async function renameCourseFile(
   }
   await renameFile(id, clean);
   updateTag("files");
-  revalidatePath("/admin");
+  revalidatePath("/admin/resources");
   revalidatePath("/courses");
   return { file: { id, title: clean } };
 }
