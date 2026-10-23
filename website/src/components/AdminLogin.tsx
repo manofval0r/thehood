@@ -29,7 +29,24 @@ export function AdminLogin() {
     setPending(true);
 
     const form = new FormData(event.currentTarget);
-    const answer = await login(null, form);
+
+    /*
+     * The action is a network call, so it can reject: a dropped connection, a
+     * deployment that is not ready, a database that is not configured. A
+     * rejected promise used to leave the button saying "Checking" for ever,
+     * which reads as a site that is thinking rather than a site that failed.
+     */
+    let answer: LoginState;
+    try {
+      answer = await login(null, form);
+    } catch {
+      setPending(false);
+      setState({
+        error:
+          "The staff area could not be reached. Check your connection and try again.",
+      });
+      return;
+    }
 
     if (answer.ok) {
       // The whole page is loaded again, with the cookie on it. The bar is

@@ -71,6 +71,27 @@ export default async function TimetablePage() {
   // entry depends on the breaks and a change to one reaches it.
   const breaks = await getAllBreaks();
 
+  /*
+   * The feed, and the two subscribe links built from it.
+   *
+   * These are the credential-free way in: Google and Outlook both fetch the
+   * .ics themselves and keep it up to date, so nobody has to authorize this
+   * site to read their calendar. The OAuth routes under /api/calendar are
+   * for the richer two-way sync later; they are not what these buttons use,
+   * because a button that needs a secret nobody has set is a button that
+   * does nothing.
+   */
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+    "https://nutmcybersecurity.vercel.app";
+  const feed = `${origin}/timetable.ics`;
+  const googleCalendarUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(
+    feed
+  )}`;
+  const outlookCalendarUrl = `https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(
+    feed
+  )}&name=${encodeURIComponent("Cybersecurity 300L timetable")}`;
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       {/* Identifies the sheet once it is loose from the site. */}
@@ -107,14 +128,18 @@ export default async function TimetablePage() {
             {/* Calendar options: subscribe via Google, Outlook, or download .ics */}
             <div className="mt-2.5 flex flex-col gap-2">
               <a
-                href="/api/calendar/google/authorize"
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="pressable inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.27-4.8 3.27-8.09z"/><path fill="#34A853" d="M12 23c2.25 0 4.26-.75 5.7-1.94v-3.42h-3.57c-.26.56-.74 1-1.37 1.24-1.04.4-2.18.66-3.44.66-2.62 0-4.8-2.11-5.23-4.77h-3.58v2.69h-3.58v-2.69h3.57v-1.09c0-2.26 1.39-4.23 3.25-5.33h2.16v2.06h-3.03c-.03.26-.07.51-.07.79 0 .37.09.71.19 1.05h3.31v2.06h-3.31c-.27.64-.68 1.24-1.22 1.72-.84.78-1.89 1.33-3.07 1.33-2.33 0-4.25-1.82-4.25-4.13 0-2.26 1.65-4.13 3.93-4.13 1.53 0 2.91.68 3.73 1.61v1.74h3.31v-1.87c0-1.03.3-2.01.77-2.81 1.01-1.39 2.59-2.25 4.17-2.25 1.92 0 3.67.84 4.85 2.24 1.29 1.5 1.92 3.5 1.92 5.79 0 2.6-1.42 4.91-3.73 6.15h-3.45v-2.42h3.31c.16-.64.26-1.32.26-2.07 0-2.07-1.18-3.84-3.12-4.94h-2.95v-2.03h3.22c.3-.77.49-1.56.49-2.43 0-1.5-.59-2.94-1.48-4.08l-2.46-.59c-.39-.48-.99-.82-1.68-.99-1.35-.4-2.77-.64-4.25-.64-3.62 0-6.49 2.61-6.49 6.09 0 3.56 2.82 6.39 6.45 6.75v2.21h3.62c.27-.67.64-1.3 1.13-1.83 1.04-1.21 2.37-1.98 3.89-2.23 1.54-.25 3.14-.25 4.67-.25 3.54 0 6.38 2.73 6.38 6.09 0 3.42-2.79 6.02-6.25 6.09h-3.64v-2.69h3.45c.43-.91.78-1.87 1.02-2.84h2.87z"/><path fill="#FBBC05" d="M12 5.42c1.48 0 2.79.43 3.93 1.17v1.84h-3.57c-.26-.51-.73-.9-1.36-1.17-1.04-.66-2.37-1.04-3.81-1.04-2.59 0-4.77 2.01-4.77 4.45s2.18 4.45 4.77 4.45c1.44 0 2.77-.38 3.81-1.04 1.28-.79 2.03-1.98 2.03-3.39 0-1.22-.61-2.28-1.44-3.04l-2.46-.79c-.39-.48-.99-.82-1.68-.99-1.35-.4-2.77-.64-4.25-.64-3.62 0-6.49 2.61-6.49 6.09 0 3.56 2.82 6.39 6.45 6.75v2.21h3.62c.27-.67.64-1.3 1.13-1.83 1.04-1.21 2.37-1.98 3.89-2.23 1.54-.25 3.14-.25 4.67-.25 3.54 0 6.38 2.73 6.38 6.09 0 3.42-2.79 6.02-6.25 6.09h-3.64v-2.69h3.45c.43-.91.78-1.87 1.02-2.84h2.87z"/><path fill="#EB4224" d="M12 23c2.25 0 4.26-.75 5.7-1.94v-3.42h-3.57c-.26.56-.74 1-1.37 1.24-1.04.4-2.18.66-3.44.66-2.62 0-4.8-2.11-5.23-4.77h-3.58v2.69h-3.58v-2.69h3.57v-1.09c0-2.26 1.39-4.23 3.25-5.33h2.16v2.06h-3.03c-.03.26-.07.51-.07.79 0 .37.09.71.19 1.05h3.31v2.06h-3.31c-.27.64-.68 1.24-1.22 1.72-.84.78-1.89 1.33-3.07 1.33-2.33 0-4.25-1.82-4.25-4.13 0-2.26 1.65-4.13 3.93-4.13 1.53 0 2.91.68 3.73 1.61v1.74h3.31v-1.87c0-1.03.3-2.01.77-2.81 1.01-1.39 2.59-2.25 4.17-2.25 1.92 0 3.67.84 4.85 2.24 1.29 1.5 1.92 3.5 1.92 5.79 0 2.6-1.42 4.91-3.73 6.15h-3.45v-2.42h3.31c.16-.64.26-1.32.26-2.07 0-2.07-1.18-3.84-3.12-4.94h-2.95v-2.03h3.22c.3-.77.49-1.56.49-2.43 0-1.5-.59-2.94-1.48-4.08l-2.46-.59c-.39-.48-.99-.82-1.68-.99-1.35-.4-2.77-.64-4.25-.64-3.62 0-6.49 2.61-6.49 6.09 0 3.56 2.82 6.39 6.45 6.75v2.21h3.62c.27-.67.64-1.3 1.13-1.83 1.04-1.21 2.37-1.98 3.89-2.23 1.54-.25 3.14-.25 4.67-.25 3.54 0 6.38 2.73 6.38 6.09 0 3.42-2.79 6.02-6.25 6.09h-3.64v-2.69h3.45c.43-.91.78-1.87 1.02-2.84h2.87z"/><path fill="#F4B400" d="M12 23c2.25 0 4.26-.75 5.7-1.94v-3.42h-3.57c-.26.56-.74 1-1.37 1.24-1.04.4-2.18.66-3.44.66-2.62 0-4.8-2.11-5.23-4.77h-3.58v2.69h-3.58v-2.69h3.57v-1.09c0-2.26 1.39-4.23 3.25-5.33h2.16v2.06h-3.03c-.03.26-.07.51-.07.79 0 .37.09.71.19 1.05h3.31v2.06h-3.31c-.27.64-.68 1.24-1.22 1.72-.84.78-1.89 1.33-3.07 1.33-2.33 0-4.25-1.82-4.25-4.13 0-2.26 1.65-4.13 3.93-4.13 1.53 0 2.91.68 3.73 1.61v1.74h3.31v-1.87c0-1.03.3-2.01.77-2.81 1.01-1.39 2.59-2.25 4.17-2.25 1.92 0 3.67.84 4.85 2.24 1.29 1.5 1.92 3.5 1.92 5.79 0 2.6-1.42 4.91-3.73 6.15h-3.45v-2.42h3.31c.16-.64.26-1.32.26-2.07 0-2.07-1.18-3.84-3.12-4.94h-2.95v-2.03h3.22c.3-.77.49-1.56.49-2.43 0-1.5-.59-2.94-1.48-4.08l-2.46-.59c-.39-.48-.99-.82-1.68-.99-1.35-.4-2.77-.64-4.25-.64-3.62 0-6.49 2.61-6.49 6.09 0 3.56 2.82 6.39 6.45 6.75v2.21h3.62c.27-.67.64-1.3 1.13-1.83 1.04-1.21 2.37-1.98 3.89-2.23 1.54-.25 3.14-.25 4.67-.25 3.54 0 6.38 2.73 6.38 6.09 0 3.42-2.79 6.02-6.25 6.09h-3.64v-2.69h3.45c.43-.91.78-1.87 1.02-2.84h2.87z"/><path fill="#EB4224" d="M12 23c2.25 0 4.26-.75 5.7-1.94v-3.42h-3.57c-.26.56-.74 1-1.37 1.24-1.04.4-2.18.66-3.44.66-2.62 0-4.8-2.11-5.23-4.77h-3.58v2.69h-3.58v-2.69h3.57v-1.09c0-2.26 1.39-4.23 3.25-5.33h2.16v2.06h-3.03c-.03.26-.07.51-.07.79 0 .37.09.71.19 1.05h3.31v2.06h-3.31c-.27.64-.68 1.24-1.22 1.72-.84.78-1.89 1.33-3.07 1.33-2.33 0-4.25-1.82-4.25-4.13 0-2.26 1.65-4.13 3.93-4.13 1.53 0 2.91.68 3.73 1.61v1.74h3.31v-1.87c0-1.03.3-2.01.77-2.81 1.01-1.39 2.59-2.25 4.17-2.25 1.92 0 3.67.84 4.85 2.24 1.29 1.5 1.92 3.5 1.92 5.79 0 2.6-1.42 4.91-3.73 6.15h-3.45v-2.42h3.31c.16-.64.26-1.32.26-2.07 0-2.07-1.18-3.84-3.12-4.94h-2.95v-2.03h3.22c.3-.77.49-1.56.49-2.43 0-1.5-.59-2.94-1.48-4.08l-2.46-.59c-.39-.48-.99-.82-1.68-.99-1.35-.4-2.77-.64-4.25-.64-3.62 0-6.49 2.61-6.49 6.09 0 3.56 2.82 6.39 6.45 6.75v2.21h3.62c.27-.67.64-1.3 1.13-1.83 1.04-1.21 2.37-1.98 3.89-2.23 1.54-.25 3.14-.25 4.67-.25 3.54 0 6.38 2.73 6.38 6.09 0 3.42-2.79 6.02-6.25 6.09h-3.64v-2.69h3.45c.43-.91.78-1.87 1.02-2.84h2.87z"/></svg>
                   Add to Google Calendar
                 </a>
                 <a
-                  href="/api/calendar/outlook/authorize"
+                  href={outlookCalendarUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="pressable inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#00A4EF" d="M12 2C6.48 2 2 6.48 2 12c0 2.44.96 4.68 2.5 6.28l-1.75 1.86 2.16 3.15C12.43 21.72 13.22 22 14 22c5.52 0 10-4.48 10-10 0-5.52-4.48-10-10-10zm10.34 12.57c-1.45-.72-2.75-1.43-4.11-1.96l-.56-.25-.58-.24-.63-.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78s-2.33.3-3.57.78l-.63.25-.58.24-.56.25c-1.24-.48-2.38-.78-3.57-.78"/></svg>
@@ -132,11 +157,11 @@ export default async function TimetablePage() {
               <div className="mt-3 text-[11px] text-muted-foreground leading-relaxed">
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em]">How to add to your calendar:</p>
                 <p className="text-[10px] leading-relaxed">
-                  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">Google Calendar</a>
-                  {" • "}
-                  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">Outlook Calendar</a>
-                  {" • "}
-                  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">Import .ics file</a>
+                  <a href="https://www.youtube.com/results?search_query=how+to+subscribe+to+a+calendar+by+url+google+calendar" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">Google Calendar</a>
+                  {" · "}
+                  <a href="https://www.youtube.com/results?search_query=how+to+subscribe+to+an+ics+calendar+in+outlook" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">Outlook Calendar</a>
+                  {" · "}
+                  <a href="https://www.youtube.com/results?search_query=how+to+import+an+ics+file+into+google+calendar" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">Import .ics file</a>
                 </p>
               </div>
               <PrintButton />

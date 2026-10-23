@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Check,
   ChevronRight,
@@ -77,6 +78,7 @@ interface Props {
 }
 
 export default function FileManager({ courses, files, folders }: Props) {
+  const router = useRouter();
   const [course, setCourse] = useState(courses[0]?.code ?? "");
   const [path, setPath] = useState("");
   const [rows, setRows] = useState<FileRow[]>(files);
@@ -87,6 +89,19 @@ export default function FileManager({ courses, files, folders }: Props) {
   const [uploadState, uploadAction, uploading] = useActionStateShim();
   const [notice, setNotice] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+
+  /*
+   * Adopt the list the server sends after a revalidation.
+   *
+   * `rows` is seeded once so that a move or a rename can be shown before the
+   * server has answered. Without this, it would then keep showing the list
+   * the page was opened with, and a folder made or a file added on another
+   * device would never appear. The optimistic updates below still do the
+   * immediate work; this replaces them with the server's answer.
+   */
+  useEffect(() => {
+    setRows(files);
+  }, [files]);
 
   // The drag. It is held in a ref as well as in state, because the pointer
   // handlers need the current value and a state update is not immediate.
@@ -125,6 +140,31 @@ export default function FileManager({ courses, files, folders }: Props) {
         .filter((n) => n.kind === "file")
         .map((n) => (n as { kind: "file"; file: FileNode }).file),
     [here]
+  );
+
+  /*
+   * Put an uploaded file in the list, once.
+   *
+   * Both the picker and the drop zone end up here: the picker through the
+   * state the action returns, and the drop zone through that same state, so
+   * without the identity check a file would be added twice.
+   */
+  const addUploaded = useCallback(
+    (file: NonNullable<UploadState["file"]>) => {
+      setRows((r) =>
+        r.some((f) => f.id === file.id)
+          ? r
+          : [
+              {
+                ...file,
+                source: file.source as FileRow["source"],
+                folder: file.folder ?? null,
+              },
+              ...r,
+            ]
+      );
+    },
+    []
   );
 
   /* ------------------------------------------------------------- the tree */
@@ -281,6 +321,7 @@ export default function FileManager({ courses, files, folders }: Props) {
       await moveCourseFile(id, to);
       setRows((r) => r.map((f) => (f.id === id ? { ...f, folder: to || null } : f)));
       setNotice(`Moved to ${to || "the top"}.`);
+      router.refresh();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : "The file could not be moved.");
     }
@@ -293,6 +334,7 @@ export default function FileManager({ courses, files, folders }: Props) {
     try {
       await renameCourseFile(id, clean);
       setRows((r) => r.map((f) => (f.id === id ? { ...f, title: clean } : f)));
+      router.refresh();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : "The file could not be renamed.");
     }
@@ -308,6 +350,7 @@ export default function FileManager({ courses, files, folders }: Props) {
         next.delete(id);
         return next;
       });
+      router.refresh();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : "The file could not be removed.");
     }
@@ -321,6 +364,7 @@ export default function FileManager({ courses, files, folders }: Props) {
       await createCourseFolder(course, path ? `${path}/${clean}` : clean);
       setNewFolder(false);
       setNotice(`Made the folder ${clean}.`);
+      router.refresh();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : "The folder could not be made.");
     }
@@ -331,6 +375,7 @@ export default function FileManager({ courses, files, folders }: Props) {
     try {
       await deleteCourseFolder(course, folderPath);
       setNotice("The folder was removed.");
+      router.refresh();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : "The folder could not be removed.");
     }
@@ -343,6 +388,7 @@ export default function FileManager({ courses, files, folders }: Props) {
     try {
       await renameCourseFolder(course, from, clean);
       setNotice("The folder was renamed.");
+      router.refresh();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : "The folder could not be renamed.");
     }
@@ -353,13 +399,25 @@ export default function FileManager({ courses, files, folders }: Props) {
   const [dropping, setDropping] = useState(false);
 
   const uploadFiles = async (list: FileList | File[]) => {
+    setProblem(null);
+
     for (const file of Array.from(list)) {
       const form = new FormData();
       form.set("course", course);
       form.set("folder", path);
       form.set("title", file.name.replace(/\.[^.]+$/, ""));
       form.set("file", file);
-      await uploadAction(form);
+
+      const result = await uploadAction(form);
+
+      // The action reports a rejected upload rather than throwing, so the
+      // drop zone has to read the answer. Swallowing it meant a file that was
+      // too big, or a store that refused it, disappeared without a word.
+      if (result.error) {
+        setProblem(result.error);
+        return;
+      }
+      if (result.file) addUploaded(result.file);
     }
   };
 
@@ -601,29 +659,19 @@ export default function FileManager({ courses, files, folders }: Props) {
                 course={course}
                 path={path}
                 state={uploadState}
-                action={uploadAction}
+                action={(formData) => void uploadAction(formData)}
                 pending={uploading}
-                onDone={(file) =>
-                  setRows((r) =>
-                    file
-                      ? [
-                          {
-                            id: file.id,
-                            course: file.course,
-                            title: file.title,
-                            type: file.type,
-                            url: file.url,
-                            size: file.size,
-                            source: "upload",
-                            folder: path || null,
-                          },
-                          ...r
-                        ]
-                      : r
-                  )
-                }
+                onDone={(file) => {
+                  if (file) addUploaded(file);
+                }}
               />
             </div>
+
+            {uploadState.error && (
+              <p role="alert" className="mt-2 text-[12px] text-red-300">
+                {uploadState.error}
+              </p>
+            )}
           </div>
 
           {/* What is here */}
@@ -935,17 +983,37 @@ function UploadForm({
  */
 function useActionStateShim(): [
   UploadState,
-  (formData: FormData) => void,
+  (formData: FormData) => Promise<UploadState>,
   boolean,
 ] {
   const [state, setState] = useState<UploadState>({});
   const [pending, setPending] = useState(false);
 
-  const action = useCallback(async (formData: FormData) => {
+  const action = useCallback(async (formData: FormData): Promise<UploadState> => {
     setPending(true);
+    // Clear the last answer first, so an error from one file is not still on
+    // the screen while the next one is being added.
+    setState({});
+
     try {
       const result = await uploadCourseFile({}, formData);
       setState(result);
+      return result;
+    } catch (e) {
+      /*
+       * The action itself can reject before it can report anything: the
+       * connection drops, the deployment is being replaced, the session has
+       * gone. The old shim let that rejection escape, so the button stopped
+       * spinning and nothing else happened.
+       */
+      const result: UploadState = {
+        error:
+          e instanceof Error
+            ? e.message
+            : "The file could not be added. Check your connection and try again.",
+      };
+      setState(result);
+      return result;
     } finally {
       setPending(false);
     }

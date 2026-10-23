@@ -1,20 +1,26 @@
+import { NextResponse } from "next/server";
+
 /**
  * Google Calendar OAuth authorization endpoint.
  *
- * Redirects the user to Google's OAuth consent screen so they can grant
- * the site permission to read and write their Google Calendar. After the
- * user approves, Google redirects back to /api/calendar/google/callback.
+ * Redirects the reader to Google's consent screen. The redirect URI is
+ * derived from the request so that it matches the callback exactly, on the
+ * preview host as well as on production.
+ *
+ * This is the scaffold for two-way sync. The buttons on /timetable use the
+ * public .ics feed instead, so nothing here has to be configured for the
+ * calendar to work.
  *
  * Requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.
  */
 export async function GET(request: Request) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/api/calendar/google/callback`;
+  const origin = new URL(request.url).origin;
+  const redirectUri = `${origin}/api/calendar/google/callback`;
 
   if (!clientId) {
-    return Response.json(
-      { error: "Google Calendar integration not configured. Set GOOGLE_CLIENT_ID." },
-      { status: 500 }
+    return NextResponse.redirect(
+      new URL("/timetable?calendarError=not_configured", origin)
     );
   }
 
@@ -22,12 +28,13 @@ export async function GET(request: Request) {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/calendar",
+    scope: "https://www.googleapis.com/auth/calendar.events",
     access_type: "offline",
     prompt: "consent",
+    include_granted_scopes: "true",
   });
 
-  return Response.redirect(
+  return NextResponse.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
   );
 }

@@ -53,13 +53,15 @@ export default function CountdownPill() {
     setMs(((h || 0) * 3600 + (m || 0) * 60 + (s || 0)) * 1000);
   }, [text, ready]);
 
-  if (!next) return null;
-
-  const days = Math.floor(
-    (next.startsAt.getTime() - new Date().getTime()) / 86400000
-  );
-  const live = near || coarse;
-
+  /*
+   * Every hook runs before the guard below.
+   *
+   * The first render has no next class yet, because the countdown is worked
+   * out in the browser. Returning before this effect would mean the render
+   * with a class had one more hook than the render without one, and React
+   * refuses that with "rendered more hooks than during the previous render",
+   * which takes the whole page down with it.
+   */
   React.useEffect(() => {
     let frame = 0;
 
@@ -109,6 +111,13 @@ export default function CountdownPill() {
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
+
+  if (!next) return null;
+
+  const days = Math.floor(
+    (next.startsAt.getTime() - new Date().getTime()) / 86400000
+  );
+  const live = near || coarse;
 
   return (
     <div

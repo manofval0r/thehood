@@ -8,6 +8,7 @@ import { NotificationProvider } from "@/components/NotificationProvider";
 import { ScheduleProvider } from "@/components/ScheduleProvider";
 import ThemePill from "@/components/ThemePill";
 import CountdownPill from "@/components/CountdownPill";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getAllBreaks } from "@/lib/break-store";
 import "./globals.css";
 
@@ -114,6 +115,7 @@ export default async function RootLayout({
             </NotificationProvider>
           </StaffSessionProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );

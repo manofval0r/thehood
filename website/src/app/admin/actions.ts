@@ -371,6 +371,7 @@ export interface UploadState {
     url: string;
     size: number | null;
     source: string;
+    folder?: string | null;
   };
 }
 
@@ -438,6 +439,7 @@ export async function uploadCourseFile(
       url: created.url,
       size: created.size ?? null,
       source: created.source,
+      folder: created.folder ?? null,
     },
   };
 }

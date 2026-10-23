@@ -34,7 +34,8 @@ export const KIND_LABEL: Record<NotificationKind, string> = {
 
 export const KIND_HELP: Record<NotificationKind, string> = {
   material: "When a lecture deck or a handout is posted for a course you take.",
-  classes: "Before a class starts, and when it ends.",
+  classes:
+    "Before a class starts, when it starts, when a break begins and ends, and when the class ends.",
   attendance: "When attendance for a class is recorded, or a mark is changed.",
   calendar: "Exams, registration and the rest of the calendar.",
   staff: "Approvals, unmarked classes, and changes to the courses you teach.",

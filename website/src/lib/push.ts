@@ -95,6 +95,17 @@ export async function announceUnmarked(
  */
 export async function announceClasses(): Promise<{ sent: number }> {
   const now = Date.now();
+
+  /*
+   * How late a moment can still be announced.
+   *
+   * The scheduler runs every five minutes, so a one-minute window around the
+   * start of a class would be missed by most runs. Five minutes is the width
+   * of the gap, and the sent table is what stops a moment being announced
+   * twice when two runs both fall inside it.
+   */
+  const MOMENT = 5 * 60 * 1000;
+
   const slots = classesInWindow(
     new Date(now - 6 * 3600000),
     new Date(now + 30 * 60 * 1000)
@@ -113,7 +124,7 @@ export async function announceClasses(): Promise<{ sent: number }> {
 
     /* Five minutes before. */
     const startAt = slot.start - 5 * 60 * 1000;
-    if (startAt <= now && now < slot.start + 60 * 1000) {
+    if (startAt <= now && now < slot.start) {
       const update: Update = {
         id: `class-soon:${slot.course}:${date}:${slot.start}`,
         kind: "classes",
@@ -130,8 +141,26 @@ export async function announceClasses(): Promise<{ sent: number }> {
       }
     }
 
+    /* The moment it starts, for the reader who is walking in late. */
+    if (slot.start <= now && now < slot.start + MOMENT) {
+      const update: Update = {
+        id: `class-started:${slot.course}:${date}:${slot.start}`,
+        kind: "classes",
+        title: `${slot.course} has started`,
+        body: `${slot.title} · ${slot.venue}`,
+        at: new Date().toISOString(),
+        href: "/timetable",
+        course: slot.course,
+      };
+      if (!(await hasBeenSent(update.id))) {
+        const result = await broadcast(update, { kind: "classes", course: slot.course });
+        sent += result.sent;
+        await markSent(update);
+      }
+    }
+
     /* The end of it. */
-    if (slot.end <= now && now < slot.end + 60 * 1000) {
+    if (slot.end <= now && now < slot.end + MOMENT) {
       const update: Update = {
         id: `class-ended:${slot.course}:${end}:${slot.end}`,
         kind: "classes",
@@ -158,7 +187,7 @@ export async function announceClasses(): Promise<{ sent: number }> {
 
       /* Five minutes before the pause. */
       const beforePause = pauseStart - 5 * 60 * 1000;
-      if (beforePause <= now && now < pauseStart + 60 * 1000) {
+      if (beforePause <= now && now < pauseStart) {
         const update: Update = {
           id: `break-soon:${slot.course}:${pauseStart}`,
           kind: "classes",
@@ -175,8 +204,26 @@ export async function announceClasses(): Promise<{ sent: number }> {
         }
       }
 
+      /* The moment the pause begins. */
+      if (pauseStart <= now && now < pauseStart + MOMENT) {
+        const update: Update = {
+          id: `break-started:${slot.course}:${pauseStart}`,
+          kind: "classes",
+          title: `${slot.course} is on a break`,
+          body: `The lecture pauses at ${clockLabel(pause.from)} for ${pause.to - pause.from} minutes.`,
+          at: new Date().toISOString(),
+          href: "/timetable",
+          course: slot.course,
+        };
+        if (!(await hasBeenSent(update.id))) {
+          const result = await broadcast(update, { kind: "classes", course: slot.course });
+          sent += result.sent;
+          await markSent(update);
+        }
+      }
+
       /* The pause is over. */
-      if (pauseEnd <= now && now < pauseEnd + 60 * 1000) {
+      if (pauseEnd <= now && now < pauseEnd + MOMENT) {
         const update: Update = {
           id: `break-over:${slot.course}:${pauseEnd}`,
           kind: "classes",

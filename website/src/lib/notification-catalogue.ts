@@ -17,8 +17,10 @@ import { COURSES } from "@/lib/resources";
 
 export type CatalogueId =
   | "class-soon"
+  | "class-started"
   | "class-ended"
   | "break-soon"
+  | "break-started"
   | "break-over"
   | "material"
   | "attendance"
@@ -56,6 +58,14 @@ export const CATALOGUE: CatalogueEntry[] = [
     automatic: true,
   },
   {
+    id: "class-started",
+    title: "A class has started",
+    kind: "classes",
+    when: "The moment a class on the timetable begins.",
+    what: "So a reader who is running late knows the lecture has begun without opening the site.",
+    automatic: true,
+  },
+  {
     id: "class-ended",
     title: "A class has just ended",
     kind: "classes",
@@ -69,6 +79,14 @@ export const CATALOGUE: CatalogueEntry[] = [
     kind: "classes",
     when: "Five minutes before a break inside a lecture.",
     what: "So a reader knows the lecture is about to pause, and for how long.",
+    automatic: true,
+  },
+  {
+    id: "break-started",
+    title: "A class is on a break",
+    kind: "classes",
+    when: "The moment a break inside a lecture begins.",
+    what: "So a reader knows the teaching has paused and when it starts again.",
     automatic: true,
   },
   {
@@ -167,6 +185,13 @@ export function sampleFor(
         href: "/timetable",
         course,
       };
+    case "class-started":
+      return {
+        title: `${course} has started`,
+        body: `${title} · ${venue}`,
+        href: "/timetable",
+        course,
+      };
     case "class-ended":
       return {
         title: `${course} has just ended`,
@@ -178,6 +203,13 @@ export function sampleFor(
       return {
         title: `${course} has a break in five minutes`,
         body: `The lecture pauses at 9:50am. The break is ten minutes long.`,
+        href: "/timetable",
+        course,
+      };
+    case "break-started":
+      return {
+        title: `${course} is on a break`,
+        body: "The lecture pauses at 9:50am for ten minutes.",
         href: "/timetable",
         course,
       };

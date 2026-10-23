@@ -365,7 +365,7 @@ export function NotificationBell() {
                     <input
                       type="checkbox"
                       checked={prefs.digestMode}
-                      onChange={() => void setDigestMode(prefs.digestMode)}
+                      onChange={() => void setDigestMode(!prefs.digestMode)}
                       className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[var(--accent)]"
                     />
                     <span>
