@@ -61,6 +61,8 @@ export interface Prefs {
   quietFrom: string;
   quietTo: string;
   tz: string;
+  /** One daily digest instead of per-class pushes. */
+  digestMode: boolean;
 }
 
 export interface Subscription {
@@ -81,6 +83,7 @@ const DEFAULT_PREFS: Omit<Prefs, "deviceId"> = {
   quietFrom: "22:00",
   quietTo: "06:00",
   tz: "Africa/Lagos",
+  digestMode: false,
 };
 
 export async function getPrefs(deviceId: string): Promise<Prefs> {
@@ -92,6 +95,7 @@ export async function getPrefs(deviceId: string): Promise<Prefs> {
       quiet_from: string;
       quiet_to: string;
       tz: string;
+      digest_mode: boolean;
     }[]
   >(`notification_prefs?device_id=eq.${encodeURIComponent(deviceId)}&select=*&limit=1`);
 
@@ -105,6 +109,7 @@ export async function getPrefs(deviceId: string): Promise<Prefs> {
     quietFrom: row.quiet_from,
     quietTo: row.quiet_to,
     tz: row.tz,
+    digestMode: row.digest_mode ?? DEFAULT_PREFS.digestMode,
   };
 }
 
@@ -119,6 +124,7 @@ export async function setPrefs(
     quiet_from: prefs.quietFrom ?? DEFAULT_PREFS.quietFrom,
     quiet_to: prefs.quietTo ?? DEFAULT_PREFS.quietTo,
     tz: prefs.tz ?? DEFAULT_PREFS.tz,
+    digest_mode: prefs.digestMode ?? DEFAULT_PREFS.digestMode,
     updated_at: new Date().toISOString(),
   };
 

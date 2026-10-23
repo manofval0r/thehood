@@ -60,7 +60,9 @@ export function NotificationBell() {
     turnOff,
     setKinds,
     setQuiet,
+    setDigestMode,
     markRead,
+    markAllRead,
     acknowledge,
   } = useNotifications();
 
@@ -135,7 +137,9 @@ export function NotificationBell() {
           </g>
         </svg>
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 font-mono text-[9px] font-bold leading-none text-accent-foreground">
+          <span
+            className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 font-mono text-[9px] font-bold leading-none text-accent-foreground"
+          >
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -211,51 +215,60 @@ export function NotificationBell() {
               Nothing since you last looked.
             </p>
           ) : (
-            <ul className="mt-1.5 max-h-52 space-y-1.5 overflow-y-auto">
-              {updates.slice(0, 12).map((u) => {
-                const seen =
-                  !!u.announcementId && acked.includes(u.announcementId);
-                return (
-                  <li key={u.id}>
-                    <Link
-                      href={u.href ?? "/"}
-                      onClick={() => setOpen(false)}
-                      className="pressable block rounded-md px-1.5 py-1 hover:bg-surface-hover"
-                    >
-                      <span className="block text-[12.5px] font-medium leading-snug text-foreground">
-                        {u.title}
-                      </span>
-                      <span className="block text-[11.5px] leading-snug text-muted">
-                        {u.body} · {when(u.at)}
-                      </span>
-                    </Link>
+            <div className="mt-1.5 space-y-1">
+              <ul className="max-h-52 space-y-1.5 overflow-y-auto">
+                {updates.slice(0, 12).map((u) => {
+                  const seen =
+                    !!u.announcementId && acked.includes(u.announcementId);
+                  return (
+                    <li key={u.id}>
+                      <Link
+                        href={u.href ?? "/"}
+                        onClick={() => setOpen(false)}
+                        className="pressable block rounded-md px-1.5 py-1 hover:bg-surface-hover"
+                      >
+                        <span className="block text-[12.5px] font-medium leading-snug text-foreground">
+                          {u.title}
+                        </span>
+                        <span className="block text-[11.5px] leading-snug text-muted">
+                          {u.body} · {when(u.at)}
+                        </span>
+                      </Link>
 
-                    {/* A message can ask to be acknowledged, so that the
-                        person who sent it knows it was seen. A class that is
-                        not running is worth knowing about. */}
-                    {u.needsAck && u.announcementId && (
-                      <div className="px-1.5 pb-1">
-                        {seen ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] text-accent">
-                            <Check size={11} />
-                            You have seen this
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => void acknowledge(u.announcementId!)}
-                            className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
-                          >
-                            <Check size={11} />
-                            Got it
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                      {/* A message can ask to be acknowledged, so that the
+                          person who sent it knows it was seen. A class that is
+                          not running is worth knowing about. */}
+                      {u.needsAck && u.announcementId && (
+                        <div className="px-1.5 pb-1">
+                          {seen ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-accent">
+                              <Check size={11} />
+                              You have seen this
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => void acknowledge(u.announcementId!)}
+                              className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                            >
+                              <Check size={11} />
+                              Got it
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              <button
+                type="button"
+                onClick={() => markAllRead()}
+                className="pressable mt-2 text-[11px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                Mark all as read
+              </button>
+            </div>
           )}
 
           {upcoming.length > 0 && (
@@ -345,6 +358,27 @@ export function NotificationBell() {
                     Turn on notifications for this device
                   </button>
                 ) : null}
+
+                {/* Digest mode: one summary per day instead of per-class pushes */}
+                <div className="mt-2.5 space-y-1">
+                  <label className="flex items-start gap-2 cursor-pointer text-[12px] text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={prefs.digestMode}
+                      onChange={() => void setDigestMode(prefs.digestMode)}
+                      className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[var(--accent)]"
+                    />
+                    <span>
+                      <span className="block font-medium text-foreground">
+                        Daily digest instead of per-class pushes
+                      </span>
+                      <span className="block text-[11px] leading-snug text-muted">
+                        Get one summary each morning instead of a push for every
+                        class start and end.
+                      </span>
+                    </span>
+                  </label>
+                </div>
               </div>
             )}
           </div>

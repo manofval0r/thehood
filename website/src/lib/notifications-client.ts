@@ -44,6 +44,9 @@ export interface Prefs {
   quietFrom: string;
   quietTo: string;
   tz: string;
+  /** When enabled, the site sends one daily digest instead of individual
+     push notifications for each class. */
+  digestMode: boolean;
 }
 
 export interface UpdatesPayload {

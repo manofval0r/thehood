@@ -37,12 +37,23 @@ function parseClock(v, fallback) {
   return h * 60 + Number(m[2]);
 }
 
+/** Shorten a course title to fit a wallpaper block: first significant word,
+   or up to ~8 chars. "Digital Sovereignty..." -> "Digital", "Peace and
+   Conflict Resolution" -> "Peace". Keeps the room name on the second line so
+   the title can stay short. */
+function shortTitle(title) {
+  const firstWord = title.split(/\s+/)[0];
+  if (firstWord.length <= 10) return firstWord;
+  return firstWord.slice(0, 8) + ".";
+}
+
 /** Pulls every session out of the manifest source: the primary slot and any extras. */
 function readSessions() {
   const sessions = [];
   const blocks = SRC.match(/\{[^{}]*?code:\s*"([^"]+)"[\s\S]*?\n  \},/g) || [];
   for (const b of blocks) {
     const code = (b.match(/code:\s*"([^"]+)"/) || [])[1];
+    const title = (b.match(/title:\s*"([^"]+)"/) || [])[1];
     if (!code) continue;
     const day = (b.match(/\n\s+day:\s*"([^"]+)"/) || [])[1];
     const time = (b.match(/\n\s+time:\s*"([^"]+)"/) || [])[1];
@@ -54,6 +65,7 @@ function readSessions() {
       const [from, to] = t.split(/\s*-\s*/);
       sessions.push({
         code,
+        title,
         day: d,
         venue: v,
         units: Number(units || 0),
@@ -304,8 +316,9 @@ function renderBoard(w, h) {
     // The left edge carries the state: accent when it is running, dim otherwise.
     cv.rect(x0, by, Math.max(2, scale), bh, running ? PALETTE.accent : isTodayRow ? PALETTE.accentDim : PALETTE.dim);
 
-    // Course code, inside the block, clipped to what fits.
-    const label = s.code.replace(/\s+/g, " ");
+    // Course title (shortened to first word) inside the block, clipped to
+    // what fits. A short title reads better on a wall than a course code.
+    const label = shortTitle(s.title);
     const ts = Math.max(1, Math.floor(scale / 2) + 1);
     const room = String(s.venue || "")
       .replace(/Lab/i, "LAB")

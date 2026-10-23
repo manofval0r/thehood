@@ -69,10 +69,14 @@ interface NotificationValue {
   setKinds: (kinds: NotificationKind[]) => Promise<void>;
   /** Quiet hours, in the device's own clock. */
   setQuiet: (from: string, to: string) => Promise<void>;
+  /** Whether digest mode is on. */
+  setDigestMode: (enabled: boolean) => Promise<void>;
   /** Ask the site what has changed. */
   refresh: () => Promise<void>;
   /** Say the notifications have been read. */
   markRead: () => void;
+  /** Mark all updates as read. */
+  markAllRead: () => void;
   /** Say that this device has seen an announcement. */
   acknowledge: (announcementId: string) => Promise<void>;
 }
@@ -83,6 +87,7 @@ const DEFAULT_PREFS: Prefs = {
   quietFrom: "22:00",
   quietTo: "06:00",
   tz: "Africa/Lagos",
+  digestMode: false,
 };
 
 const NotificationContext = createContext<NotificationValue>({
@@ -101,8 +106,10 @@ const NotificationContext = createContext<NotificationValue>({
   turnOff: async () => {},
   setKinds: async () => {},
   setQuiet: async () => {},
+  setDigestMode: async () => {},
   refresh: async () => {},
   markRead: () => {},
+  markAllRead: () => {},
   acknowledge: async () => {},
 });
 
@@ -255,7 +262,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setDigestMode = useCallback(async (enabled: boolean) => {
+    setLocalPrefs((p) => ({ ...p, digestMode: enabled }));
+    await savePrefs({
+      digestMode: enabled,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+  }, []);
+
   const markRead = useCallback(() => {
+    setUnread(0);
+    setCursor(new Date().toISOString());
+  }, []);
+
+  /**
+   * Mark all updates as read.
+   */
+  const markAllRead = useCallback(() => {
     setUnread(0);
     setCursor(new Date().toISOString());
   }, []);
@@ -295,8 +318,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       turnOff,
       setKinds,
       setQuiet,
-      refresh,
+      setDigestMode,
       markRead,
+      markAllRead,
+      refresh,
       acknowledge: acknowledgeOne,
     }),
     [
@@ -315,8 +340,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       turnOff,
       setKinds,
       setQuiet,
-      refresh,
+      setDigestMode,
       markRead,
+      markAllRead,
+      refresh,
       acknowledgeOne,
     ]
   );
