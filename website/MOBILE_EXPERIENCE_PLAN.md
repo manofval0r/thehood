@@ -1,9 +1,9 @@
 # Mobile Experience Plan: Cybersecurity 300L
 
-**Status:** Draft for approval. This commit adds this document only; no mobile UI code is changed.
-**Audit date:** 24 October 2026.
-**Targets:** 390 x 844 and 320 x 568 CSS pixels, portrait, Chrome, dark scheme, production data, read-only.
-**Production baseline:** https://nutmcybersecurity.vercel.app, deployment `dpl_5AcznJRDssgp2aD8ovkzxieWNeBa` from `894f93c`, Ready and aliased.
+**Status:** Approved, implemented, verified and deployed.
+**Audit date:** 24 October 2026, baseline and after matrix.
+**Targets:** 390 x 844 and 320 x 568 CSS pixels, portrait, Chrome, light and dark schemes, production data, read-only.
+**Production UI:** https://nutmcybersecurity.vercel.app, final UI deployment `dpl_5JSwKwDQ4CjhxM6TZyhw4hjJ34CZ` from `404dd49`, Ready, promoted and aliased.
 
 ## 1. Summary
 
@@ -25,13 +25,13 @@ The plan is phased. Phase 1 fixes the shared shell, Phase 2 the public pages, Ph
 
 | Area | State |
 |---|---|
-| Production | `https://nutmcybersecurity.vercel.app` serves deployment `dpl_5AcznJRDssgp2aD8ovkzxieWNeBa` from commit `894f93c`, Ready and aliased. |
-| Folder upload and tree | Shipped in `894f93c`. Both New folder and Upload folder are live. Nested folder paths, folder moves, rename, delete guard and the tree were tested and cleaned up. |
+| Production UI | The final UI deployment is `dpl_5JSwKwDQ4CjhxM6TZyhw4hjJ34CZ` from commit `404dd49`, Ready, promoted and aliased. The docs-only commit that records this plan does not change the UI. |
+| Folder upload and tree | Shipped in `894f93c`. Both New folder and Upload folder are live. The final folder regression passed 82/82, including nested paths, moves, rename, delete guard and cleanup. |
 | Resources page | Files and videos are one page with one full-name course picker. The Files and Videos tabs are present. |
-| Audit | Complete for 56 route states at 390x844 and 320x568. Read-only; no data changed. |
-| Mobile code | None. This plan is a documentation-only change. |
+| Audit | Baseline complete for 56 route states at 390x844 and 320x568. The after matrix loaded 224 states at both widths and both schemes with 0 issues. |
+| Mobile code | Shipped in `3bf4967` and the Phase 1 to Phase 4 commits through `404dd49`. Section 12 records the after results. |
 | Student attendance view | Tabled. It is not part of this plan. |
-| Broad redesign | Waiting for explicit approval of this plan. |
+| Broad redesign | Approved with recommendations D1-D8 and completed for the phone surfaces recorded in section 12. |
 
 The following constraints apply to every phase:
 
@@ -48,7 +48,7 @@ The following constraints apply to every phase:
 ## 3. Method and evidence
 
 - 56 route states: 44 public and 12 staff. Each was loaded at 390x844 and 320x568, for 112 page loads.
-- Chrome, headless, dark colour scheme, service workers blocked, production data, read-only. The staff pages used the staff account. The code is not recorded in this document.
+- Chrome, headless, service workers blocked, production data, read-only. The baseline used the dark scheme; the after matrix used light and dark. The staff pages used the staff account. The code is not recorded in this document.
 - For each state the audit measured:
   - document `scrollWidth` against the viewport, with the elements that overflow;
   - header controls whose labels are clipped by a scrolling parent;
@@ -59,11 +59,11 @@ The following constraints apply to every phase:
   - input and select font sizes below 16px;
   - the notification panel bounds and close target;
   - the Resources folder tree open and closed, plus its tabs.
-- The raw output is in the local temp folder used for the audit (`mobile-audit/audit-table.md`, `audit-findings.md` and `audit.json`). It is not committed. Appendix A is the durable matrix.
+- The raw output is in the local temp folder used for the audit (`mobile-audit/audit-table.md`, `audit-findings.md` and `audit.json`). It is not committed. Appendix A is the durable baseline matrix.
 - The doubled text seen in some screenshots is a capture artifact, not a site bug. The DOM check found one visible copy, one main element and no text shadow.
 - The folder flow test was separate from the audit. It created a disposable folder, verified nested uploads and cleanup, and left no test data.
-- The audit used the dark scheme. Light theme, keyboard and touch verification belong to Phase 4.
-- The build checks at `894f93c` passed: `npx tsc --noEmit`, focused ESLint and `npm run build`. The existing `listPending` warning is pre-existing and unrelated.
+- The baseline audit used the dark scheme. Light theme, keyboard and touch were verified in Phase 4 and in the after matrix.
+- The baseline build checks at `894f93c` passed: `npx tsc --noEmit`, focused ESLint and `npm run build`. The final build checks at `404dd49` are in section 12.
 
 ## 4. Route coverage
 
@@ -158,8 +158,8 @@ The two `/admin` states are separate: the public state is the visitor sign-in sc
 | `/admin/settings` | Redirects to `/admin/settings/notifications` |
 | `/admin/settings/notifications` | Notification settings |
 | `/admin/settings/breaks` | Session breaks |
-| `/admin/files` | Redirects to `/admin/resources` |
-| `/admin/videos` | Redirects to `/admin/resources` |
+| `/admin/files` | Redirects to `/admin/resources?tab=files` |
+| `/admin/videos` | Redirects to `/admin/resources?tab=videos` |
 
 ## 5. Folder upload and folder tree baseline
 
@@ -203,21 +203,21 @@ The course's resource path is the root. The selected folder's name is the first 
 
 Run this before and after the Resources mobile work. The functional items must pass before and after. The 44px, full-name and theme-switch items are the target state for the mobile acceptance. Use a local instance with a disposable test course and folder, and clean up all test data. Do not create test data in production.
 
-- [ ] Both New folder and Upload folder are visible, at least 44px high, and not hidden behind a menu or the theme switch at 390px and 320px.
-- [ ] Upload a folder with at least three nested levels. Every file path starts with the selected course's resource path and preserves the selected root and every nested folder.
-- [ ] The folder rows exist before the uploads finish, and the tree shows the nested structure.
-- [ ] Upload into an existing folder and into a new folder. No files are flattened into the course root.
-- [ ] Two files with the same base name in one folder both survive. The duplicate retry uses the full filename.
-- [ ] One summary notification is sent for a folder upload, not one per file.
-- [ ] Rename a folder that contains files. Paths and file links stay correct, and the tree updates.
-- [ ] Move a folder with nested content to another folder in the same course. Path prefixes rewrite, files stay reachable, and no orphaned rows remain.
-- [ ] Moving a folder into its own descendant is blocked.
-- [ ] Deleting a non-empty folder shows the guard. Deleting after confirmation removes the intended folder and leaves no orphaned files.
-- [ ] The up-one-folder control works, and the active folder highlight follows the selection.
-- [ ] Desktop drag works. The touch move select works at 390px and 320px. Keyboard focus is visible.
-- [ ] The tree is open and closed with no document horizontal overflow at 390px and 320px.
-- [ ] The course picker shows the full course name and code at 320px and is not covered by the theme switch.
-- [ ] No test data remains.
+- [x] Both New folder and Upload folder are visible, at least 44px high, and not hidden behind a menu or the theme switch at 390px and 320px.
+- [x] Upload a folder with at least three nested levels. Every file path starts with the selected course's resource path and preserves the selected root and every nested folder.
+- [x] The folder rows exist before the uploads finish, and the tree shows the nested structure.
+- [x] Upload into an existing folder and into a new folder. No files are flattened into the course root.
+- [x] Two files with the same base name in one folder both survive. The duplicate retry uses the full filename.
+- [x] One summary notification is sent for a folder upload, not one per file.
+- [x] Rename a folder that contains files. Paths and file links stay correct, and the tree updates.
+- [x] Move a folder with nested content to another folder in the same course. Path prefixes rewrite, files stay reachable, and no orphaned rows remain.
+- [x] Moving a folder into its own descendant is blocked.
+- [x] Deleting a non-empty folder shows the guard. Deleting after confirmation removes the intended folder and leaves no orphaned files.
+- [x] The up-one-folder control works, and the active folder highlight follows the selection.
+- [x] Desktop drag works. The touch move select works at 390px and 320px. Keyboard focus is visible.
+- [x] The tree is open and closed with no document horizontal overflow at 390px and 320px.
+- [x] The course picker shows the full course name and code at 320px and is not covered by the theme switch.
+- [x] No test data remains.
 
 ### 5.5 Optional touch drag
 
@@ -591,7 +591,7 @@ Acceptance:
 - The navigation rail scrolling horizontally is intentional. The missing affordance is the bug, not the scrolling itself.
 - The theme switch existing on phones is intentional. The overlap is the bug.
 - `/admin` showing the sign-in screen to a visitor is intentional. The signed-in dashboard is a separate state.
-- The admin schedule and notifications redirects are intentional. The Videos tab destination is the only redirect bug.
+- The admin schedule, notifications, files and videos redirects are intentional. The Videos tab destination was the only redirect bug; it is fixed and recorded in Appendix B.
 - `Notifications, 15 unread` in the clipped list is the bell's accessible label. The badge overflow is covered in P2.4, not with the navigation labels.
 - Long role and course headings wrapping is not truncation. The full names stay.
 - The raw small-target counts include inline text links and code tokens. The 44px rule applies to primary and icon-only controls, not every inline word.
@@ -748,7 +748,7 @@ Run the whole matrix again after each phase and once at the end.
 - Desktop at 1280px and 1440px, to confirm the mobile controls did not change the desktop layout.
 - Production deployment verification after the final UI commit.
 
-Record the after results in this plan or in a follow-up document if the matrix changes enough to need its own file. The after matrix is the evidence for the definition of done.
+The after results are recorded in section 12. The after matrix is the evidence for the definition of done.
 
 ### Commit boundaries
 
@@ -787,27 +787,27 @@ The plan is ready to execute, but these choices change the shape of the work. Th
 
 The mobile pass is done when all of the following are true at 390x844 and 320x568.
 
-- [ ] All 56 route states are loaded, 112 page loads total.
-- [ ] Every route has document `scrollWidth` less than or equal to the viewport. Internal table scrollers are allowed and have a visible, keyboard-reachable affordance.
-- [ ] The public navigation has no label cut off at rest without an affordance, and every destination is reachable in at most two taps.
-- [ ] The admin navigation has every destination reachable, with the bell and Sign out visible.
-- [ ] The next-class dock does not cover the `All courses` link, the course code, the Download or any other control.
-- [ ] The theme control does not cover a primary action or a card link at first paint.
-- [ ] Primary actions and icon-only controls are at least 44x44.
-- [ ] Inputs, selects and textareas are at least 16px and 44px high.
-- [ ] The notification bell and close are at least 44x44, and the panel fits.
-- [ ] The timetable, registration, attendance and SHA256 tables are readable, complete and scroll or wrap visibly.
-- [ ] The folder tree is visible and openable at both widths, both New folder and Upload folder are visible, and the full folder regression checklist passes with cleanup.
-- [ ] The Resources course picker is 44px, 16px and full-name at 320px.
-- [ ] `/admin/resources?tab=videos` selects Videos, and `/admin/videos` lands on Videos.
-- [ ] The settings pages keep their link navigation, with 44px links and a non-colour active state.
-- [ ] The redirects in Appendix B work at both widths.
-- [ ] No third-party reader-side requests or assets are added.
-- [ ] "Cybersecurity" spelling is correct, full course names are used, no em-dashes are introduced, and the pixel-art style is unchanged.
-- [ ] The student attendance view remains tabled.
-- [ ] Desktop at 1280px and 1440px is unchanged except for the intended mobile-only controls.
-- [ ] `npx tsc --noEmit`, focused ESLint and `npm run build` pass.
-- [ ] The production deployment is verified after the final UI commit.
+- [x] All 56 route states are loaded at both widths and both schemes (224 page loads in the after matrix).
+- [x] Every route has document `scrollWidth` less than or equal to the viewport. Internal table scrollers are allowed and have a visible, keyboard-reachable affordance.
+- [x] The public navigation has no label cut off at rest without an affordance, and every destination is reachable in at most two taps.
+- [x] The admin navigation has every destination reachable, with the bell and Sign out visible.
+- [x] The next-class dock does not cover the `All courses` link, the course code, the Download or any other control.
+- [x] The theme control does not cover a primary action or a card link at first paint.
+- [x] Primary actions and icon-only controls are at least 44x44.
+- [x] Inputs, selects and textareas are at least 16px and 44px high.
+- [x] The notification bell and close are at least 44x44, and the panel fits.
+- [x] The timetable, registration, attendance and SHA256 tables are readable, complete and scroll or wrap visibly.
+- [x] The folder tree is visible and openable at both widths, both New folder and Upload folder are visible, and the full folder regression checklist passes with cleanup.
+- [x] The Resources course picker is 44px, 16px and full-name at 320px.
+- [x] `/admin/resources?tab=videos` selects Videos, and `/admin/videos` lands on Videos.
+- [x] The settings pages keep their link navigation, with 44px links and a non-colour active state.
+- [x] The redirects in Appendix B work at both widths.
+- [x] No third-party reader-side requests or assets are added.
+- [x] "Cybersecurity" spelling is correct, full course names are used, no em-dashes are introduced, and the pixel-art style is unchanged.
+- [x] The student attendance view remains tabled.
+- [x] Desktop at 1280px and 1440px is unchanged except for the intended mobile-only controls.
+- [x] `npx tsc --noEmit`, focused ESLint and `npm run build` pass.
+- [x] The production deployment is verified after the final UI commit.
 
 ## 10. Risks and mitigations
 
@@ -824,23 +824,69 @@ The mobile pass is done when all of the following are true at 390x844 and 320x56
 
 ## 11. Approval checklist
 
-- [ ] I approve the 56-state route coverage and the P1, P2 and P3 priorities.
-- [ ] D1: public navigation pattern.
-- [ ] D2: admin navigation pattern.
-- [ ] D3: theme control.
-- [ ] D4: next-class dock.
-- [ ] D5: tables.
-- [ ] D6: folder touch movement.
-- [ ] D7: Videos tab.
-- [ ] D8: phase order.
-- [ ] The student attendance view stays tabled.
-- [ ] The folder tree and both upload paths stay first-class.
+- [x] I approve the 56-state route coverage and the P1, P2 and P3 priorities.
+- [x] D1: public navigation pattern.
+- [x] D2: admin navigation pattern.
+- [x] D3: theme control.
+- [x] D4: next-class dock.
+- [x] D5: tables.
+- [x] D6: folder touch movement.
+- [x] D7: Videos tab.
+- [x] D8: phase order.
+- [x] The student attendance view stays tabled.
+- [x] The folder tree and both upload paths stay first-class.
 
-If the answers are "use the recommendations", the plan starts with D7 as a small isolated fix if approved, then Phase 1. No Phase 1 to Phase 4 code is part of this document or this commit.
+The recommendations were approved and executed. D7 was the isolated Videos fix `3bf4967`; Phase 1 to Phase 4 followed and merged through `404dd49`. Section 12 records the after results.
+
+## 12. After results
+
+**Status:** Implemented, verified and deployed. The final UI commit is `404dd49`, and the final UI deployment is `dpl_5JSwKwDQ4CjhxM6TZyhw4hjJ34CZ` (Ready, promoted, aliased to https://nutmcybersecurity.vercel.app).
+
+| Check | Result |
+|---|---|
+| Mobile after matrix | 224 loads, 0 issues |
+| Interaction suite | 147/147 passed |
+| Folder regression | 82/82 passed, cleanup verified |
+| Desktop audit | 127 rows, 2,111 checks, 0 failures |
+| TypeScript | `npx tsc --noEmit` passed |
+| Build | `npm run build` passed on Next 16.4.2 with Cache Components |
+| Production smoke | 68 rows, 0 failures, no external requests |
+
+### 12.1 Mobile after matrix
+
+The after matrix loaded the 44 public states and the 12 staff states at 390x844 and 320x568, in dark and light, for 224 page loads. The same checks as the baseline found 0 issues: no document overflow, no clipped labels, no dock or theme overlap, no primary or icon-only control under 44x44, no input or select under 16px or 44px, and every table scroller focusable and labelled.
+
+The 12 staff states cover `/admin`, `/admin/attendance`, `/admin/announce`, `/admin/resources`, `/admin/resources?tab=videos`, `/admin/schedule`, `/admin/notifications`, `/admin/settings`, `/admin/settings/notifications`, `/admin/settings/breaks`, `/admin/files` and `/admin/videos`. The matrix used `Valor`, a super admin with `roster`, so the settings redirect reaches Notifications. `/admin/roll` is supplementary and is covered in the desktop pass. A separate non-super check confirmed `/admin/settings` reaches Session breaks for an admin without `roster`, and that both destinations preserve light mode.
+
+Fixes found and completed in Phase 4:
+
+- Public timeline filter chips, the timeline empty-state "Show all" button, the "Weekly timetable" link and the Resources section pills were raised to 44px.
+- Notification panel controls were sized for phones: the turn-on button, disclosure links, list rows, Got it, Mark all as read, the quiet-hours time inputs and the checkbox labels.
+- `/admin/settings` became a 307 route handler so the redirect happens before the HTML is rendered and light mode survives.
+- The folder tree `aside` gained `min-w-0`, which stops its min-content width from expanding the grid column and overflowing at 320px with the tree open. This is the only 320px tree-open fix; desktop is unchanged.
+- `/careers/[role]` gained `export const instant = false` to allow the request-time role page after Cache Components enabled validation. The career routes return 200 and match the course and viewer routes.
+
+### 12.2 Interaction and folder checks
+
+The interaction suite passed 147/147 checks at 390x844 and 320x568 in dark and light. It covered the public More sheet and the staff Menu sheet: 44px trigger, focus moved inside, Tab trap, Escape and backdrop close, focus returned to the trigger, and body scroll locked. It also covered 44px links, the 74x44 theme slider, the 44px bell, the focus-trapped notification panel and its viewport fit, 44px Sign out, the settings redirects and theme preservation, and the visible, focusable table scrollers for attendance and SHA256.
+
+The folder regression passed 82/82 checks against a disposable `CSC 309` root and `phase4regression-<timestamp>` folders: five files across three nested levels, duplicate base names, full path preservation, upload into an existing folder, tree navigation, rename, move, the descendant guard, the non-empty guard, empty-folder removal, touch move at 390 and 320, desktop drag, the 44px and 16px full-name course picker, and the tree open and closed at 320 with no document overflow. Cleanup verified 0 `course_folders` for `CSC 309`, only the two permanent `files` rows, restored notification preferences and 0 test `notifications_sent` rows.
+
+### 12.3 Desktop
+
+The desktop audit passed 127 rows and 2,111 checks with 0 failures at 1280x900 and 1440x900. It covered the 44 public and 13 staff routes in dark, including the supplementary `/admin/roll`; light on `/`, `/timetable`, `/resources`, the visitor `/admin`, `/admin/resources` and `/admin/settings/notifications`; and a non-super `/admin/settings` redirect check.
+
+The checks confirmed no document overflow, the phone More and Menu triggers and the phone dock and spacer hidden, the desktop rail visible with the active pill aligned to the current link and every link inside the rail, the bell and Sign out visible, the header inner centered at its maximum width, desktop tables present for registration, attendance and SHA256, a keyboard focus ring on the rail, all redirects, and no external requests.
+
+### 12.4 Build and production
+
+`npx tsc --noEmit` passed. `npm run build` passed on Next 16.4.2 with Cache Components and Partial Prefetching; the career routes build and return 200. Focused ESLint on the changed files reported 0 errors and 2 pre-existing `no-unused-vars` warnings in `NotificationBell.tsx` and `TimelineInteractive.tsx`. Those warnings are not regressions.
+
+The production smoke passed 68 rows with 0 failures at 390x844 and 1280x900 in dark and light. It covered 14 public routes and the settings, files and videos redirects, and observed no external requests. The final UI deployment is `dpl_5JSwKwDQ4CjhxM6TZyhw4hjJ34CZ` from `404dd49`, Ready, promoted and aliased. The docs commit that records this section does not change the UI.
 
 ## Appendix A: Full route audit matrix
 
-This is the durable 390px and 320px result for every route state. The raw audit output is in the local `mobile-audit` temp folder and is not committed.
+This is the baseline 390px and 320px result for every route state, recorded before the fixes. It is kept as the problem statement. The after matrix in section 12 re-ran the same 56 states at both widths and both schemes and found 0 issues. The raw baseline output is in the local `mobile-audit` temp folder and is not committed.
 
 Legend:
 
@@ -921,33 +967,36 @@ Legend:
 | `/admin/files` | sw 390; clip Roll/Staff/Announce/Settings; small 35; h1 y149 h36; -> /admin/resources | sw 320; clip Roll/Staff/Announce/Settings; pill Peace and Conflict Resolution (GST 3; small 35; h1 y149 h36; -> /admin/resources |
 | `/admin/videos` | sw 390; clip Roll/Staff/Announce/Settings; small 35; h1 y149 h36; -> /admin/resources | sw 320; clip Roll/Staff/Announce/Settings/Notifications, 15 unread; pill Peace and Conflict Resolution (GST 3; small 35; h1 y149 h36; -> /admin/resources |
 
-The staff `/admin` row is the signed-in dashboard. The public `/admin` row above is the visitor sign-in. The Resources, `?tab=videos`, Files and Videos rows all show the Files tab at both widths; that is the P3.1 bug. The redirect destinations are in Appendix B.
+The staff `/admin` row is the signed-in dashboard. The public `/admin` row above is the visitor sign-in. At baseline, the Resources, `?tab=videos`, Files and Videos rows all showed the Files tab at both widths; that was the P3.1 bug. The final build sends `/admin/files` to `/admin/resources?tab=files` and `/admin/videos` to `/admin/resources?tab=videos`; Appendix B is the current redirect map.
 
 ## Appendix B: Redirect map
 
-| Source | Destination | Expected state | Audit result |
+| Source | Destination | Expected state | Final result |
 |---|---|---|---|
-| `/admin/settings` | `/admin/settings/notifications` | Notifications for a super admin; Session breaks for other staff | Correct for the audited super admin. Verify the non-super destination in Phase 4. |
+| `/admin/settings` | `/admin/settings/notifications` | Notifications for a super admin; Session breaks for other staff | Correct for the super admin and the non-super admin. The 307 keeps light mode. |
 | `/admin/schedule` | `/admin/settings/breaks` | Session breaks | Correct |
 | `/admin/notifications` | `/admin/settings/notifications` | Notification settings | Correct |
-| `/admin/files` | `/admin/resources` | Files tab | Correct destination; the tab is implicit |
-| `/admin/videos` | `/admin/resources` | Videos tab | Bug: lands on Files. Should go to `/admin/resources?tab=videos`. |
-| `/admin/resources?tab=videos` | Same route | Videos tab | Bug: the query is ignored and Files is selected. Fix in P3.1. |
+| `/admin/files` | `/admin/resources?tab=files` | Files tab | Correct at 390, 320 and desktop |
+| `/admin/videos` | `/admin/resources?tab=videos` | Videos tab | Correct at 390, 320 and desktop |
+| `/admin/resources?tab=videos` | Same route | Videos tab | Correct; the query selects Videos |
 
-The redirects are intentional. The only redirect bug is the lost Videos tab. The old `/admin/schedule` and `/admin/notifications` pages are now sections under Settings, and the audit treats their redirects as route states.
+The redirects are intentional. The final build carries `?tab=files` through `/admin/files` and `?tab=videos` through `/admin/videos`, and the Resources page reads the query instead of always selecting Files. The settings redirect is a 307 route handler, so the theme survives. The old `/admin/schedule` and `/admin/notifications` pages are now sections under Settings, and the audit treats their redirects as route states.
 
 ## Appendix C: Evidence and production baseline
 
 - Production: `https://nutmcybersecurity.vercel.app`.
-- Deployment: `dpl_5AcznJRDssgp2aD8ovkzxieWNeBa` from commit `894f93c`, Ready and aliased.
+- Deployment: final UI deployment `dpl_5JSwKwDQ4CjhxM6TZyhw4hjJ34CZ` from commit `404dd49` on `main`, Ready, promoted and aliased.
 - Vercel project: `nutmcybersecurity`, root directory `website`, team `geek-guys-projects`.
-- Audit: 56 route states, 44 public and 12 staff, at 390x844 and 320x568, 112 page loads.
-- Browser: Chrome, headless. Dark scheme. Service workers blocked. Production data. Read-only.
+- Baseline audit: 56 route states, 44 public and 12 staff, at 390x844 and 320x568, 112 page loads, dark scheme.
+- After matrix: the same 56 route states at both widths and in light and dark, 224 page loads, 0 issues.
+- Browser: Chrome, headless. Service workers blocked. Production data. Read-only.
 - Staff pages used the staff account. The code is not recorded in this document.
-- Raw audit files: `mobile-audit/audit-table.md`, `mobile-audit/audit-findings.md`, `mobile-audit/audit.json` and `mobile-audit/audit-progress.log` under the local temp folder `C:/Users/HomePC/AppData/Local/Temp/opencode/`. They are not committed. Appendix A is the durable matrix.
-- The folder flow test was separate from the audit. It verified nested uploads, duplicate names, the summary notification, move, rename, the delete guard and cleanup. It left no test data.
+- Raw baseline files: `mobile-audit/audit-table.md`, `mobile-audit/audit-findings.md`, `mobile-audit/audit.json` and `mobile-audit/audit-progress.log` under the local temp folder `C:/Users/HomePC/AppData/Local/Temp/opencode/`. They are not committed. Appendix A is the durable baseline matrix.
+- Raw after files: `mobile-audit/phase4-audit.json`, `mobile-audit/phase4-progress.log`, `mobile-audit/phase4-interactions.py`, `mobile-audit/folder-regression-final.log`, `mobile-audit/desktop-audit.json`, `mobile-audit/desktop-audit.py`, `mobile-audit/prod-smoke.json`, `mobile-audit/prod-smoke.py` and `mobile-audit/summarize-phase4.py`. They are not committed.
+- The folder flow test was separate from the route audit. The final regression passed 82/82 checks, including nested uploads, duplicate names, the summary notification, move, rename, the delete guard and cleanup. It left no test data.
 - The doubled text in some screenshots is a capture artifact. The DOM check found one visible copy, one main element and no text shadow.
-- The build checks at `894f93c` passed: `npx tsc --noEmit`, focused ESLint and `npm run build`. The existing `listPending` warning is pre-existing and unrelated.
-- This plan is documentation only. It does not change the production UI. The production site remains the verified folder deployment above until an approved UI phase is merged.
+- Build checks at `404dd49` passed: `npx tsc --noEmit`, focused ESLint and `npm run build`. ESLint reported 0 errors and 2 pre-existing unused-variable warnings.
+- Production smoke passed 68 rows with 0 failures at 390x844 and 1280x900 in dark and light, covering 14 public routes and the settings, files and videos redirects. No external requests were observed.
+- This plan was documentation first and is now implemented. The production site runs the final UI commit. The docs commit that records these results does not change the UI.
 
-The after-audit uses the same 56-route matrix, adds the light theme and keyboard checks, and records the folder regression. The plan is complete when the acceptance criteria in section 9 are met and the user approves the phase results.
+The plan is complete: the acceptance criteria in section 9 are met, the approval recommendations were used, and section 12 records the evidence.
