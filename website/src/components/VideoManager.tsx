@@ -132,7 +132,7 @@ export default function VideoManager({
           <input
             name="url"
             placeholder="https://www.youtube.com/watch?v=..."
-            className="mt-1 w-full rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent"
+            className="mt-1 w-full rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
           />
         </label>
         <label className="block">
@@ -140,7 +140,7 @@ export default function VideoManager({
           <input
             name="title"
             placeholder="Week 3, the lecture"
-            className="mt-1 w-full rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent"
+            className="mt-1 w-full rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
           />
         </label>
         <label className="block">
@@ -150,14 +150,14 @@ export default function VideoManager({
           <input
             name="note"
             placeholder="The second half of the buffer overflows lecture."
-            className="mt-1 w-full rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent"
+            className="mt-1 w-full rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
           />
         </label>
         <div className="sm:col-span-2">
           <button
             type="submit"
             disabled={pending}
-            className="pressable inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-foreground disabled:opacity-50"
+            className="pressable inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-foreground disabled:opacity-50 max-sm:min-h-11 max-sm:px-4 max-sm:text-base"
           >
             {pending ? (
               <Loader2 size={14} className="animate-spin" />
@@ -176,7 +176,7 @@ export default function VideoManager({
           </li>
         ) : (
           here.map((video) => (
-            <li key={video.id} className="flex items-center gap-3 py-2.5">
+            <li key={video.id} className="flex flex-wrap items-center gap-3 py-2.5">
               <span className="w-16 shrink-0 overflow-hidden rounded bg-black">
                 {video.thumb_path ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -212,28 +212,32 @@ export default function VideoManager({
                       {video.note || video.youtube_id}
                     </span>
                   </span>
-                  <a
-                    href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
-                  >
-                    Open
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setEditing(video.id)}
-                    className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
-                  >
-                    <Pencil size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(video.id)}
-                    className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  <span className="flex shrink-0 items-center gap-3 max-sm:w-full max-sm:justify-end max-sm:gap-1">
+                    <a
+                      href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-3"
+                    >
+                      Open
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(video.id)}
+                      aria-label={`Edit ${video.title}`}
+                      className="pressable inline-flex shrink-0 items-center justify-center rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground max-sm:h-11 max-sm:w-11"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => remove(video.id)}
+                      aria-label={`Delete ${video.title}`}
+                      className="pressable inline-flex shrink-0 items-center justify-center rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground max-sm:h-11 max-sm:w-11"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </span>
                 </>
               )}
             </li>
@@ -262,25 +266,27 @@ function EditRow({
         autoFocus
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent"
+        className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:basis-full max-sm:text-base"
       />
       <input
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="A line about it"
-        className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent"
+        className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:basis-full max-sm:text-base"
       />
       <button
         type="button"
         onClick={() => onSave(title, note)}
-        className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-accent transition-opacity hover:opacity-75"
+        aria-label="Save the video details"
+        className="pressable inline-flex shrink-0 items-center justify-center rounded px-2 py-1 text-[11.5px] text-accent transition-opacity hover:opacity-75 max-sm:h-11 max-sm:w-11"
       >
         <Check size={14} />
       </button>
       <button
         type="button"
         onClick={onCancel}
-        className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
+        aria-label="Cancel the video edit"
+        className="pressable inline-flex shrink-0 items-center justify-center rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground max-sm:h-11 max-sm:w-11"
       >
         <X size={14} />
       </button>

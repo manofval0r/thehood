@@ -59,7 +59,7 @@ function Switch({
           }}
           aria-pressed={on}
           className={
-            "pressable inline-flex shrink-0 items-center gap-2 rounded-md border px-2.5 py-1.5 text-[11.5px] font-medium transition-colors disabled:opacity-50 " +
+            "pressable inline-flex shrink-0 items-center gap-2 rounded-md border px-2.5 py-1.5 text-[11.5px] font-medium transition-colors disabled:opacity-50 max-sm:min-h-11 max-sm:px-3 " +
             (on
               ? "border-accent/40 bg-accent/10 text-accent hover:border-accent/60"
               : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground")

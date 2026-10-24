@@ -125,7 +125,7 @@ export default function BreakEditor({
                               change(s.code, s.dayIndex, s.startMin, n)
                             }
                             aria-pressed={on}
-                            className={`pressable px-2.5 py-1.5 font-mono text-[11.5px] transition-colors ${
+                            className={`pressable px-2.5 py-1.5 font-mono text-[11.5px] transition-colors max-sm:min-h-11 max-sm:min-w-11 max-sm:px-2 ${
                               on
                                 ? "bg-accent text-accent-foreground"
                                 : "bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground"

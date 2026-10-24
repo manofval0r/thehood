@@ -44,9 +44,9 @@ export default function SettingsTabs({
             href={tab.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "pressable -mb-px shrink-0 border-b-2 px-3 py-2 text-[12.5px] font-medium transition-colors",
+              "pressable -mb-px inline-flex shrink-0 items-center border-b-2 px-3 py-2 text-[12.5px] font-medium transition-colors max-sm:min-h-11 max-sm:px-4",
               active
-                ? "border-accent text-foreground"
+                ? "border-accent font-semibold text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             )}
           >

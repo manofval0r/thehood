@@ -50,7 +50,7 @@ function TestButton({ id, label }: { id: CatalogueId; label: string }) {
             setBusy(false);
           }
         }}
-        className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-50"
+        className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-50 max-sm:min-h-11 max-sm:px-3"
       >
         {busy ? (
           <Loader2 size={12} className="animate-spin" />
