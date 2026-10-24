@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFileText } from "./use-file";
 
 /**
@@ -87,6 +87,8 @@ export function delimiterOf(text: string): string {
 export default function CsvViewer({ url }: { url: string }) {
   const state = useFileText(url);
   const [limit, setLimit] = useState(200);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
 
   const parsed = useMemo(() => {
     if (state.status !== "ready") return null;
@@ -95,6 +97,21 @@ export default function CsvViewer({ url }: { url: string }) {
     const width = rows.reduce((w, r) => Math.max(w, r.length), 0);
     return { rows, width };
   }, [state]);
+
+  // A scrollbar is not a reliable cue on a phone: it is often hidden until
+  // the reader already knows to swipe. Measure the table and say so.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const update = () => {
+      const next = el.scrollWidth - el.clientWidth > 1;
+      setOverflowing((prev) => (prev === next ? prev : next));
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [parsed, limit]);
 
   if (state.status === "loading") {
     return (
@@ -133,14 +150,26 @@ export default function CsvViewer({ url }: { url: string }) {
           <button
             type="button"
             onClick={() => setLimit((l) => l + 500)}
-            className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="pressable max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-3 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
           >
             Show more
           </button>
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
+      {overflowing && (
+        <p className="shrink-0 border-b border-border bg-surface-raised px-4 py-1.5 text-[11.5px] text-muted-foreground sm:hidden">
+          Swipe sideways to see the remaining columns.
+        </p>
+      )}
+
+      <div
+        ref={scrollRef}
+        role="region"
+        aria-label="Table. Scrolls sideways for the remaining columns."
+        tabIndex={0}
+        className="min-h-0 flex-1 overflow-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+      >
         <table className="w-full border-collapse text-[12.5px]">
           <thead>
             <tr>
@@ -165,7 +194,7 @@ export default function CsvViewer({ url }: { url: string }) {
                     key={c}
                     className="px-3 py-1.5 align-top font-mono text-[12px] text-foreground"
                   >
-                    <span className="block max-w-[26rem] truncate" title={row[c]}>
+                    <span className="block max-w-[26rem] whitespace-pre-wrap break-words">
                       {row[c]}
                     </span>
                   </td>

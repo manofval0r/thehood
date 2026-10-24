@@ -23,9 +23,12 @@ import { cn } from "@/lib/utils";
 export function TableFrame({
   children,
   className,
+  label = "Table. Scrolls sideways for the remaining columns.",
 }: {
   children: React.ReactNode;
   className?: string;
+  /** What this table contains, so the scroll region has a name. */
+  label?: string;
 }) {
   const ref = React.useRef<HTMLDivElement>(null);
   const [edges, setEdges] = React.useState({ left: false, right: false });
@@ -63,7 +66,10 @@ export function TableFrame({
     <div className={cn("relative", className)}>
       <div
         ref={ref}
-        className="overflow-x-auto overflow-y-auto rounded-lg border border-border bg-surface"
+        role="region"
+        aria-label={label}
+        tabIndex={0}
+        className="overflow-x-auto overflow-y-auto rounded-lg border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         {children}
       </div>

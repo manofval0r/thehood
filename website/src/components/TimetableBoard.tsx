@@ -26,8 +26,10 @@ import { cn } from "@/lib/utils";
  * eleven sessions is not equally relevant at every moment, and the class that
  * is running or next should not have to compete with the ones three days away.
  *
- * The two views are not ranked. The table stays the default, because it is
- * faster to read and prints correctly.
+ * The two views are not ranked. The table is the default on a desktop, because
+ * it is faster to read and prints correctly. On a phone it cannot show six
+ * columns without sideways scrolling, so the card view is the default there
+ * and the Grid tab stays one tap away.
  */
 
 const DAY_ORDER = [
@@ -59,21 +61,30 @@ export default function TimetableBoard({
   breaks: BreakSetting[];
 }) {
   const [view, setView] = React.useState<View>("grid");
+  const [ready, setReady] = React.useState(false);
 
   // Restored after mount rather than read during render: this is a server
   // component tree, so a stored preference cannot exist at first paint and
   // guessing here would flash the wrong view at every reader who chose one.
+  // With no stored choice, a phone starts on the cards: the grid is three
+  // screens wide there, and the first thing a reader needs is the class, not
+  // a table they have to drag sideways.
   React.useEffect(() => {
+    const phone = window.matchMedia("(max-width: 639px)").matches;
+    let next: View = phone ? "perspective" : "grid";
     try {
       const stored = window.localStorage.getItem(VIEW_KEY);
-      if (stored === "grid" || stored === "perspective") setView(stored);
+      if (stored === "grid" || stored === "perspective") next = stored;
     } catch {
-      // Storage unavailable. The default view is fine.
+      // Storage unavailable. The viewport default still applies.
     }
+    setView(next);
+    setReady(true);
   }, []);
 
   const choose = (next: View) => {
     setView(next);
+    setReady(true);
     try {
       window.localStorage.setItem(VIEW_KEY, next);
     } catch {
@@ -88,17 +99,27 @@ export default function TimetableBoard({
       <div className="print-hide mb-5 flex flex-wrap items-center justify-between gap-4">
         <ViewSlicer view={view} onChange={choose} />
         <p className="text-[12.5px] text-muted-foreground">
-            {view === "grid"
-              ? `${weeklySessions} weekly sessions across ${courseCount} courses, in aligned columns.`
-              : "Sorted by distance from now, so what is running sits forward."}
-          </p>
+          {view === "grid"
+            ? `${weeklySessions} weekly sessions across ${courseCount} courses, in aligned columns.`
+            : "Sorted by distance from now, so what is running sits forward."}
+        </p>
       </div>
 
       {/* The table is also what gets printed, whichever view is on screen.
           Switching to perspective must not change what comes out of the
-          printer, so the grid stays mounted and is only hidden visually. */}
-      <div className={cn(view === "grid" ? "block" : "hidden print:block")}>
-        <TableFrame>
+          printer, so the grid stays mounted and is only hidden visually.
+          Until the phone default is resolved, the grid is hidden below the
+          small breakpoint so a wide table never flashes before the cards. */}
+      <div
+        id="timetable-grid-panel"
+        role="tabpanel"
+        aria-labelledby="timetable-grid-tab"
+        className={cn(
+          view === "grid" ? "block" : "hidden print:block",
+          !ready && "max-sm:hidden"
+        )}
+      >
+        <TableFrame label="Timetable. Scrolls sideways for the remaining columns.">
           <DataTable>
             <Thead>
               {/* Sized for the widest thing that can land in each: the code, an
@@ -229,7 +250,12 @@ export default function TimetableBoard({
       </div>
 
       {view === "perspective" && (
-        <div className="print-hidden">
+        <div
+          id="timetable-perspective-panel"
+          role="tabpanel"
+          aria-labelledby="timetable-perspective-tab"
+          className="print-hidden"
+        >
           <PerspectiveView byDay={byDay} days={days} />
           <p className="mt-6 flex items-center gap-2 text-[12.5px] text-muted-foreground">
             <span className="tnum font-semibold text-foreground">{totalUnits}</span>
@@ -304,12 +330,23 @@ function ViewSlicer({
         return (
           <button
             key={o.id}
+            id={`timetable-${o.id}-tab`}
             data-view={o.id}
             role="tab"
             aria-selected={active}
+            aria-controls={`timetable-${o.id}-panel`}
             onClick={() => onChange(o.id)}
+            onKeyDown={(e) => {
+              if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+              e.preventDefault();
+              const next = o.id === "grid" ? "perspective" : "grid";
+              onChange(next);
+              listRef.current
+                ?.querySelector<HTMLElement>(`[data-view="${next}"]`)
+                ?.focus();
+            }}
             className={cn(
-              "pressable relative z-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-medium transition-colors duration-300",
+              "pressable relative z-10 inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-medium transition-colors duration-300 sm:min-h-0",
               active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -556,7 +593,7 @@ function PerspectiveView({
                             )}
                             <span
                               className={cn(
-                                "truncate",
+                                "min-w-0 flex-1",
                                 isNearest
                                   ? "text-[16px] font-medium"
                                   : "text-[14px] font-medium",
@@ -569,7 +606,7 @@ function PerspectiveView({
 
                           <span
                             className={cn(
-                              "flex shrink-0 items-center gap-4",
+                              "flex w-full flex-wrap items-center gap-x-4 gap-y-1 sm:w-auto sm:shrink-0",
                               isNearest
                                 ? "text-[12.5px] text-muted-foreground"
                                 : "text-[12px] text-muted-foreground"
