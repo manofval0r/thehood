@@ -21,7 +21,11 @@ export const metadata = {
  * course picker labelled with codes. The picker is now shared, the course is
  * named in full, and the two kinds of material are tabs on one page.
  */
-export default async function AdminResourcesPage() {
+export default function AdminResourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   return (
     <div className="mx-auto w-full max-w-4xl px-5 py-14 sm:px-8 sm:py-20">
       <AdminHeader
@@ -30,7 +34,7 @@ export default async function AdminResourcesPage() {
       />
 
       <Suspense fallback={<AreaSkeleton />}>
-        <ResourcesArea />
+        <ResourcesArea searchParams={searchParams} />
       </Suspense>
     </div>
   );
@@ -45,8 +49,13 @@ function AreaSkeleton() {
   );
 }
 
-async function ResourcesArea() {
+async function ResourcesArea({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   await connection();
+  const initialTab = (await searchParams).tab === "videos" ? "videos" : "files";
   const me = await currentStaff();
 
   if (!me) {
@@ -99,6 +108,7 @@ async function ResourcesArea() {
         added_by: v.added_by,
       }))}
       thumbBase={thumbBaseUrl() ?? ""}
+      initialTab={initialTab}
     />
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FolderOpen, Play } from "lucide-react";
 import CoursePicker, { type CourseOption } from "@/components/CoursePicker";
 import FileManager, { type FileRow } from "@/components/FileManager";
@@ -22,6 +23,7 @@ export default function ResourceManager({
   folders,
   videos,
   thumbBase,
+  initialTab,
 }: {
   courses: CourseOption[];
   files: FileRow[];
@@ -29,9 +31,28 @@ export default function ResourceManager({
   videos: VideoRow[];
   /** The address the video pictures are served from, on this site. */
   thumbBase: string;
+  /** The tab named in the URL, so a shared link opens the right one. */
+  initialTab: "files" | "videos";
 }) {
   const [course, setCourse] = useState(courses[0]?.code ?? "");
-  const [tab, setTab] = useState<"files" | "videos">("files");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const tab: "files" | "videos" =
+    requestedTab === "files" || requestedTab === "videos"
+      ? requestedTab
+      : initialTab;
+
+  // The URL is the source of truth, so a reload, a shared link and the
+  // browser's back and forward buttons all open the same tab.
+  function selectTab(next: "files" | "videos") {
+    if (next === tab) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", next);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   const fileCount = files.filter((f) => f.course === course).length;
   const videoCount = videos.filter((v) => v.course === course).length;
@@ -58,10 +79,11 @@ export default function ResourceManager({
         >
           <button
             type="button"
+            id="resource-tab-files"
             role="tab"
             aria-selected={tab === "files"}
-            aria-controls="resource-files"
-            onClick={() => setTab("files")}
+            aria-controls="resource-panel"
+            onClick={() => selectTab("files")}
             className={tabClass(tab === "files")}
           >
             <FolderOpen size={13} aria-hidden="true" />
@@ -79,10 +101,11 @@ export default function ResourceManager({
           </button>
           <button
             type="button"
+            id="resource-tab-videos"
             role="tab"
             aria-selected={tab === "videos"}
-            aria-controls="resource-videos"
-            onClick={() => setTab("videos")}
+            aria-controls="resource-panel"
+            onClick={() => selectTab("videos")}
             className={tabClass(tab === "videos")}
           >
             <Play size={13} aria-hidden="true" />
@@ -106,8 +129,11 @@ export default function ResourceManager({
       </div>
 
       <div
-        id={tab === "files" ? "resource-files" : "resource-videos"}
+        id="resource-panel"
         role="tabpanel"
+        aria-labelledby={
+          tab === "files" ? "resource-tab-files" : "resource-tab-videos"
+        }
         className="mt-3"
       >
         {tab === "files" ? (
