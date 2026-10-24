@@ -180,14 +180,14 @@ export function StaffManager({
                 <button
                   type="button"
                   onClick={() => approveStaffMember(p.id)}
-                  className="pressable rounded-md bg-accent px-3 py-1.5 text-[12px] font-semibold text-accent-foreground"
+                  className="pressable rounded-md bg-accent px-3 py-1.5 text-[12px] font-semibold text-accent-foreground max-sm:min-h-11 max-sm:px-4"
                 >
                   Approve
                 </button>
                 <button
                   type="button"
                   onClick={() => rejectStaffMember(p.id)}
-                  className="pressable rounded-md border border-border px-3 py-1.5 text-[12px] text-muted-foreground hover:text-foreground"
+                  className="pressable rounded-md border border-border px-3 py-1.5 text-[12px] text-muted-foreground hover:text-foreground max-sm:min-h-11 max-sm:px-4"
                 >
                   Say no
                 </button>
@@ -212,7 +212,7 @@ export function StaffManager({
               name="name"
               type="text"
               required
-              className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground outline-none focus-visible:border-accent"
+              className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
               placeholder="Dr Segun"
             />
           </div>
@@ -227,20 +227,17 @@ export function StaffManager({
               id="staff-email"
               name="email"
               type="email"
-              className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground outline-none focus-visible:border-accent"
+              className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
               placeholder="Optional"
             />
           </div>
 
           {isSuperUser && (
             <div>
-              <label
-                htmlFor="staff-super"
-                className="block text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
-              >
+              <p className="block text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
                 Super admin
-              </label>
-              <div className="mt-2 flex items-center gap-2">
+              </p>
+              <label className="mt-2 flex cursor-pointer items-center gap-2 max-sm:min-h-11">
                 <input
                   id="staff-super"
                   name="role"
@@ -257,7 +254,7 @@ export function StaffManager({
                     announcements to everybody. Off by default.
                   </span>
                 </span>
-              </div>
+              </label>
             </div>
           )}
         </div>
@@ -270,7 +267,7 @@ export function StaffManager({
             {PERMISSIONS.map((p) => (
               <label
                 key={p}
-                className="flex items-start gap-2 text-[12.5px] text-muted-foreground"
+                className="flex items-start gap-2 text-[12.5px] text-muted-foreground max-sm:min-h-11"
               >
                 <input
                   type="checkbox"
@@ -307,7 +304,7 @@ export function StaffManager({
         <button
           type="submit"
           disabled={pendingSubmit}
-          className="pressable mt-4 rounded-md bg-accent px-4 py-2 text-[13.5px] font-semibold text-accent-foreground disabled:opacity-60"
+          className="pressable mt-4 rounded-md bg-accent px-4 py-2 text-[13.5px] font-semibold text-accent-foreground disabled:opacity-60 max-sm:min-h-11 max-sm:text-base"
         >
           {pendingSubmit ? "Adding" : "Add them"}
         </button>
@@ -349,7 +346,7 @@ export function StaffManager({
                   <button
                     type="button"
                     onClick={() => showCode(p.id)}
-                    className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                    className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                   >
                     {code ? "Hide the code" : "Show the code"}
                   </button>
@@ -361,7 +358,7 @@ export function StaffManager({
                       <button
                         type="button"
                         onClick={() => revokeStaffMember(p.id)}
-                        className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                        className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                       >
                         Lock out
                       </button>
@@ -370,7 +367,7 @@ export function StaffManager({
                       <button
                         type="button"
                         onClick={() => reinstateStaffMember(p.id)}
-                        className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                        className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                       >
                         Let back in
                       </button>
@@ -378,7 +375,7 @@ export function StaffManager({
                     <button
                       type="button"
                       onClick={() => reissueStaffCode(p.id)}
-                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                     >
                       New code
                     </button>
@@ -387,14 +384,14 @@ export function StaffManager({
                       onClick={() =>
                         changeRole(p.id, p.role === "super" ? "admin" : "super")
                       }
-                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                     >
                       {p.role === "super" ? "Make an admin" : "Make a super admin"}
                     </button>
                     <button
                       type="button"
                       onClick={() => removeStaffMember(p.id)}
-                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground"
+                      className="pressable shrink-0 rounded px-2 py-1 text-[11.5px] text-muted hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                     >
                       Remove
                     </button>
@@ -412,7 +409,7 @@ export function StaffManager({
                   <button
                     type="button"
                     onClick={() => copy(p.id, code)}
-                    className="pressable rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:border-border-strong hover:bg-surface-hover"
+                    className="pressable rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground hover:border-border-strong hover:bg-surface-hover max-sm:min-h-11 max-sm:px-4"
                   >
                     {copied === p.id ? "Copied" : "Copy"}
                   </button>
@@ -510,7 +507,7 @@ function PermissionEditor({ person }: { person: StaffRow }) {
               }
               aria-pressed={on}
               className={
-                "pressable rounded-full border px-2.5 py-1 text-[11.5px] " +
+                "pressable rounded-full border px-2.5 py-1 text-[11.5px] max-sm:min-h-11 max-sm:px-3 " +
                 (on
                   ? "border-accent/50 bg-accent/10 text-accent"
                   : "border-border text-muted hover:text-foreground")
@@ -525,7 +522,7 @@ function PermissionEditor({ person }: { person: StaffRow }) {
         <button
           type="button"
           onClick={() => changePermissions(person.id, chosen)}
-          className="pressable rounded-md border border-border px-2.5 py-1 text-[11.5px] font-medium text-foreground hover:border-border-strong hover:bg-surface-hover"
+          className="pressable rounded-md border border-border px-2.5 py-1 text-[11.5px] font-medium text-foreground hover:border-border-strong hover:bg-surface-hover max-sm:min-h-11 max-sm:px-3"
         >
           Save
         </button>

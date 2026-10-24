@@ -84,7 +84,7 @@ function Submit({
       disabled={pending}
       className={
         className ??
-        "pressable inline-flex items-center gap-2 rounded-md bg-accent px-3.5 py-2 text-[12.5px] font-medium text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50"
+        "pressable inline-flex items-center gap-2 rounded-md bg-accent px-3.5 py-2 text-[12.5px] font-medium text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 max-sm:min-h-11 max-sm:px-4 max-sm:text-base"
       }
     >
       {pending ? (
@@ -276,7 +276,7 @@ export default function AnnouncementComposer({
                   aria-pressed={template === t.id}
                   title={t.help}
                   className={
-                    "pressable rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors " +
+                    "pressable rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors max-sm:min-h-11 max-sm:px-3 " +
                     (template === t.id
                       ? "border-accent bg-accent/12 text-accent"
                       : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground")
@@ -303,7 +303,7 @@ export default function AnnouncementComposer({
                 name="course"
                 value={course}
                 onChange={(e) => chooseCourse(e.target.value)}
-                className="mt-2 block w-full max-w-sm rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground sm:w-auto"
+                className="mt-2 block w-full max-w-sm rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground sm:w-auto max-sm:min-h-11 max-sm:text-base"
               >
                 <option value="">Everybody</option>
                 {courses.map((c) => (
@@ -337,7 +337,7 @@ export default function AnnouncementComposer({
                 placeholder={
                   definition.detail === "room" ? "Lab 2" : "11:00am"
                 }
-                className="mt-2 block w-full max-w-sm rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground"
+                className="mt-2 block w-full max-w-sm rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground max-sm:min-h-11 max-sm:text-base"
               />
             </div>
           )}
@@ -358,7 +358,7 @@ export default function AnnouncementComposer({
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={120}
                 required
-                className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground"
+                className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground max-sm:min-h-11 max-sm:text-base"
               />
             </div>
             <div>
@@ -374,7 +374,7 @@ export default function AnnouncementComposer({
                 value={href}
                 onChange={(e) => setHref(e.target.value)}
                 placeholder="/timetable"
-                className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[12.5px] text-foreground"
+                className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[12.5px] text-foreground max-sm:min-h-11 max-sm:text-base"
               />
             </div>
           </div>
@@ -394,7 +394,7 @@ export default function AnnouncementComposer({
               rows={3}
               maxLength={300}
               required
-              className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] leading-relaxed text-foreground"
+              className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] leading-relaxed text-foreground max-sm:min-h-11 max-sm:text-base"
             />
             <p className="mt-1.5 text-[12px] text-muted">
               {body.length} of 300 characters. A notification shows about three
@@ -414,7 +414,7 @@ export default function AnnouncementComposer({
               id="announce-when"
               name="when"
               type="datetime-local"
-              className="mt-2 block rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground"
+              className="mt-2 block rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-foreground max-sm:min-h-11 max-sm:text-base"
             />
             <p className="mt-1.5 text-[12px] text-muted">
               Left empty, it goes out now. Otherwise it goes out within five
@@ -424,7 +424,7 @@ export default function AnnouncementComposer({
 
           {/* The switches. */}
           <div className="space-y-2.5">
-            <label className="flex cursor-pointer items-start gap-2.5">
+            <label className="flex cursor-pointer items-start gap-2.5 max-sm:min-h-11">
               <input
                 type="checkbox"
                 name="urgent"
@@ -444,7 +444,7 @@ export default function AnnouncementComposer({
               </span>
             </label>
 
-            <label className="flex cursor-pointer items-start gap-2.5">
+            <label className="flex cursor-pointer items-start gap-2.5 max-sm:min-h-11">
               <input
                 type="checkbox"
                 name="needsAck"
@@ -602,7 +602,7 @@ export default function AnnouncementComposer({
                         <button
                           type="button"
                           onClick={() => void cancelIt(a.id)}
-                          className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11.5px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                          className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11.5px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                         >
                           <X size={11} />
                           Stop it
@@ -612,7 +612,7 @@ export default function AnnouncementComposer({
                     <button
                       type="button"
                       onClick={() => reuse(a)}
-                      className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11.5px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                      className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11.5px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                     >
                       <RotateCcw size={11} />
                       Send again

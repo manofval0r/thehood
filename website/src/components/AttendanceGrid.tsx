@@ -123,7 +123,15 @@ export function AttendanceGrid({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <p className="mb-2 text-[11.5px] text-muted sm:hidden">
+        Scroll sideways to see every class in the week.
+      </p>
+      <div
+        role="region"
+        tabIndex={0}
+        aria-label={`Attendance for ${courseTitle}. Scrolls sideways for every class in the week.`}
+        className="overflow-x-auto rounded-lg border border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
         <table className="w-full border-collapse text-left">
           <caption className="sr-only">
             Attendance for {courseTitle}. Rows are students, columns are the
@@ -162,7 +170,7 @@ export function AttendanceGrid({
                         iso: d.iso,
                       })
                     }
-                    className="pressable group mx-auto mt-1.5 block rounded p-1 text-border-strong hover:text-muted-foreground"
+                    className="pressable group mx-auto mt-1.5 block rounded p-1 text-border-strong hover:text-muted-foreground max-sm:inline-flex max-sm:h-11 max-sm:w-11 max-sm:items-center max-sm:justify-center"
                     title={`Mark the whole class on ${d.weekday} ${d.day} ${d.month}`}
                   >
                     <span className="sr-only">
@@ -215,7 +223,7 @@ export function AttendanceGrid({
                               iso: d.iso,
                             })
                           }
-                          className="pressable group mx-auto block rounded p-1 text-border-strong hover:text-muted-foreground"
+                          className="pressable group mx-auto block rounded p-1 text-border-strong hover:text-muted-foreground max-sm:inline-flex max-sm:h-11 max-sm:w-11 max-sm:items-center max-sm:justify-center"
                           aria-label={`${s.name}, ${d.weekday} ${d.day} ${d.month}: ${boxLabel(state)}. Change this box.`}
                         >
                           <BoxGlyph state={state} className="h-5 w-5" />
@@ -349,7 +357,7 @@ function BoxChooser({
               type="button"
               onClick={() => onPick(choice.state)}
               className={
-                "pressable flex items-center gap-2.5 rounded px-2 py-1.5 text-left " +
+                "pressable flex items-center gap-2.5 rounded px-2 py-1.5 text-left max-sm:min-h-11 " +
                 (current
                   ? "bg-surface-hover text-foreground"
                   : "text-muted-foreground hover:bg-surface-hover hover:text-foreground")

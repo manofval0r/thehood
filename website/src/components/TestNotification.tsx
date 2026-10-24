@@ -61,7 +61,7 @@ export default function TestNotification() {
           type="button"
           onClick={run}
           disabled={busy}
-          className="pressable inline-flex shrink-0 items-center gap-2 rounded-md bg-accent px-3.5 py-2 text-[12.5px] font-medium text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50"
+          className="pressable inline-flex shrink-0 items-center gap-2 rounded-md bg-accent px-3.5 py-2 text-[12.5px] font-medium text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 max-sm:min-h-11 max-sm:px-4 max-sm:text-base"
         >
           {busy ? (
             <Loader2 size={14} className="animate-spin" />

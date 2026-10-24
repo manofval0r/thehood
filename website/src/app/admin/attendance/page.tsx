@@ -184,19 +184,19 @@ async function Workspace({
         <nav className="flex items-center gap-2 text-[12.5px]">
           <Link
             href={`/admin/attendance?${courseQuery}&week=${prevWeek}`}
-            className="pressable rounded-md border border-border px-2.5 py-1.5 text-muted-foreground hover:text-foreground"
+            className="pressable rounded-md border border-border px-2.5 py-1.5 text-muted-foreground hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-3"
           >
             Previous week
           </Link>
           <Link
             href={`/admin/attendance?${courseQuery}&week=${today}`}
-            className="pressable rounded-md border border-border px-2.5 py-1.5 text-muted-foreground hover:text-foreground"
+            className="pressable rounded-md border border-border px-2.5 py-1.5 text-muted-foreground hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-3"
           >
             This week
           </Link>
           <Link
             href={`/admin/attendance?${courseQuery}&week=${nextWeek}`}
-            className="pressable rounded-md border border-border px-2.5 py-1.5 text-muted-foreground hover:text-foreground"
+            className="pressable rounded-md border border-border px-2.5 py-1.5 text-muted-foreground hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-3"
           >
             Next week
           </Link>
@@ -216,7 +216,7 @@ async function Workspace({
             key={c.slug}
             href={`/admin/attendance?course=${encodeURIComponent(c.code)}&week=${weekStart}`}
             className={
-              "pressable rounded-full border px-3 py-1 text-[12px] font-medium " +
+              "pressable inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-medium max-sm:min-h-11 max-sm:px-3 " +
               (c.code === course.code
                 ? "border-accent text-accent"
                 : "border-border text-muted-foreground hover:text-foreground")
@@ -232,7 +232,7 @@ async function Workspace({
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <a
           href={`/api/export/attendance?course=${encodeURIComponent(course.code)}`}
-          className="pressable inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+          className="pressable inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover max-sm:min-h-11 max-sm:px-4"
         >
           Download the register
           <span className="text-[11px] text-muted">as a spreadsheet</span>
