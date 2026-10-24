@@ -170,7 +170,7 @@ export default function CompetitionList({
                     </span>
                   </span>
 
-                  <span className="min-w-0 flex-1">
+                  <span className="min-w-0 flex-1 break-words">
                     <span className="block text-[14px] font-medium leading-snug text-foreground">
                       {c.title}
                     </span>

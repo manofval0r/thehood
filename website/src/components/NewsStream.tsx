@@ -164,12 +164,12 @@ export function NewsStream({ items }: { items: NewsItem[] }) {
                           </span>
                         </div>
 
-                        <h3 className="card-depth mt-3 text-[15px] font-semibold leading-snug tracking-tight text-foreground">
+                        <h3 className="card-depth mt-3 break-words text-[15px] font-semibold leading-snug tracking-tight text-foreground">
                           {item.title}
                         </h3>
 
                         {item.summary && (
-                          <p className="card-depth mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
+                          <p className="card-depth mt-2 break-words text-[13.5px] leading-relaxed text-muted-foreground">
                             {item.summary}
                           </p>
                         )}
