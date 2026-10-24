@@ -113,7 +113,7 @@ function NothingToShow({
       <a
         href={file.url}
         download
-        className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
+        className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground max-sm:min-h-11"
       >
         <Download size={15} />
         Download {KIND_LABEL[kind].toLowerCase()}

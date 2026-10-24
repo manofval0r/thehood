@@ -60,7 +60,7 @@ export default function TextViewer({ url }: { url: string }) {
             type="button"
             onClick={() => setWrap((w) => !w)}
             aria-pressed={wrap}
-            className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-11 max-sm:px-3"
           >
             <WrapText size={13} />
             {wrap ? "Wrapping" : "No wrap"}
@@ -68,7 +68,7 @@ export default function TextViewer({ url }: { url: string }) {
           <button
             type="button"
             onClick={copy}
-            className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-11 max-sm:px-3"
           >
             {copied ? <Check size={13} className="text-accent" /> : <Copy size={13} />}
             {copied ? "Copied" : "Copy"}

@@ -74,7 +74,7 @@ export default async function ViewPage({
           {course && (
             <Link
               href={`/courses/${course.slug}`}
-              className="pressable mb-3 inline-flex items-center gap-1.5 rounded text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="pressable mb-3 inline-flex items-center gap-1.5 rounded text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:min-h-11 max-sm:px-1"
             >
               <ArrowLeft size={14} />
               {course.code}
@@ -96,7 +96,7 @@ export default async function ViewPage({
         <a
           href={href}
           download
-          className="pressable inline-flex shrink-0 items-center gap-2 rounded-md bg-accent px-4 py-2 text-[13px] font-medium text-accent-foreground transition-colors hover:bg-accent/90"
+          className="pressable inline-flex shrink-0 items-center gap-2 rounded-md bg-accent px-4 py-2 text-[13px] font-medium text-accent-foreground transition-colors hover:bg-accent/90 max-sm:min-h-11 max-sm:px-5"
         >
           <Download size={15} />
           Download

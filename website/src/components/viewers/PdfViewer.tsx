@@ -68,7 +68,7 @@ export default function PdfViewer({
         <a
           href={url}
           download
-          className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
+          className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground max-sm:min-h-11"
         >
           <Download size={15} />
           Download instead
@@ -139,7 +139,7 @@ export default function PdfViewer({
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
             aria-label="Previous page"
           >
             <ChevronLeft size={17} />
@@ -151,7 +151,7 @@ export default function PdfViewer({
             type="button"
             onClick={() => setPage((p) => Math.min(numPages, p + 1))}
             disabled={page >= numPages}
-            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
             aria-label="Next page"
           >
             <ChevronRight size={17} />

@@ -58,11 +58,11 @@ function Branches({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="group flex w-full items-start gap-1.5 rounded px-1 py-0.5 text-left transition-colors hover:bg-surface-hover"
+        className="group flex w-full items-start gap-1.5 rounded px-1 py-0.5 text-left transition-colors hover:bg-surface-hover max-sm:min-h-11 max-sm:items-center"
       >
         <ChevronRight
           size={13}
-          className={`mt-[3px] shrink-0 text-muted transition-transform ${
+          className={`mt-[3px] shrink-0 text-muted transition-transform max-sm:mt-0 ${
             open ? "rotate-90" : ""
           }`}
         />
@@ -197,7 +197,7 @@ export default function JsonViewer({ url }: { url: string }) {
         <button
           type="button"
           onClick={() => setRaw((r) => !r)}
-          className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+          className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-11 max-sm:px-3"
         >
           <FileCode size={13} />
           {raw ? "Tree" : "Raw"}
@@ -205,7 +205,7 @@ export default function JsonViewer({ url }: { url: string }) {
         <button
           type="button"
           onClick={copy}
-          className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+          className="pressable flex items-center gap-1.5 rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-11 max-sm:px-3"
         >
           {copied ? (
             <Check size={13} className="text-accent" />

@@ -190,7 +190,7 @@ export default function SlidesViewer({
         <a
           href={url}
           download
-          className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
+          className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground max-sm:min-h-11"
         >
           <Download size={15} />
           Download instead
@@ -212,7 +212,7 @@ export default function SlidesViewer({
             <a
               href={url}
               download
-              className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
+              className="pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground max-sm:min-h-11"
             >
               <Download size={15} />
               Download instead
@@ -229,7 +229,7 @@ export default function SlidesViewer({
             type="button"
             onClick={() => go(-1)}
             disabled={!count}
-            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
             aria-label="Previous slide"
           >
             <ChevronLeft size={17} />
@@ -243,7 +243,7 @@ export default function SlidesViewer({
               max={Math.max(count, 1)}
               value={count ? slide + 1 : 0}
               onChange={(e) => jump(Number(e.target.value) - 1)}
-              className="tnum w-12 rounded border border-border bg-surface px-2 py-1 text-center text-[12.5px] text-foreground outline-none focus-visible:border-accent"
+              className="tnum w-12 rounded border border-border bg-surface px-2 py-1 text-center text-[12.5px] text-foreground outline-none focus-visible:border-accent max-sm:h-11 max-sm:w-14 max-sm:text-base"
             />
             <span className="tnum text-[12.5px] text-muted-foreground">
               of {count || "?"}
@@ -254,7 +254,7 @@ export default function SlidesViewer({
             type="button"
             onClick={() => go(1)}
             disabled={!count}
-            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
             aria-label="Next slide"
           >
             <ChevronRight size={17} />
@@ -268,7 +268,7 @@ export default function SlidesViewer({
           <button
             type="button"
             onClick={toggleFull}
-            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:h-11 max-sm:w-11"
             aria-label={full ? "Leave full screen" : "Full screen"}
           >
             {full ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
@@ -276,7 +276,7 @@ export default function SlidesViewer({
           <a
             href={url}
             download
-            className="pressable flex h-8 items-center gap-1.5 rounded-md px-2 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="pressable flex h-8 items-center gap-1.5 rounded-md px-2 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:h-11 max-sm:px-3"
           >
             <Download size={14} />
             Download
