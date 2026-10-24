@@ -210,7 +210,7 @@ export function NotificationBell() {
               <button
                 type="button"
                 onClick={() => void turnOn()}
-                className="pressable mt-2.5 w-full rounded-md bg-accent px-3 py-2 text-[12.5px] font-semibold text-accent-foreground"
+                className="pressable mt-2.5 w-full rounded-md bg-accent px-3 py-2 text-[12.5px] font-semibold text-accent-foreground max-sm:min-h-11"
               >
                 Turn on notifications
               </button>
@@ -257,7 +257,7 @@ export function NotificationBell() {
                       <Link
                         href={u.href ?? "/"}
                         onClick={() => setOpen(false)}
-                        className="pressable block rounded-md px-1.5 py-1 hover:bg-surface-hover"
+                        className="pressable block rounded-md px-1.5 py-1 hover:bg-surface-hover max-sm:min-h-11"
                       >
                         <span className="block text-[12.5px] font-medium leading-snug text-foreground">
                           {u.title}
@@ -281,7 +281,7 @@ export function NotificationBell() {
                             <button
                               type="button"
                               onClick={() => void acknowledge(u.announcementId!)}
-                              className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                              className="pressable inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                             >
                               <Check size={11} />
                               Got it
@@ -296,7 +296,7 @@ export function NotificationBell() {
               <button
                 type="button"
                 onClick={() => markAllRead()}
-                className="pressable mt-2 text-[11px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                className="pressable mt-2 text-[11px] text-muted-foreground underline underline-offset-4 hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
               >
                 Mark all as read
               </button>
@@ -327,7 +327,7 @@ export function NotificationBell() {
             <button
               type="button"
               onClick={() => setSettings((s) => !s)}
-              className="pressable text-[12px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              className="pressable text-[12px] text-muted-foreground underline underline-offset-4 hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
             >
               {settings ? "Hide the settings" : "What to be told about"}
             </button>
@@ -337,7 +337,7 @@ export function NotificationBell() {
                 {KIND_ORDER.map((kind) => (
                   <label
                     key={kind}
-                    className="flex cursor-pointer items-start gap-2 text-[12px] text-muted-foreground"
+                    className="flex cursor-pointer items-start gap-2 text-[12px] text-muted-foreground max-sm:min-h-11"
                   >
                     <input
                       type="checkbox"
@@ -360,16 +360,18 @@ export function NotificationBell() {
                   <span>Quiet between</span>
                   <input
                     type="time"
+                    aria-label="Quiet hours start"
                     value={prefs.quietFrom}
                     onChange={(e) => void setQuiet(e.target.value, prefs.quietTo)}
-                    className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px] text-foreground"
+                    className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px] text-foreground max-sm:h-11 max-sm:px-2 max-sm:text-base"
                   />
                   <span>and</span>
                   <input
                     type="time"
+                    aria-label="Quiet hours end"
                     value={prefs.quietTo}
                     onChange={(e) => void setQuiet(prefs.quietFrom, e.target.value)}
-                    className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px] text-foreground"
+                    className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px] text-foreground max-sm:h-11 max-sm:px-2 max-sm:text-base"
                   />
                 </div>
 
@@ -377,7 +379,7 @@ export function NotificationBell() {
                   <button
                     type="button"
                     onClick={() => void turnOff()}
-                    className="pressable mt-2 text-[11.5px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                    className="pressable mt-2 text-[11.5px] text-muted-foreground underline underline-offset-4 hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
                   >
                     Turn notifications off
                   </button>
@@ -385,7 +387,7 @@ export function NotificationBell() {
                   <button
                     type="button"
                     onClick={() => void turnOn()}
-                    className="pressable mt-2 text-[11.5px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                    className="pressable mt-2 text-[11.5px] text-muted-foreground underline underline-offset-4 hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center"
                   >
                     Turn on notifications for this device
                   </button>
@@ -393,7 +395,7 @@ export function NotificationBell() {
 
                 {/* Digest mode: one summary per day instead of per-class pushes */}
                 <div className="mt-2.5 space-y-1">
-                  <label className="flex items-start gap-2 cursor-pointer text-[12px] text-muted-foreground">
+                  <label className="flex items-start gap-2 cursor-pointer text-[12px] text-muted-foreground max-sm:min-h-11">
                     <input
                       type="checkbox"
                       checked={prefs.digestMode}
