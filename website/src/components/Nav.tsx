@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { X, Menu } from "lucide-react";
 import FlipClock from "@/components/FlipClock";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
@@ -495,7 +495,7 @@ export default function Nav() {
                 menuOpen && "border-accent/50 text-foreground"
               )}
             >
-              {isStaff ? "Menu" : "More"}
+              <Menu size={20} aria-hidden="true" />
             </button>
 
             {/* ---------- The bell ----------
@@ -669,42 +669,187 @@ export default function Nav() {
               </button>
             </div>
 
+            {/* Next class preview - quick glance without leaving the menu */}
+            {next && (
+              <Link
+                href="/timetable"
+                onClick={closeMenu}
+                className="mt-2 flex min-h-11 items-center justify-between gap-3 rounded-md bg-accent/5 border border-accent/10 px-2.5 py-2 text-[13.5px] transition-colors"
+                aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-accent">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                    {next.inProgress ? "In progress" : "Next class"}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[11.5px] font-medium leading-snug text-foreground">
+                    {next.course.code} · {next.course.title}
+                  </span>
+                </span>
+                <span className="shrink-0">
+                  <FlipClock ms={ms} size="dock" />
+                </span>
+              </Link>
+            )}
+
             <nav aria-label={isStaff ? "Staff pages" : "All pages"}>
               <div className="mt-1 grid gap-0.5">
-                {menuLinks.map((t) => {
-                  const active = t.href === menuActiveHref;
-                  return (
-                    <Link
-                      key={t.href}
-                      href={t.href}
-                      aria-current={active ? "page" : undefined}
-                      onClick={closeMenu}
-                      className={cn(
-                        "flex min-h-11 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-[13.5px] transition-colors hover:bg-surface-hover",
-                        active
-                          ? "bg-accent/10 font-semibold text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <span
+                {!isStaff && (
+                  <>
+                    <p className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+                      Courses
+                    </p>
+                    {menuLinks
+                      .filter((t) => ["/", "/timetable", "/timeline"].includes(t.href))
+                      .map((t) => {
+                        const active = t.href === menuActiveHref;
+                        return (
+                          <Link
+                            key={t.href}
+                            href={t.href}
+                            aria-current={active ? "page" : undefined}
+                            onClick={closeMenu}
+                            className={cn(
+                              "flex min-h-11 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-[13.5px] transition-colors hover:bg-surface-hover",
+                              active
+                                ? "bg-accent/10 font-semibold text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                active &&
+                                  "underline decoration-accent decoration-2 underline-offset-4"
+                              )}
+                            >
+                              {t.label}
+                            </span>
+                            {active && (
+                              <span
+                                aria-hidden="true"
+                                className="text-[9px] font-semibold uppercase tracking-[0.12em] text-accent"
+                              >
+                                Current
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    <p className="mt-2 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+                      Tools
+                    </p>
+                    {menuLinks
+                      .filter((t) => ["/registration", "/resources"].includes(t.href))
+                      .map((t) => {
+                        const active = t.href === menuActiveHref;
+                        return (
+                          <Link
+                            key={t.href}
+                            href={t.href}
+                            aria-current={active ? "page" : undefined}
+                            onClick={closeMenu}
+                            className={cn(
+                              "flex min-h-11 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-[13.5px] transition-colors hover:bg-surface-hover",
+                              active
+                                ? "bg-accent/10 font-semibold text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                active &&
+                                  "underline decoration-accent decoration-2 underline-offset-4"
+                              )}
+                            >
+                              {t.label}
+                            </span>
+                            {active && (
+                              <span
+                                aria-hidden="true"
+                                className="text-[9px] font-semibold uppercase tracking-[0.12em] text-accent"
+                              >
+                                Current
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    <p className="mt-2 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+                      Explore
+                    </p>
+                    {menuLinks
+                      .filter((t) => ["/careers", "/events"].includes(t.href))
+                      .map((t) => {
+                        const active = t.href === menuActiveHref;
+                        return (
+                          <Link
+                            key={t.href}
+                            href={t.href}
+                            aria-current={active ? "page" : undefined}
+                            onClick={closeMenu}
+                            className={cn(
+                              "flex min-h-11 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-[13.5px] transition-colors hover:bg-surface-hover",
+                              active
+                                ? "bg-accent/10 font-semibold text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                active &&
+                                  "underline decoration-accent decoration-2 underline-offset-4"
+                              )}
+                            >
+                              {t.label}
+                            </span>
+                            {active && (
+                              <span
+                                aria-hidden="true"
+                                className="text-[9px] font-semibold uppercase tracking-[0.12em] text-accent"
+                              >
+                                Current
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                  </>
+                )}
+                {isStaff &&
+                  menuLinks.map((t) => {
+                    const active = t.href === menuActiveHref;
+                    return (
+                      <Link
+                        key={t.href}
+                        href={t.href}
+                        aria-current={active ? "page" : undefined}
+                        onClick={closeMenu}
                         className={cn(
-                          active &&
-                            "underline decoration-accent decoration-2 underline-offset-4"
+                          "flex min-h-11 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-[13.5px] transition-colors hover:bg-surface-hover",
+                          active
+                            ? "bg-accent/10 font-semibold text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         )}
                       >
-                        {t.label}
-                      </span>
-                      {active && (
                         <span
-                          aria-hidden="true"
-                          className="text-[9px] font-semibold uppercase tracking-[0.12em] text-accent"
+                          className={cn(
+                            active &&
+                              "underline decoration-accent decoration-2 underline-offset-4"
+                          )}
                         >
-                          Current
+                          {t.label}
                         </span>
-                      )}
-                    </Link>
-                  );
-                })}
+                        {active && (
+                          <span
+                            aria-hidden="true"
+                            className="text-[9px] font-semibold uppercase tracking-[0.12em] text-accent"
+                          >
+                            Current
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
               </div>
             </nav>
 

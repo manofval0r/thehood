@@ -34,9 +34,9 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      // Matches the provider's server-side default so the first client render
-      // never disagrees with the markup it hydrated.
-      data-theme="dark"
+      // The bootstrap script in <head> sets data-theme before first paint,
+      // using localStorage or the OS preference. No server-side default avoids
+      // a hydration mismatch where React would revert the script's correct value.
       suppressHydrationWarning
       className={`${geistSans.variable} h-full antialiased`}
     >
