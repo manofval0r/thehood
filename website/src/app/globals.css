@@ -956,6 +956,12 @@ html:hover {
   .nav-rail::-webkit-scrollbar {
     display: none;
   }
+
+  /* An in-page link must land below the fixed next-class dock, not under
+     it. The dock is 46px and sits half a rem below the 64px bar. */
+  html {
+    scroll-padding-top: calc(var(--nav-h, 4rem) + 3.375rem);
+  }
 }
 
 @media (min-width: 640px) {

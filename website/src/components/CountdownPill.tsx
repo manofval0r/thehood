@@ -36,29 +36,39 @@ export default function CountdownPill() {
         : "Next class";
 
   return (
-    <div className="fixed inset-x-3 top-[calc(var(--nav-h,4rem)+0.5rem)] z-30 sm:hidden">
-      <Link
-        href="/timetable"
-        aria-label={`${label}: ${next.course.title}, ${next.course.code}, ${note} ${text}`}
-        className="pressable flex min-h-11 items-center justify-between gap-3 rounded-2xl border border-border-strong bg-surface/95 px-3 py-1.5 shadow-lift backdrop-blur-xl"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-accent">
-            <span
-              className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
-              aria-hidden="true"
-            />
-            {label}
+    <>
+      {/* The dock is fixed, so the page has to leave its height in the flow.
+          Without this the first breadcrumb or download button starts behind
+          it. The dock measures 46px including its border, plus the half-rem
+          gap below the bar. No next class means no dock and no spacer. */}
+      <div
+        aria-hidden="true"
+        className="h-[calc(0.5rem+2.875rem)] shrink-0 sm:hidden"
+      />
+      <div className="fixed inset-x-3 top-[calc(var(--nav-h,4rem)+0.5rem)] z-30 sm:hidden">
+        <Link
+          href="/timetable"
+          aria-label={`${label}: ${next.course.title}, ${next.course.code}, ${note} ${text}`}
+          className="pressable flex min-h-11 items-center justify-between gap-3 rounded-2xl border border-border-strong bg-surface/95 px-3 py-1.5 shadow-lift backdrop-blur-xl"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-accent">
+              <span
+                className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+              {label}
+            </span>
+            <span className="mt-0.5 block truncate text-[11.5px] font-medium leading-snug text-foreground">
+              {next.course.code} · {next.course.title}
+            </span>
           </span>
-          <span className="mt-0.5 block truncate text-[11.5px] font-medium leading-snug text-foreground">
-            {next.course.code} · {next.course.title}
-          </span>
-        </span>
 
-        <span className="shrink-0">
-          <FlipClock ms={ms} size="dock" />
-        </span>
-      </Link>
-    </div>
+          <span className="shrink-0">
+            <FlipClock ms={ms} size="dock" />
+          </span>
+        </Link>
+      </div>
+    </>
   );
 }
