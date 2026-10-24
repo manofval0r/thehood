@@ -45,7 +45,7 @@ export default function TakeawayPills() {
         <a
           href="/calendar.ics"
           download
-          className="pressable inline-flex items-center gap-2.5 rounded-full border border-border py-2 pl-3 pr-4 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+          className="pressable inline-flex items-center gap-2.5 rounded-full border border-border py-2 pl-3 pr-4 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover max-sm:min-h-11"
         >
           <CalendarPlus size={15} className="text-accent" />
           Add to calendar
@@ -81,7 +81,7 @@ export default function TakeawayPills() {
       >
         <button
           type="button"
-          className="pressable inline-flex items-center gap-2.5 rounded-full border border-border py-2 pl-3 pr-4 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+          className="pressable inline-flex items-center gap-2.5 rounded-full border border-border py-2 pl-3 pr-4 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover max-sm:min-h-11"
           aria-expanded={open === "wall"}
         >
           <Download size={15} className="text-accent" />

@@ -77,7 +77,7 @@ export function AdminLogin() {
         type="text"
         autoComplete="username"
         required
-        className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-foreground outline-none focus-visible:border-accent"
+        className="mt-2 h-11 w-full rounded-md border border-border bg-surface px-3 text-base text-foreground outline-none focus-visible:border-accent sm:h-10 sm:text-[14px]"
         placeholder="The name you are on the staff list under"
       />
 
@@ -93,7 +93,7 @@ export function AdminLogin() {
         type="password"
         autoComplete="current-password"
         required
-        className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[14px] tracking-[0.12em] text-foreground outline-none focus-visible:border-accent"
+        className="mt-2 h-11 w-full rounded-md border border-border bg-surface px-3 font-mono text-base tracking-[0.12em] text-foreground outline-none focus-visible:border-accent sm:h-10 sm:text-[14px]"
         placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
       />
 
@@ -106,7 +106,7 @@ export function AdminLogin() {
       <button
         type="submit"
         disabled={pending}
-        className="pressable mt-4 rounded-md bg-accent px-4 py-2 text-[13.5px] font-semibold text-accent-foreground disabled:opacity-60"
+        className="pressable mt-4 rounded-md bg-accent px-4 py-2 text-[13.5px] font-semibold text-accent-foreground disabled:opacity-60 max-sm:min-h-11 max-sm:text-base"
       >
         {pending ? "Checking" : "Open the staff area"}
       </button>

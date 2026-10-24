@@ -46,7 +46,7 @@ export default function CourseClient({
       <section className="rise pb-10 pt-12">
         <Link
           href="/"
-          className="pressable mb-8 inline-flex items-center gap-1.5 rounded text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="pressable mb-8 inline-flex items-center gap-1.5 rounded text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:min-h-11"
         >
           <ArrowLeft size={14} />
           All courses
@@ -106,7 +106,7 @@ export default function CourseClient({
             href={`mailto:${repAddress(course.code)}?subject=${encodeURIComponent(
               `${course.code} - ${course.title}`
             )}`}
-            className="pressable mt-6 inline-flex w-fit items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+            className="pressable mt-6 inline-flex w-fit items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover max-sm:min-h-11"
           >
             <Mail size={14} className="text-accent" />
             Contact {repFirstName(course.lecturer)}, the course rep

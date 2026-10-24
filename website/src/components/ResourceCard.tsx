@@ -99,7 +99,7 @@ export default function ResourceCard({
             <button
               type="button"
               onClick={() => onPreview?.(resource.id)}
-              className="pressable inline-flex items-center gap-1.5 rounded-md bg-surface-hover px-3 py-2 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-raised"
+              className="pressable inline-flex items-center gap-1.5 rounded-md bg-surface-hover px-3 py-2 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-raised max-sm:min-h-11 max-sm:px-4"
             >
               <Eye size={14} />
               Preview
@@ -108,7 +108,7 @@ export default function ResourceCard({
           <Link
             href={`/view/${encodeURIComponent(resource.id)}`}
             className={cn(
-              "pressable inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors",
+              "pressable inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors max-sm:min-h-11 max-sm:px-4",
               previewable
                 ? "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 : "bg-surface-hover text-foreground hover:bg-surface-raised"
@@ -125,7 +125,7 @@ export default function ResourceCard({
               // card is where the floating theme switch lands when the card
               // is scrolled past, and a small link under a floating control
               // is a link a reader cannot press.
-              "pressable inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors",
+              "pressable inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors max-sm:min-h-11 max-sm:px-4",
               previewable
                 ? "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 : "bg-accent text-accent-foreground hover:bg-accent/90"

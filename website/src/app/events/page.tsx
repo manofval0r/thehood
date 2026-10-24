@@ -209,26 +209,26 @@ export default async function EventsPage() {
             <Reveal key={e.name} delay={Math.min(i * 25, 300)}>
               <li>
                 <AppleCard maxTilt={4} className="h-full">
-                  <div className="card-tilt settle relative block h-full rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover">
+                  <a
+                    href={e.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="card-tilt settle group relative block h-full rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-hover"
+                  >
                     <span className="card-cast" aria-hidden="true" />
                     <span className="card-accent-glow" aria-hidden="true" />
                     <span className="card-bevel" aria-hidden="true" />
 
                     <div className="card-depth relative flex flex-wrap items-baseline gap-x-3">
-                      <a
-                        href={e.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[14px] font-semibold text-foreground underline decoration-border-strong underline-offset-4 transition-colors hover:text-accent"
-                      >
+                      <span className="text-[14px] font-semibold text-foreground underline decoration-border-strong underline-offset-4 transition-colors group-hover:text-accent">
                         {e.name}
-                      </a>
+                      </span>
                       <span className="text-[12px] text-muted">{e.when}</span>
                     </div>
                     <p className="card-depth mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
                       {e.what}
                     </p>
-                  </div>
+                  </a>
                 </AppleCard>
               </li>
             </Reveal>

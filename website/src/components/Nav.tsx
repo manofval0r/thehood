@@ -314,7 +314,7 @@ export default function Nav() {
               // that the link rail had almost nothing left. Eight pixels
               // either side, and the words get their room back on a desktop
               // where there is space for it.
-              "pl-2 pr-2 lg:pl-4",
+              "pl-2 pr-2 lg:pl-4 max-sm:pl-0",
               "transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
               scrolled
                 ? "border border-border-strong bg-surface/80 shadow-lift backdrop-blur-xl"
@@ -328,7 +328,7 @@ export default function Nav() {
                 // its width back to the link rail, which is the one thing on a
                 // phone that was genuinely short of room. On a desktop there is
                 // room for both, and the identity is doing work there.
-                "shrink-0 overflow-hidden whitespace-nowrap rounded-full",
+                "shrink-0 overflow-hidden whitespace-nowrap rounded-full max-sm:inline-flex max-sm:h-11 max-sm:w-11 max-sm:items-center max-sm:justify-center",
                 "transition-[max-width,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
                 // Desktop keeps the full lockup. There is room for it there and
                 // the identity is doing work.
@@ -439,7 +439,7 @@ export default function Nav() {
                         // rather than a cut-off word: the third destination
                         // waits for a width where it fits, and everything
                         // past the row lives in the labelled sheet.
-                        "pressable relative z-10 flex h-11 shrink-0 items-center rounded-full px-2 text-[13px] font-medium transition-colors sm:h-8 sm:px-3 sm:text-[13.5px]",
+                        "pressable relative z-10 flex h-11 shrink-0 items-center rounded-full px-1 text-[13px] font-medium transition-colors sm:h-8 sm:px-3 sm:text-[13.5px]",
                         // Public phone row: Courses and Timetable, plus
                         // Calendar when there is room for it. The rest are
                         // one tap away in More. Desktop keeps the full rail.

@@ -267,7 +267,7 @@ export default function SearchBar() {
           role="combobox"
           aria-expanded={showPanel}
           aria-controls="search-results"
-          className="h-14 w-full bg-transparent pl-12 pr-24 text-[15px] text-foreground placeholder:text-muted focus:outline-none"
+          className="h-14 w-full bg-transparent pl-12 pr-24 text-base text-foreground placeholder:text-muted focus:outline-none sm:text-[15px]"
         />
 
         <div className="absolute right-3 flex items-center gap-2">
@@ -277,7 +277,7 @@ export default function SearchBar() {
                 setQ("");
                 inputRef.current?.focus();
               }}
-              className="pressable flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+              className="pressable flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground max-sm:h-11 max-sm:w-11"
               aria-label="Clear search"
             >
               <X size={15} />
@@ -331,7 +331,7 @@ export default function SearchBar() {
                           })
                         }
                         className={cn(
-                          "flex w-full items-center gap-3 rounded-md px-2.5 py-2.5 text-left transition-colors",
+                          "flex w-full items-center gap-3 rounded-md px-2.5 py-2.5 text-left transition-colors max-sm:min-h-11",
                           i === cursor
                             ? "bg-accent/12 text-foreground"
                             : "text-muted-foreground hover:bg-surface-hover"
@@ -378,7 +378,7 @@ export default function SearchBar() {
                         onMouseEnter={() => setCursor(i)}
                         onClick={() => go(hit)}
                         className={cn(
-                          "flex w-full items-center gap-3 rounded-md px-2.5 py-2.5 text-left transition-colors",
+                          "flex w-full items-center gap-3 rounded-md px-2.5 py-2.5 text-left transition-colors max-sm:min-h-11",
                           i === cursor
                             ? "bg-accent/12 text-foreground"
                             : "text-muted-foreground hover:bg-surface-hover"

@@ -193,7 +193,7 @@ export default async function Home() {
           </div>
           <Link
             href="/registration"
-            className="pressable inline-flex shrink-0 items-center gap-1.5 self-start rounded-md px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="pressable inline-flex shrink-0 items-center gap-1.5 self-start rounded-md px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-11"
           >
             Registration list
             <ArrowRight size={14} />

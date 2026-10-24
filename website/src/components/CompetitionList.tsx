@@ -110,7 +110,7 @@ export default function CompetitionList({
               onClick={() => setFilter(f.key)}
               aria-pressed={on}
               className={
-                "pressable inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors " +
+                "pressable inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors max-sm:min-h-11 " +
                 (on
                   ? "border-accent bg-accent/12 text-accent"
                   : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground")

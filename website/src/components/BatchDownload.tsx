@@ -104,7 +104,7 @@ export default function BatchDownload({ resources, courseCode }: BatchDownloadPr
           {count > 0 && (
             <button
               onClick={() => setSelected(new Set())}
-              className="text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+              className="text-[12px] text-muted-foreground transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-1"
             >
               Clear
             </button>
@@ -112,7 +112,7 @@ export default function BatchDownload({ resources, courseCode }: BatchDownloadPr
           {resources.length > 1 && (
             <button
               onClick={toggleAll}
-              className="text-[12px] text-accent transition-opacity hover:opacity-75"
+              className="text-[12px] text-accent transition-opacity hover:opacity-75 max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-1"
             >
               {allSelected ? "Unselect all" : "Select all"}
             </button>
@@ -170,7 +170,7 @@ export default function BatchDownload({ resources, courseCode }: BatchDownloadPr
           variant="accent"
           disabled={count === 0 || busy}
           onClick={run}
-          className="pressable shrink-0 text-[12px]"
+          className="pressable shrink-0 text-[12px] max-sm:min-h-11"
         >
           {busy ? (
             <>

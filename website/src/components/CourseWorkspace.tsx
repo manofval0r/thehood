@@ -202,7 +202,7 @@ export default function CourseWorkspace({
             type="button"
             onClick={() => downloadFolder(path)}
             disabled={zipping || filesHere.length === 0}
-            className="pressable inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover disabled:pointer-events-none disabled:opacity-40"
+            className="pressable inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover disabled:pointer-events-none disabled:opacity-40 max-sm:min-h-11 max-sm:px-4"
           >
             {zipping ? (
               <Loader2 size={14} className="animate-spin" />
@@ -221,7 +221,7 @@ export default function CourseWorkspace({
       >
         <Link
           href={`/courses/${courseSlug}`}
-          className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-2"
         >
           {courseCode}
         </Link>
@@ -231,7 +231,7 @@ export default function CourseWorkspace({
             <button
               type="button"
               onClick={() => setPath(part)}
-              className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-2"
             >
               {part.split("/").pop()}
             </button>
@@ -316,7 +316,7 @@ function FilterPill({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`pressable rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
+      className={`pressable inline-flex items-center justify-center rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors max-sm:min-h-11 max-sm:px-4 ${
         active
           ? "bg-accent text-accent-foreground"
           : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"

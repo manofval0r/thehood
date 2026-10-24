@@ -238,7 +238,7 @@ export default async function CareersPage() {
           </p>
           <Link
             href="/events"
-            className="pressable mt-4 inline-block rounded-md bg-accent px-4 py-2 text-[13.5px] font-semibold text-accent-foreground"
+            className="pressable mt-4 inline-flex items-center rounded-md bg-accent px-4 py-2 text-[13.5px] font-semibold text-accent-foreground max-sm:min-h-11"
           >
             See the events
           </Link>
