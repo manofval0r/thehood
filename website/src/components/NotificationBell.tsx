@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { useNotifications } from "@/components/NotificationProvider";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 import { KIND_HELP, KIND_LABEL, type NotificationKind } from "@/lib/notification-kinds";
 
 /**
@@ -71,11 +72,19 @@ export function NotificationBell() {
   const panel = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
+  // The panel is a dialog for the keyboard: focus starts inside it, Tab
+  // cycles through its own controls, Escape closes it and focus goes back
+  // to the bell. It is not a sheet, so the page behind it may still scroll.
+  useDialogFocus({
+    open,
+    panelRef: panel,
+    triggerRef: button,
+    onClose: () => setOpen(false),
+    lockScroll: false,
+  });
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
     const onDown = (e: MouseEvent) => {
       if (
         panel.current &&
@@ -85,10 +94,8 @@ export function NotificationBell() {
         setOpen(false);
       }
     };
-    document.addEventListener("keydown", onKey);
     document.addEventListener("mousedown", onDown);
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onDown);
     };
   }, [open]);
@@ -113,16 +120,18 @@ export function NotificationBell() {
           setOpen((o) => !o);
           if (!open) markRead();
         }}
-        className="pressable relative grid h-8 w-8 place-items-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+        className="pressable relative grid h-11 w-11 place-items-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
         aria-label={
           unread > 0 ? `Notifications, ${unread} unread` : "Notifications"
         }
+        aria-haspopup="dialog"
         aria-expanded={open}
+        aria-controls="notification-panel"
       >
         {/* A bell, drawn in pixels, like everything else here. */}
         <svg
           viewBox="0 0 16 16"
-          className="h-4 w-4"
+          className="h-[18px] w-[18px]"
           shapeRendering="crispEdges"
           aria-hidden="true"
         >
@@ -138,7 +147,8 @@ export function NotificationBell() {
         </svg>
         {unread > 0 && (
           <span
-            className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 font-mono text-[9px] font-bold leading-none text-accent-foreground"
+            aria-hidden="true"
+            className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 font-mono text-[9px] font-bold leading-none text-accent-foreground"
           >
             {unread > 9 ? "9+" : unread}
           </span>
@@ -148,11 +158,13 @@ export function NotificationBell() {
       {open && (
         <div
           ref={panel}
+          id="notification-panel"
           role="dialog"
+          aria-modal="true"
           aria-label="Notifications"
-          className="absolute right-0 top-full z-50 mt-2 flex max-h-[calc(100dvh-5.5rem)] w-[calc(100vw-2rem)] max-w-sm origin-top-right flex-col overflow-hidden rounded-xl border border-border-strong bg-surface-raised shadow-lift sm:max-h-[32rem] sm:w-80"
+          className="absolute right-0 top-full z-50 mt-2 flex max-h-[calc(100dvh-5.5rem-env(safe-area-inset-bottom))] w-[calc(100vw-2rem)] max-w-sm origin-top-right flex-col overflow-hidden rounded-xl border border-border-strong bg-surface-raised shadow-lift sm:max-h-[32rem] sm:w-80"
         >
-          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border px-3 py-2.5">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2">
             <div className="min-w-0">
               <p className="text-[12.5px] font-semibold text-foreground">
                 Notifications
@@ -165,9 +177,9 @@ export function NotificationBell() {
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close notifications"
-              className="pressable -mr-0.5 -mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+              className="pressable grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
             >
-              <X size={14} aria-hidden="true" />
+              <X size={16} aria-hidden="true" />
             </button>
           </div>
 
