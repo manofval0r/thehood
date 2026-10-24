@@ -450,7 +450,7 @@ export default function TimelineInteractive({ todayStamp }: { todayStamp: number
           </p>
           <button
             onClick={() => setFilter("All")}
-            className="pressable mt-5 rounded-md border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-hover"
+            className="pressable mt-5 rounded-md border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-hover max-sm:min-h-11"
           >
             Show all {DATED.length} events
           </button>
@@ -510,7 +510,7 @@ export default function TimelineInteractive({ todayStamp }: { todayStamp: number
         </p>
         <Link
           href="/timetable"
-          className="pressable inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-hover"
+          className="pressable inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-hover max-sm:min-h-11"
         >
           Weekly timetable
           <ArrowRight size={14} />
@@ -538,7 +538,7 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "pressable inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors",
+        "pressable inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors max-sm:min-h-11 max-sm:px-3",
         active
           ? "border-accent/50 bg-accent/12 text-foreground"
           : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground"

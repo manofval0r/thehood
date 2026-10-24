@@ -283,7 +283,7 @@ export default function ResourcesPage() {
           <a
             key={s.id}
             href={`#${s.id}`}
-            className="pressable inline-flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-[12.5px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+            className="pressable inline-flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-[12.5px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground max-sm:min-h-11 max-sm:px-3"
           >
             <span
               className="h-1.5 w-1.5 rounded-full"
