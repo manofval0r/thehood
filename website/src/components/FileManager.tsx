@@ -830,7 +830,7 @@ export default function FileManager({
           <span className="shrink-0 text-muted">{showTree ? "▾" : "▸"}</span>
         </button>
 
-        <aside className={showTree ? "block" : "hidden lg:block"}>
+        <aside className={`min-w-0 ${showTree ? "block" : "hidden lg:block"}`}>
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
             Folder tree
           </p>
