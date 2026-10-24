@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 import FlipClock from "@/components/FlipClock";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 import { breakFor, breakPhrase } from "@/lib/breaks";
 import { useBreaks } from "@/components/ScheduleProvider";
 import { formatRange } from "@/lib/schedule";
@@ -68,7 +70,31 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [pill, setPill] = useState({ left: 0, top: 0, width: 0, height: 0, ready: false });
   const [fontsReady, setFontsReady] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const tabListRef = useRef<HTMLDivElement>(null);
+  const menuPanelRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  useDialogFocus({
+    open: menuOpen,
+    panelRef: menuPanelRef,
+    triggerRef: menuButtonRef,
+    onClose: closeMenu,
+  });
+
+  // The menu only exists below the tablet breakpoint. If a phone is turned
+  // or resized into the desktop bar while it is open, close it rather than
+  // leaving a hidden dialog holding the page scroll and the focus trap.
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 640px)");
+    const onChange = () => {
+      if (desktop.matches) setMenuOpen(false);
+    };
+    desktop.addEventListener("change", onChange);
+    return () => desktop.removeEventListener("change", onChange);
+  }, []);
 
   // The web font arrives after the first paint, and the words get wider when
   // it does. The pill is measured against the row, so until the font has
@@ -152,6 +178,15 @@ export default function Nav() {
     : [];
 
   const activeHref = links.find((t) =>
+    t.exact ? pathname === t.href : pathname.startsWith(t.href)
+  )?.href;
+
+  // The sheet keeps every destination in one place. For a visitor it is the
+  // full public list; for a member of staff it is the permitted staff list.
+  // A session still being looked up shows the public list rather than an
+  // empty menu.
+  const menuLinks = isStaff ? links : TABS;
+  const menuActiveHref = menuLinks.find((t) =>
     t.exact ? pathname === t.href : pathname.startsWith(t.href)
   )?.href;
 
@@ -271,7 +306,7 @@ export default function Nav() {
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           <div
             className={cn(
-              "relative flex h-12 w-full items-center justify-between rounded-full",
+              "relative flex h-12 w-full min-w-0 items-center rounded-full",
               // Even padding, and closer to the edge on a phone. The bar was
               // 16px on the left and 8px on the right, which read as
               // lopsided, and on a phone the mark was pushed in far enough
@@ -339,36 +374,29 @@ export default function Nav() {
                 be scrolled off. It is the reason a student checks the bar, and
                 "scroll to find out when your class is" is not a good trade
                 for "it is always there". */}
-            <div
+            <nav
+              aria-label={isStaff ? "Staff pages" : "Public pages"}
               className={cn(
                 // Phone: a rail that takes the leftover width and scrolls.
-                "min-w-[4.5rem] flex-1 overflow-x-auto overscroll-x-contain",
-                // The links sit in the space between the wordmark and the
-                // countdown and are centred in whatever is left. An earlier
-                // version took them out of the flow and centred them on the
-                // whole bar instead, which looked right until there were
-                // enough of them: the group grew until it ran into the
-                // countdown, and a bar whose links overlap the clock is
-                // worse than one whose links are not quite on the centre
-                // line. Centred in the gap, they cannot reach the clock at
-                // any width, and they scroll when the gap is too small.
-                //
-                // h-full so the rail is the height of the bar rather than the
-                // height of a link. The extra room is what the scrollbar
-                // sits in, and without it the bar would be clipped by three
-                // pixels the moment there is something to scroll.
-                "flex h-full items-center",
-                "nav-rail",
+                // min-w-0 matters: without it a flex child refuses to shrink
+                // below its content, and the wide link row becomes document
+                // overflow instead of staying inside the rail.
+                "relative h-full min-w-0 flex-1",
+                // A member of staff gets a labelled menu instead of a rail.
+                // Their destinations are task-oriented and six of them do
+                // not fit; an invisible scroll is the wrong affordance.
+                isStaff && "max-sm:hidden"
               )}
             >
-              <div
-                ref={tabListRef}
-                // Auto margins rather than justify-content: when the links
-                // are wider than the rail, auto margins resolve to zero and
-                // the rail scrolls from the first link, whereas a centred
-                // flex row clips the first link with no way to scroll to it.
-                className="relative mx-auto flex h-full w-max items-center"
-              >
+              <div className="nav-rail flex h-full w-full items-center overflow-x-auto overscroll-x-contain">
+                <div
+                  ref={tabListRef}
+                  // Auto margins rather than justify-content: when the links
+                  // are wider than the rail, auto margins resolve to zero and
+                  // the rail scrolls from the first link, whereas a centred
+                  // flex row clips the first link with no way to scroll to it.
+                  className="relative mx-auto flex h-full w-max items-center"
+                >
                 {/* Sits exactly on the active link's measured box. rounded-lg,
                     not rounded-full: a full pill on a 32px row reads as a
                     lozenge and swallows the word it is meant to mark.
@@ -396,7 +424,7 @@ export default function Nav() {
                   }}
                 />
 
-                {links.map((t) => {
+                {links.map((t, index) => {
                   const active = t.href === activeHref;
                   return (
                     <Link
@@ -405,12 +433,17 @@ export default function Nav() {
                       href={t.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        // px-3 rather than px-3.5: with eight links the
-                        // half-pixel of extra padding on each side was
-                        // thirty-two pixels across the row, which is the
-                        // difference between the last link fitting beside the
-                        // countdown and being clipped by it.
-                        "pressable relative z-10 flex h-8 shrink-0 items-center rounded-full px-3 text-[13.5px] font-medium transition-colors",
+                        // The phone gets a 44px target and a tighter
+                        // horizontal padding. The row shows complete labels
+                        // rather than a cut-off word: the third destination
+                        // waits for a width where it fits, and everything
+                        // past the row lives in the labelled sheet.
+                        "pressable relative z-10 flex h-11 shrink-0 items-center rounded-full px-2 text-[13px] font-medium transition-colors sm:h-8 sm:px-3 sm:text-[13.5px]",
+                        // Public phone row: Courses and Timetable, plus
+                        // Calendar when there is room for it. The rest are
+                        // one tap away in More. Desktop keeps the full rail.
+                        !isStaff && index >= 3 && "max-sm:hidden",
+                        !isStaff && index === 2 && "max-[389px]:hidden",
                         active
                           ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground",
@@ -423,15 +456,46 @@ export default function Nav() {
                         // block because a block would eat the width the
                         // words need.
                         active &&
-                          "after:absolute after:inset-x-3 after:bottom-1 after:h-px after:bg-accent after:content-[''] md:after:hidden"
+                          "after:absolute after:inset-x-2 after:bottom-1.5 after:h-px after:bg-accent after:content-[''] sm:after:inset-x-3 sm:after:bottom-1 md:after:hidden"
                       )}
                     >
                       {t.label}
                     </Link>
                   );
                 })}
+                </div>
               </div>
-            </div>
+              {/* The fade is the rail's visible edge: it says the row
+                  continues even when the scrollbar is hidden. The labelled
+                  button beside it is the reliable way in, especially for a
+                  reader who cannot or does not want to swipe. */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 w-2 bg-gradient-to-l from-background to-transparent sm:hidden"
+              />
+            </nav>
+
+            {/* ---------- Phone overflow control ----------
+                Every public destination stays in the rail, and the sheet is a
+                second, reliable way to reach all of them. For staff the rail
+                is replaced by this control on a phone because their six
+                destinations are tasks rather than a reading path. */}
+            <button
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label={isStaff ? "Open staff menu" : "Open all pages"}
+              aria-haspopup="dialog"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-page-menu"
+              className={cn(
+                "pressable grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-surface text-[10.5px] font-semibold tracking-[0.06em] text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground sm:hidden",
+                isStaff ? "ml-auto" : "ml-1",
+                menuOpen && "border-accent/50 text-foreground"
+              )}
+            >
+              {isStaff ? "Menu" : "More"}
+            </button>
 
             {/* ---------- The bell ----------
                 What has changed, and the settings for what to be told about.
@@ -448,7 +512,7 @@ export default function Nav() {
               <button
                 type="button"
                 onClick={signOut}
-                className="pressable ml-1.5 shrink-0 rounded-full border border-border bg-surface px-2.5 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground sm:ml-2"
+                className="pressable ml-1.5 inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface px-3 text-[12px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground sm:ml-2 sm:h-8 sm:px-2.5"
               >
                 Sign out
               </button>
@@ -565,6 +629,86 @@ export default function Nav() {
           </div>
         </div>
       </header>
+
+      {menuOpen && (
+        <>
+          {/* The backdrop covers the bar too, so a second panel cannot be
+              opened on top of this one. The sheet's own close control is the
+              way out, and Escape does the same from the keyboard. */}
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Close menu"
+            onClick={closeMenu}
+            className="fixed inset-0 z-40 cursor-default bg-background/70 backdrop-blur-[2px] sm:hidden"
+          />
+          <div
+            ref={menuPanelRef}
+            id="mobile-page-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-menu-title"
+            tabIndex={-1}
+            className="fixed inset-x-0 top-16 z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border-strong bg-surface-raised px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-lift sm:hidden"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p
+                id="mobile-menu-title"
+                className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted"
+              >
+                {isStaff ? "Staff menu" : "All pages"}
+              </p>
+              <button
+                type="button"
+                onClick={closeMenu}
+                aria-label="Close menu"
+                className="pressable grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+
+            <nav aria-label={isStaff ? "Staff pages" : "All pages"}>
+              <div className="mt-1 grid gap-0.5">
+                {menuLinks.map((t) => {
+                  const active = t.href === menuActiveHref;
+                  return (
+                    <Link
+                      key={t.href}
+                      href={t.href}
+                      aria-current={active ? "page" : undefined}
+                      onClick={closeMenu}
+                      className={cn(
+                        "flex min-h-11 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-[13.5px] transition-colors hover:bg-surface-hover",
+                        active
+                          ? "bg-accent/10 font-semibold text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          active &&
+                            "underline decoration-accent decoration-2 underline-offset-4"
+                        )}
+                      >
+                        {t.label}
+                      </span>
+                      {active && (
+                        <span
+                          aria-hidden="true"
+                          className="text-[9px] font-semibold uppercase tracking-[0.12em] text-accent"
+                        >
+                          Current
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+          </div>
+        </>
+      )}
     </>
   );
 }

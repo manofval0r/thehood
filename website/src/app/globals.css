@@ -582,6 +582,14 @@ body {
   justify-content: center;
 }
 
+/* The hero clock is six flaps wide. Its old 2.9rem floor was wider than a
+   320px screen, so the seconds column hung thirty-one pixels off the right
+   edge. Scaling from 11.9vw keeps the 390px size unchanged and lets the
+   clock meet the edge on the narrowest phone instead of overflowing it. */
+.flip-clock-hero {
+  --flap-h: clamp(2.35rem, 11.9vw, 4.6rem);
+}
+
 .flip-clock-nav {
   /* Responsive because the navbar clock competes for horizontal space with
      five links and a wordmark. At 1.7rem the six flaps alone were 150px, which
@@ -936,6 +944,19 @@ html:hover {
    a line of text and a scrollbar with any presence to it eats
    the words.
    ============================================================ */
+
+@media (max-width: 639.98px) {
+  /* The platform's overlay scrollbar is the right one on a phone. A
+     ten-pixel bar inside a forty-eight-pixel header is a link rail that
+     loses a quarter of its height to chrome. */
+  .nav-rail {
+    scrollbar-width: none;
+  }
+
+  .nav-rail::-webkit-scrollbar {
+    display: none;
+  }
+}
 
 @media (min-width: 640px) {
   .nav-rail {
