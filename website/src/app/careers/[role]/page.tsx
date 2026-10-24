@@ -26,6 +26,13 @@ export function generateStaticParams() {
   return ROLES.map((r) => ({ role: r.slug }));
 }
 
+// This route is allowed to block instead of prerendering a static shell.
+// The page is generated for every role, but the nav reads the pathname in a
+// client component, and the role metadata awaits its params. Under Cache
+// Components both of those are request-time work, so the route opts out of
+// the static-shell check the same way the course and viewer routes do.
+export const instant = false;
+
 export async function generateMetadata({
   params,
 }: {
