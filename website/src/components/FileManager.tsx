@@ -254,7 +254,7 @@ export default function FileManager({
       <div>
         <div
           data-drop-path={child.path}
-          className={`group flex items-center gap-1.5 rounded px-2 py-1 text-[12.5px] transition-colors ${
+          className={`group flex items-center gap-1.5 rounded px-2 py-1 text-[12.5px] transition-colors max-sm:min-h-11 ${
             over === child.path
               ? "bg-accent/20 text-accent"
               : active
@@ -268,7 +268,7 @@ export default function FileManager({
             onClick={() => setPath(child.path)}
             aria-current={active ? "page" : undefined}
             title={child.path}
-            className="pressable flex min-w-0 flex-1 items-center gap-1.5 text-left"
+            className="pressable flex min-w-0 flex-1 items-center gap-1.5 text-left max-sm:min-h-11"
           >
             <span className="w-3 shrink-0 text-[10px] text-muted">
               {childFolders.length > 0 ? (open ? "▾" : "▸") : null}
@@ -288,7 +288,7 @@ export default function FileManager({
                 event
               )
             }
-            className="pressable shrink-0 cursor-grab touch-none rounded p-1 text-muted opacity-50 transition-opacity hover:opacity-100 group-hover:opacity-100"
+            className="pressable inline-flex shrink-0 cursor-grab touch-none items-center justify-center rounded p-1 text-muted opacity-50 transition-opacity hover:opacity-100 group-hover:opacity-100 max-sm:h-11 max-sm:w-11"
           >
             {folderBusy === child.path ? (
               <Loader2 size={12} className="animate-spin" />
@@ -736,11 +736,11 @@ export default function FileManager({
             </span>
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 max-sm:w-full">
           <button
             type="button"
             onClick={() => setNewFolder((n) => !n)}
-            className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-hover"
+            className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-hover max-sm:min-h-11 max-sm:px-3"
           >
             <FolderPlus size={14} className="text-accent" />
             New folder
@@ -767,7 +767,7 @@ export default function FileManager({
             type="button"
             onClick={() => folderInputRef.current?.click()}
             disabled={folderUpload !== null}
-            className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-hover disabled:opacity-50"
+            className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-hover disabled:opacity-50 max-sm:min-h-11 max-sm:w-full max-sm:justify-center max-sm:px-3"
           >
             {folderUpload ? (
               <Loader2 size={14} className="animate-spin text-accent" />
@@ -821,7 +821,7 @@ export default function FileManager({
           type="button"
           onClick={() => setShowTree((s) => !s)}
           aria-expanded={showTree}
-          className="pressable flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-[12.5px] font-medium text-foreground transition-colors hover:bg-surface-hover lg:hidden"
+          className="pressable flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-[12.5px] font-medium text-foreground transition-colors hover:bg-surface-hover max-sm:min-h-11 lg:hidden"
         >
           <span className="truncate">
             Folder tree
@@ -844,7 +844,7 @@ export default function FileManager({
               type="button"
               onClick={() => setPath("")}
               aria-current={path === "" ? "page" : undefined}
-              className={`pressable flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-[12.5px] transition-colors ${
+              className={`pressable flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-[12.5px] transition-colors max-sm:min-h-11 ${
                 path === ""
                   ? "bg-accent/10 text-accent"
                   : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
@@ -877,7 +877,7 @@ export default function FileManager({
                 onClick={() => setPath(parentPath(path))}
                 aria-label="Up one folder"
                 title="Up one folder"
-                className="pressable inline-flex items-center gap-1 rounded border border-border px-1.5 py-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                className="pressable inline-flex items-center gap-1 rounded border border-border px-1.5 py-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-11 max-sm:px-2"
               >
                 <ArrowUp size={13} />
                 Up
@@ -887,7 +887,7 @@ export default function FileManager({
               type="button"
               onClick={() => setPath("")}
               title={`${courseTitle} (${course})`}
-              className="pressable max-w-full rounded px-1.5 py-1 text-left font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="pressable max-w-full rounded px-1.5 py-1 text-left font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-2"
             >
               {courseTitle}
             </button>
@@ -897,7 +897,7 @@ export default function FileManager({
                 <button
                   type="button"
                   onClick={() => setPath(part)}
-                  className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-2"
                 >
                   {part.split("/").pop()}
                 </button>
@@ -914,11 +914,11 @@ export default function FileManager({
                 name="name"
                 autoFocus
                 placeholder="Folder name, or Parent/Child"
-                className="min-w-0 flex-1 basis-40 rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent"
+                className="min-w-0 flex-1 basis-40 rounded border border-border bg-background px-3 py-2 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
               />
               <button
                 type="submit"
-                className="pressable inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-foreground"
+                className="pressable inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-foreground max-sm:min-h-11"
               >
                 <Check size={14} />
                 Make it
@@ -926,7 +926,8 @@ export default function FileManager({
               <button
                 type="button"
                 onClick={() => setNewFolder(false)}
-                className="pressable rounded-md px-2 py-2 text-[12.5px] text-muted hover:text-foreground"
+                aria-label="Cancel the new folder"
+                className="pressable inline-flex items-center justify-center rounded-md px-2 py-2 text-[12.5px] text-muted hover:text-foreground max-sm:h-11 max-sm:w-11"
               >
                 <X size={14} />
               </button>
@@ -1033,7 +1034,7 @@ export default function FileManager({
                           event
                         )
                       }
-                      className="pressable shrink-0 cursor-grab touch-none rounded p-1 text-muted opacity-60 transition-opacity hover:opacity-100"
+                      className="pressable inline-flex shrink-0 cursor-grab touch-none items-center justify-center rounded p-1 text-muted opacity-60 transition-opacity hover:opacity-100 max-sm:h-11 max-sm:w-11"
                     >
                       {busy ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -1069,12 +1070,12 @@ export default function FileManager({
                           onKeyDown={(e) => {
                             if (e.key === "Escape") setRenamingFolder(null);
                           }}
-                          className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent"
+                          className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
                         />
                         <button
                           type="submit"
                           disabled={busy}
-                          className="pressable rounded p-1 text-accent transition-colors hover:bg-surface-hover disabled:opacity-50"
+                          className="pressable inline-flex items-center justify-center rounded p-1 text-accent transition-colors hover:bg-surface-hover disabled:opacity-50 max-sm:h-11 max-sm:w-11"
                           aria-label="Save the folder name"
                         >
                           <Check size={14} />
@@ -1082,7 +1083,7 @@ export default function FileManager({
                         <button
                           type="button"
                           onClick={() => setRenamingFolder(null)}
-                          className="pressable rounded p-1 text-muted transition-colors hover:text-foreground"
+                          className="pressable inline-flex items-center justify-center rounded p-1 text-muted transition-colors hover:text-foreground max-sm:h-11 max-sm:w-11"
                           aria-label="Cancel the folder rename"
                         >
                           <X size={14} />
@@ -1092,7 +1093,7 @@ export default function FileManager({
                       <button
                         type="button"
                         onClick={() => setPath(folder.path)}
-                        className="pressable flex min-w-0 flex-1 items-center gap-3 text-left"
+                        className="pressable flex min-w-0 flex-1 items-center gap-3 text-left max-sm:min-h-11"
                       >
                         <span className="w-6 shrink-0">
                           <PixelMotif
@@ -1119,7 +1120,7 @@ export default function FileManager({
                           type="button"
                           onClick={() => setRenamingFolder(folder.path)}
                           disabled={busy}
-                          className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground disabled:opacity-50"
+                          className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground disabled:opacity-50 max-sm:min-h-11 max-sm:px-3"
                         >
                           Rename
                         </button>
@@ -1136,7 +1137,7 @@ export default function FileManager({
                             busy || (targets.length === 0 && parent === "")
                           }
                           aria-label={`Move ${folder.name} to another folder`}
-                          className="pressable max-w-[8.5rem] rounded border border-border bg-background px-1.5 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground disabled:opacity-50"
+                          className="pressable max-w-[8.5rem] rounded border border-border bg-background px-1.5 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground disabled:opacity-50 max-sm:min-h-11 max-sm:max-w-[10rem] max-sm:text-base"
                         >
                           <option value="">Move to</option>
                           {parent && <option value="__top">The top</option>}
@@ -1155,7 +1156,7 @@ export default function FileManager({
                               ? "Remove this empty folder"
                               : "Empty this folder before removing it"
                           }
-                          className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground disabled:opacity-40"
+                          className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground disabled:opacity-40 max-sm:min-h-11 max-sm:px-3"
                         >
                           Remove
                         </button>
@@ -1176,7 +1177,7 @@ export default function FileManager({
                     }`}
                     onPointerDown={(e) => {
                       const target = e.target as HTMLElement;
-                      if (target.closest("input,select,button,a")) return;
+                      if (target.closest("input,select,button,a,label")) return;
                       shiftRef.current = e.shiftKey;
                       beginDrag(
                         { kind: "file", id: file.id, title: file.title },
@@ -1184,13 +1185,15 @@ export default function FileManager({
                       );
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggle(file.id, shiftRef.current)}
-                      className="h-4 w-4 shrink-0 cursor-pointer rounded border-border accent-[#22c55e]"
-                      aria-label={`Select ${file.title}`}
-                    />
+                    <label className="flex shrink-0 cursor-pointer items-center justify-center max-sm:h-11 max-sm:w-11">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggle(file.id, shiftRef.current)}
+                        className="h-4 w-4 cursor-pointer rounded border-border accent-[#22c55e]"
+                        aria-label={`Select ${file.title}`}
+                      />
+                    </label>
 
                     <span className="w-6 shrink-0">
                       <PixelMotif
@@ -1215,7 +1218,7 @@ export default function FileManager({
                           void rename(file.id, e.currentTarget.value);
                           setRenaming(null);
                         }}
-                        className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent"
+                        className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1 text-[13px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
                       />
                     ) : (
                       <span className="min-w-0 flex-1">
@@ -1235,7 +1238,7 @@ export default function FileManager({
                           <button
                             type="button"
                             onClick={() => setRenaming(file.id)}
-                            className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
+                            className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                           >
                             Rename
                           </button>
@@ -1246,7 +1249,7 @@ export default function FileManager({
                                 void move(file.id, e.target.value);
                               }
                             }}
-                            className="pressable max-w-[9rem] rounded border border-border bg-background px-1.5 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
+                            className="pressable max-w-[9rem] rounded border border-border bg-background px-1.5 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground max-sm:min-h-11 max-sm:max-w-[10rem] max-sm:text-base"
                             aria-label={`Move ${file.title} to another folder`}
                           >
                             <option value="">Move to</option>
@@ -1259,7 +1262,7 @@ export default function FileManager({
                           <button
                             type="button"
                             onClick={() => remove(file.id)}
-                            className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground"
+                            className="pressable rounded px-2 py-1 text-[11.5px] text-muted transition-colors hover:text-foreground max-sm:min-h-11 max-sm:px-3"
                           >
                             Remove
                           </button>
@@ -1269,7 +1272,7 @@ export default function FileManager({
                       <a
                         href={resourceUrl(file.url)}
                         download
-                        className="pressable shrink-0 rounded p-1.5 text-muted transition-colors hover:text-foreground"
+                        className="pressable inline-flex shrink-0 items-center justify-center rounded p-1.5 text-muted transition-colors hover:text-foreground max-sm:h-11 max-sm:w-11"
                         aria-label={`Download ${file.title}`}
                       >
                         <Download size={14} />
@@ -1293,7 +1296,7 @@ export default function FileManager({
                   for (const id of selected) await move(id, e.target.value);
                   setSelected(new Set());
                 }}
-                className="pressable rounded border border-border bg-surface px-2 py-1 text-[12px] text-foreground"
+                className="pressable rounded border border-border bg-surface px-2 py-1 text-[12px] text-foreground max-sm:min-h-11 max-sm:text-base"
                 aria-label="Move the selected files to a folder"
               >
                 <option value="">Move the selected to</option>
@@ -1309,7 +1312,7 @@ export default function FileManager({
                   for (const id of selected) await remove(id);
                   setSelected(new Set());
                 }}
-                className="pressable inline-flex items-center gap-1.5 rounded px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground"
+                className="pressable inline-flex items-center gap-1.5 rounded px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground max-sm:min-h-11 max-sm:px-3"
               >
                 <Trash2 size={13} />
                 Remove
@@ -1317,7 +1320,7 @@ export default function FileManager({
               <button
                 type="button"
                 onClick={() => setSelected(new Set())}
-                className="pressable ml-auto rounded px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground"
+                className="pressable ml-auto rounded px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground max-sm:min-h-11 max-sm:px-3"
               >
                 Clear
               </button>
@@ -1493,7 +1496,7 @@ function UploadForm({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={pending}
-        className="pressable inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-foreground disabled:opacity-50"
+        className="pressable inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-foreground disabled:opacity-50 max-sm:min-h-11 max-sm:px-4"
       >
         {pending ? (
           <Loader2 size={13} className="animate-spin" />

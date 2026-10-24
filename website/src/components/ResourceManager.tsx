@@ -61,7 +61,7 @@ export default function ResourceManager({
 
   const tabClass = (active: boolean) =>
     cn(
-      "pressable inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors",
+      "pressable inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors max-sm:min-h-11 max-sm:px-4 max-sm:text-[13px]",
       active
         ? "bg-accent text-accent-foreground"
         : "text-muted-foreground hover:text-foreground"

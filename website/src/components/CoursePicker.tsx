@@ -48,7 +48,7 @@ export default function CoursePicker({
           <select
             value={current.code}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full appearance-none rounded-md border border-border bg-surface py-2 pl-3 pr-9 text-[12.5px] text-foreground outline-none focus-visible:border-accent"
+            className="w-full appearance-none rounded-md border border-border bg-surface py-2 pl-3 pr-9 text-[12.5px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
           >
             {courses.map((c) => (
               <option key={c.code} value={c.code}>
