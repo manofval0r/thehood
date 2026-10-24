@@ -5,17 +5,19 @@ import ThemeSlider from "@/components/ThemeSlider";
 import { cn } from "@/lib/utils";
 
 /**
- * Light and dark switch, floating under the header.
+ * Light and dark switch, floating under the header from tablet up.
  *
  * It floats under the bar rather than sitting in it, because the bar was
  * already carrying the links, the bell, the clock and the wordmark, and
  * because a switch that is in the same place on every page is a switch
  * people can find.
  *
- * It is put in the page's own top padding, and the top of a page is the
- * one place on it that is always empty. It was measured on every page at
- * every width from a phone to a wide screen, and it covers nothing on any
- * of them.
+ * On a phone it is hidden. The bottom corner is content, not padding, and a
+ * floating switch there covers the thing a reader is trying to tap. The page
+ * menu carries the same control instead.
+ *
+ * From a tablet up it is put in the page's own top padding, and the top of a
+ * page is the one place on it that is always empty.
  *
  * Even so, a floating control is on top of something, and a reader
  * reaching for a thing underneath it should reach that thing. So the
@@ -132,23 +134,17 @@ export default function ThemePill({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "pointer-events-none fixed z-30",
-        // A phone has a next-class strip under the bar and no room beside it,
-        // so the switch moves to the bottom corner where the page's own
-        // bottom padding keeps it clear of the content. From a tablet up it
-        // goes back under the header.
-        "bottom-[max(1rem,env(safe-area-inset-bottom))] right-3",
-        "sm:bottom-auto sm:top-[calc(var(--nav-h,4rem)+0.75rem)] sm:right-5 lg:right-7",
+        // Below the tablet breakpoint the page menu carries the theme row.
+        "pointer-events-none fixed z-30 max-sm:hidden",
+        // From a tablet up it sits under the header, in the page's top
+        // padding rather than over a control.
+        "sm:top-[calc(var(--nav-h,4rem)+0.75rem)] sm:right-5 lg:right-7",
         className
       )}
     >
       <ThemeSlider
         className={cn(
           "pointer-events-auto",
-          // On a phone it is always over content at the bottom of the
-          // viewport, so it is solid there from the first paint. The max-sm
-          // classes cover the frame before the pointer type is known.
-          "max-sm:border-border-strong max-sm:bg-surface max-sm:shadow-lift",
           // At the top of a desktop page the switch is over the page's own
           // background, and a control with a surface and a border on a
           // surface is a shape nobody looks at. It rests there.

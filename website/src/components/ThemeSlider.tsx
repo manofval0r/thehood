@@ -25,24 +25,43 @@ import { cn } from "@/lib/utils";
  * lands four pixels off looks like a mistake, and it is the kind of mistake
  * nobody reports but everybody sees.
  */
-const SIZE = {
-  h: "h-9",
-  thumb: "h-7 w-7",
-  icon: 14,
-  /** How far the thumb travels to the light end. */
-  travel: "translate-x-7",
+const SIZES = {
+  default: {
+    h: "h-9",
+    pad: "p-1",
+    thumb: "h-7 w-7",
+    thumbPosition: "left-1 top-1",
+    icon: 14,
+    /** How far the thumb travels to the light end. */
+    travel: "translate-x-7",
+  },
+  /**
+   * The menu row uses the same switch at a 44px touch height. The extra
+   * padding grows the control without growing the thumb, so the two icons
+   * still line up under it.
+   */
+  touch: {
+    h: "h-11",
+    pad: "p-2",
+    thumb: "h-7 w-7",
+    thumbPosition: "left-2 top-2",
+    icon: 14,
+    travel: "translate-x-7",
+  },
 } as const;
 
 export default function ThemeSlider({
   className,
   ref,
+  size = "default",
 }: {
   className?: string;
   ref?: React.Ref<HTMLButtonElement>;
+  size?: keyof typeof SIZES;
 }) {
   const { theme, toggle, ready } = useTheme();
   const light = theme === "light";
-  const s = SIZE;
+  const s = SIZES[size];
 
   return (
     <button
@@ -52,8 +71,9 @@ export default function ThemeSlider({
       aria-label={`Switch to ${light ? "dark" : "light"} mode`}
       title={`Switch to ${light ? "dark" : "light"} mode`}
       className={cn(
-        "pressable relative inline-flex shrink-0 items-center rounded-full p-1",
+        "pressable relative inline-flex shrink-0 items-center rounded-full",
         s.h,
+        s.pad,
         "border border-border bg-surface transition-colors",
         "hover:border-border-strong hover:bg-surface-hover",
         className
@@ -63,8 +83,9 @@ export default function ThemeSlider({
       <span
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute left-1 top-1 rounded-full",
+          "pointer-events-none absolute rounded-full",
           s.thumb,
+          s.thumbPosition,
           "bg-accent/14 ring-1 ring-inset ring-accent/30",
           "transition-transform duration-[420ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
           light && s.travel

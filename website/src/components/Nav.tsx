@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions";
 import { useStaffSession } from "@/components/StaffSession";
 import { NotificationBell } from "@/components/NotificationBell";
+import ThemeSlider from "@/components/ThemeSlider";
 import type { Permission } from "@/lib/permissions";
 
 /**
@@ -706,6 +707,18 @@ export default function Nav() {
                 })}
               </div>
             </nav>
+
+            {/* The phone's theme switch. It lives here because the bottom
+                corner is content, and it is a 44px control because it is
+                still a control on a touch screen. */}
+            <div className="mt-2 border-t border-border pt-2">
+              <div className="flex min-h-11 items-center justify-between gap-3 px-2.5">
+                <span className="text-[13.5px] font-medium text-foreground">
+                  Theme
+                </span>
+                <ThemeSlider size="touch" />
+              </div>
+            </div>
           </div>
         </>
       )}
