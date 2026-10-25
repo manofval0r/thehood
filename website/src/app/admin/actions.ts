@@ -433,6 +433,14 @@ export async function uploadCourseFile(
     await announceMaterial({ course, title, uploadedBy: staff.name });
   }
 
+  await writeAudit({
+    actor: staff,
+    action: "uploaded",
+    targetId: created.id,
+    targetName: title,
+    detail: `${course}${folder ? ` in ${folder}` : ""}`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
   revalidatePath(`/courses/${courseSlug(course)}`);
@@ -464,7 +472,7 @@ export async function announceCourseFolder(
   label: string,
   count: number
 ): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   const files = Math.max(0, Math.floor(count));
   if (!course || files === 0) return;
 
@@ -472,6 +480,13 @@ export async function announceCourseFolder(
   await announceMaterial({
     course,
     title: `${files} file${files === 1 ? "" : "s"} added to ${where}`,
+  });
+
+  await writeAudit({
+    actor: staff,
+    action: "folder_uploaded",
+    targetName: course,
+    detail: `${files} file${files === 1 ? "" : "s"} added to ${where}`,
   });
 }
 
@@ -486,7 +501,7 @@ export async function moveCourseFile(
   id: string,
   folder: string
 ): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   try {
     await moveFileToFolder(id, folder);
   } catch (e) {
@@ -494,6 +509,15 @@ export async function moveCourseFile(
       e instanceof Error ? e.message : "The file could not be moved."
     );
   }
+
+  await writeAudit({
+    actor: staff,
+    action: "moved_file",
+    targetId: id,
+    targetName: folder || "the top",
+    detail: `Moved file ${id} to ${folder || "the top"}`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
 }
@@ -503,7 +527,7 @@ export async function createCourseFolder(
   course: string,
   path: string
 ): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   try {
     await createFolder(course, path);
   } catch (e) {
@@ -511,6 +535,14 @@ export async function createCourseFolder(
       e instanceof Error ? e.message : "The folder could not be made."
     );
   }
+
+  await writeAudit({
+    actor: staff,
+    action: "created_folder",
+    targetName: path,
+    detail: `${course} / ${path}`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
 }
@@ -520,7 +552,7 @@ export async function createCourseFolders(
   course: string,
   paths: string[]
 ): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   try {
     await createFolders(course, paths);
   } catch (e) {
@@ -528,6 +560,14 @@ export async function createCourseFolders(
       e instanceof Error ? e.message : "The folders could not be made."
     );
   }
+
+  await writeAudit({
+    actor: staff,
+    action: "created_folders",
+    targetName: course,
+    detail: paths.join(", "),
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
 }
@@ -543,7 +583,7 @@ export async function moveCourseFolder(
   from: string,
   toParent: string
 ): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   try {
     await moveFolder(course, from, toParent);
   } catch (e) {
@@ -551,6 +591,14 @@ export async function moveCourseFolder(
       e instanceof Error ? e.message : "The folder could not be moved."
     );
   }
+
+  await writeAudit({
+    actor: staff,
+    action: "moved_folder",
+    targetName: from,
+    detail: `${course}: ${from} → ${toParent || "the top"}`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
 }
@@ -561,7 +609,7 @@ export async function renameCourseFolder(
   from: string,
   to: string
 ): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   try {
     await renameFolder(course, from, to);
   } catch (e) {
@@ -569,6 +617,14 @@ export async function renameCourseFolder(
       e instanceof Error ? e.message : "The folder could not be renamed."
     );
   }
+
+  await writeAudit({
+    actor: staff,
+    action: "renamed_folder",
+    targetName: to,
+    detail: `${course}: ${from} → ${to}`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
 }
@@ -578,7 +634,7 @@ export async function deleteCourseFolder(
   course: string,
   path: string
 ): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   try {
     await deleteFolder(course, path);
   } catch (e) {
@@ -586,6 +642,14 @@ export async function deleteCourseFolder(
       e instanceof Error ? e.message : "The folder could not be removed."
     );
   }
+
+  await writeAudit({
+    actor: staff,
+    action: "deleted_folder",
+    targetName: path,
+    detail: `${course} / ${path}`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
 }
@@ -1029,7 +1093,7 @@ export async function updateCourseVideo(
 
 /** Take an uploaded file away. */
 export async function removeCourseFile(id: string): Promise<void> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   try {
     await deleteFile(id);
   } catch (e) {
@@ -1037,6 +1101,14 @@ export async function removeCourseFile(id: string): Promise<void> {
       e instanceof Error ? e.message : "The file could not be removed."
     );
   }
+
+  await writeAudit({
+    actor: staff,
+    action: "deleted_file",
+    targetId: id,
+    detail: `Deleted uploaded file ${id}`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
 }
@@ -1052,12 +1124,21 @@ export async function renameCourseFile(
   id: string,
   title: string
 ): Promise<{ file: { id: string; title: string } }> {
-  await requirePermission("files");
+  const staff = await requirePermission("files");
   const clean = title.trim();
   if (!clean) {
     throw new Error("A file needs a name.");
   }
   await renameFile(id, clean);
+
+  await writeAudit({
+    actor: staff,
+    action: "renamed_file",
+    targetId: id,
+    targetName: clean,
+    detail: `Renamed file ${id} to "${clean}"`,
+  });
+
   updateTag("files");
   revalidatePath("/admin/resources");
   revalidatePath("/courses");

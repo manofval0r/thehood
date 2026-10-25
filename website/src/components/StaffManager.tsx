@@ -76,6 +76,16 @@ const ACTION_LABEL: Record<string, string> = {
   role: "changed the role of",
   removed: "removed",
   reissued: "issued a new code for",
+  uploaded: "added material to",
+  folder_uploaded: "added a folder of material to",
+  moved_file: "moved a file in",
+  created_folder: "created a folder in",
+  created_folders: "created folders in",
+  moved_folder: "moved a folder in",
+  renamed_folder: "renamed a folder in",
+  deleted_folder: "deleted a folder in",
+  deleted_file: "removed a file from",
+  renamed_file: "renamed a file in",
 };
 
 function when(iso: string | null): string {
