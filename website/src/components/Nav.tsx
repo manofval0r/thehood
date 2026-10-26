@@ -39,6 +39,7 @@ const TABS: { href: string; label: string; exact?: boolean }[] = [
   { href: "/timetable", label: "Timetable" },
   { href: "/timeline", label: "Calendar" },
   { href: "/registration", label: "Registration" },
+  { href: "/tools", label: "Tools" },
   { href: "/resources", label: "Resources" },
   { href: "/assessments", label: "Assessments" },
   { href: "/careers", label: "Careers" },
@@ -740,7 +741,13 @@ export default function Nav() {
                       Tools
                     </p>
                     {menuLinks
-                      .filter((t) => ["/registration", "/resources"].includes(t.href))
+                      .filter((t) =>
+                        [
+                          "/registration",
+                          "/tools",
+                          "/resources",
+                        ].includes(t.href)
+                      )
                       .map((t) => {
                         const active = t.href === menuActiveHref;
                         return (
