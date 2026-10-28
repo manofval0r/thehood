@@ -3,6 +3,7 @@ import { announceClasses, announceBroadcast } from "@/lib/push";
 import { getCtfEvents } from "@/lib/events";
 import { listDueAnnouncements, recordDelivery } from "@/lib/announcements";
 import { recordHealth } from "@/lib/push";
+import { syncManagedOutlook } from "@/lib/outlook-calendar";
 
 /**
  * The scheduler.
@@ -21,6 +22,23 @@ async function run(request: Request) {
 
   if (!expected || secret !== expected) {
     return NextResponse.json({ error: "no" }, { status: 401 });
+  }
+
+  let outlookSynced = 0;
+  try {
+    const sync = await syncManagedOutlook();
+    outlookSynced = sync.synced;
+    await recordHealth(
+      "outlook",
+      true,
+      sync.synced > 0 ? `${sync.synced} events synced` : undefined
+    );
+  } catch (error) {
+    await recordHealth(
+      "outlook",
+      false,
+      error instanceof Error ? error.message.slice(0, 200) : "unknown"
+    );
   }
 
   const result = await announceClasses();
@@ -64,7 +82,7 @@ async function run(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true, ...result, announced });
+  return NextResponse.json({ ok: true, ...result, announced, outlookSynced });
 }
 
 /**

@@ -20,6 +20,11 @@ import {
   validateOverrideWrite,
 } from "@/lib/bulletin-admin-validation";
 import { syncManagedOutlook } from "@/lib/outlook-calendar";
+import {
+  createAnnouncement,
+  recordDelivery,
+} from "@/lib/announcements";
+import { announceBroadcast } from "@/lib/push";
 import type {
   BulletinKind,
   ClassOccurrenceOverride,
@@ -309,6 +314,37 @@ export async function saveClassOverride(
     targetName: source.subject,
     detail: `${source.course}: ${reason}`,
   });
+  const announcementId = `class-change:${id}:${Date.parse(now)}`;
+  const announcementTitle =
+    action === "cancel"
+      ? `${source.course} is cancelled`
+      : `${source.course} class details changed`;
+  const announcementBody = [entry.proposed.note, reason]
+    .filter(Boolean)
+    .join(" · ");
+  await createAnnouncement({
+    id: announcementId,
+    title: announcementTitle,
+    body: announcementBody,
+    kind: "classes",
+    course: source.course,
+    href: `/#bulletin-override:${id}`,
+    urgent: true,
+    needsAck: true,
+    status: "sent",
+    scheduledFor: null,
+    by: { id: staff.id, name: staff.name },
+  });
+  const delivery = await announceBroadcast({
+    id: announcementId,
+    title: announcementTitle,
+    body: announcementBody,
+    kind: "classes",
+    course: source.course,
+    href: `/#bulletin-override:${id}`,
+    urgent: true,
+  });
+  await recordDelivery(announcementId, delivery);
   revalidatePath("/");
   revalidatePath("/bulletin");
   revalidatePath("/admin/bulletin");
