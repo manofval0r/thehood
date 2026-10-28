@@ -175,6 +175,7 @@ export default function Nav() {
           ...(session?.role === "super"
             ? [{ href: "/admin/announce", label: "Announce" }]
             : []),
+          { href: "/admin/bulletin", label: "Bulletin" },
           { href: "/admin/settings", label: "Settings" },
         ]
       : TABS
