@@ -5,7 +5,8 @@ import { OrbitControls, Text, RoundedBox, Environment } from "@react-three/drei"
 import { useMemo, useRef, useState, Suspense } from "react";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
-import type { BulletinFeed, BulletinItem } from "@/lib/bulletin-feed";
+import type { BulletinFeed } from "@/lib/bulletin-feed";
+import type { BulletinItem } from "@/lib/bulletin-types";
 
 // Color coding: AI / digital sovereignty / digital forensics = online; events = warm; alerts = red
 const NOTE_COLORS: Record<string, string> = {
@@ -18,19 +19,19 @@ const NOTE_COLORS: Record<string, string> = {
   online: "#93C5FD", // online course
 };
 
-function getNoteColor(item: BulletinItem): string {
-  if (item.priority === "alert" || item.category === "alert") return NOTE_COLORS.alert;
-  if (item.category === "event") return NOTE_COLORS.event;
-  if (item.category === "deadline") return NOTE_COLORS.deadline;
-  if (item.category === "class") {
-    if (item.isOnline || item.venue?.toLowerCase().includes("online")) return NOTE_COLORS.online;
+function getNoteColorFromKind(item: BulletinItem): string {
+  if (item.urgent || item.kind === "alert") return NOTE_COLORS.alert;
+  if (item.kind === "event") return NOTE_COLORS.event;
+  if (item.kind === "deadline") return NOTE_COLORS.deadline;
+  if (item.kind === "class") {
+    if (!item.hasMeeting || item.location?.toLowerCase().includes("online")) return NOTE_COLORS.online;
     return NOTE_COLORS.in_person;
   }
   return NOTE_COLORS.notice;
 }
 
 function StickyNote({ item, index, onSelect, onDrag }: { item: BulletinItem; index: number; onSelect: (i: BulletinItem) => void; onDrag?: (pos:[number,number,number]) => void }) {
-  const color = getNoteColor(item);
+  const color = getNoteColorFromKind(item);
   const ref = useRef<THREE.Mesh>(null);
   const [hover, setHover] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -95,7 +96,7 @@ function StickyNote({ item, index, onSelect, onDrag }: { item: BulletinItem; ind
           anchorX="center"
           anchorY="middle"
         >
-          {item.venue ? "In person" : "Online"} · {new Date(item.startTime || Date.now()).toLocaleDateString("en-GB", { weekday: "short", day: "numeric" })}
+          {item.location ? "In person" : "Online"} · {new Date(item.startsAt || Date.now()).toLocaleDateString("en-GB", { weekday: "short", day: "numeric" })}
         </Text>
       </group>
     </mesh>
@@ -104,18 +105,18 @@ function StickyNote({ item, index, onSelect, onDrag }: { item: BulletinItem; ind
 
 function CorkBoard({ feed, filter, onNoteSelect }: { feed: BulletinFeed; filter: string; onNoteSelect: (i: BulletinItem) => void }) {
   const items = useMemo(() => {
-    let list = feed.items || [];
+    let list: BulletinItem[] = feed.items || [];
     if (filter === "today") {
       const today = new Date().toISOString().slice(0, 10);
-      list = list.filter((i) => (i.startTime || i.createdAt || "").slice(0, 10) === today);
+      list = list.filter((i) => (i.startsAt || i.publishedAt || "").slice(0, 10) === today);
     } else if (filter === "events") {
-      list = list.filter((i) => i.category === "event");
+      list = list.filter((i: BulletinItem) => i.kind === "event");
     } else if (filter === "classes") {
-      list = list.filter((i) => i.category === "class");
+      list = list.filter((i: BulletinItem) => i.kind === "class");
     } else if (filter === "deadlines") {
-      list = list.filter((i) => i.category === "deadline");
+      list = list.filter((i: BulletinItem) => i.kind === "deadline");
     } else if (filter === "alerts") {
-      list = list.filter((i) => i.priority === "alert" || i.category === "alert");
+      list = list.filter((i: BulletinItem) => i.urgent || i.kind === "alert");
     }
     // User-requested: remove lectures, remove in-person
     // Implemented as filter keys that can hide them (handled by filter selection)
@@ -197,16 +198,16 @@ export default function BulletinBoard3D({ feed, fullPage = false }: { feed: Bull
       {/* Mobile 2D sticky grid fallback (visible on small screens / no-WebGL) */}
       <div className="md:hidden absolute inset-0 z-20 overflow-y-auto p-3 bg-gradient-to-b from-[#A8704A]/40 to-[#8B5A2B]/60">
         <div className="grid grid-cols-2 gap-3">
-          {feed.items?.map((item, idx) => (
+          {feed.items?.map((item: BulletinItem, idx: number) => (
             <button
               key={item.id || idx}
               onClick={() => setSelected(item)}
               className="relative rounded-xl p-3 shadow-md transition-all duration-150 hover:-translate-y-1 hover:shadow-xl active:scale-[0.97] text-left"
-              style={{ backgroundColor: getNoteColor(item) }}
-              aria-label={`${item.title || "Note"}, ${item.venue ? "in person" : "online"}`}
+              style={{ backgroundColor: getNoteColorFromKind(item) }}
+              aria-label={`${item.title || "Note"}, ${item.location ? "in person" : "online"}`}
             >
               <div className="text-xs font-semibold text-stone-900 leading-tight">{item.title?.slice(0, 40) || "Note"}</div>
-              <div className="text-[10px] text-stone-700 mt-1 opacity-90">{item.venue ? "In person" : "Online"}</div>
+              <div className="text-[10px] text-stone-700 mt-1 opacity-90">{item.location ? "In person" : "Online"}</div>
             </button>
           ))}
         </div>
@@ -227,14 +228,14 @@ export default function BulletinBoard3D({ feed, fullPage = false }: { feed: Bull
             <div className="flex items-start gap-3">
               <div
                 className="w-3 h-3 rounded-full shrink-0 mt-1 shadow-sm"
-                style={{ backgroundColor: getNoteColor(selectedItem) }}
+                style={{ backgroundColor: getNoteColorFromKind(selectedItem) }}
                 aria-label="Note color indicator"
               />
               <div>
                 <h3 className="font-semibold text-stone-900 dark:text-stone-100 text-sm leading-tight">{selectedItem.title}</h3>
                 <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
-                  {selectedItem.venue ? "In person · " + selectedItem.venue : "Online"} ·{" "}
-                  {new Date(selectedItem.startTime || Date.now()).toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                  {selectedItem.location ? "In person · " + selectedItem.location : "Online"} ·{" "}
+                  {new Date(selectedItem.startsAt || Date.now()).toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
                 </p>
                 <p className="text-xs text-stone-600 dark:text-stone-300 mt-2 leading-relaxed">{selectedItem.body || "No details posted."}</p>
               </div>
