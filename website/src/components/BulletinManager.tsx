@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarSync, Pin, Radio, RotateCcw, Send, X } from "lucide-react";
+import { CalendarSync, Pin, Radio, RotateCcw, Send } from "lucide-react";
 import CoursePicker from "@/components/CoursePicker";
 import OverrideConflictDialog from "@/components/OverrideConflictDialog";
 import {

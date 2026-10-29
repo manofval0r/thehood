@@ -62,9 +62,10 @@ function canonical(id: string): string {
 }
 
 function redact(item: InternalBulletinItem): BulletinItem {
-  const { meetingUrl: _meetingUrl, ...publicItem } = item;
+  const publicItem: Partial<InternalBulletinItem> = { ...item };
+  delete publicItem.meetingUrl;
   return {
-    ...publicItem,
+    ...(publicItem as BulletinItem),
     canonicalHref: canonical(item.id),
   };
 }

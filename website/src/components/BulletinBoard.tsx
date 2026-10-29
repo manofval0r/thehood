@@ -47,7 +47,7 @@ export default function BulletinBoard({
   const [filter, setFilter] = useState<BulletinFilter>("all");
   const [verified, setVerified] = useState(initialVerified);
   const [verifying, setVerifying] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.parse(initialFeed.generatedAt));
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 60_000);
@@ -66,6 +66,7 @@ export default function BulletinBoard({
     () => filterBulletinItems(feed.items, filter, now),
     [feed.items, filter, now]
   );
+  const displayed = fullPage ? visible : visible.slice(0, 8);
   const lead = useMemo(
     () => pickLeadBulletinItem(feed.items, now),
     [feed.items, now]
@@ -188,8 +189,8 @@ export default function BulletinBoard({
       </div>
 
       <div className="bulletin-feed" role="tabpanel">
-        {visible.length > 0 ? (
-          visible.map((item) => (
+        {displayed.length > 0 ? (
+          displayed.map((item) => (
             <BulletinItemRow
               key={item.id}
               item={item}
@@ -206,6 +207,20 @@ export default function BulletinBoard({
           </div>
         )}
       </div>
+
+      {!fullPage && visible.length > displayed.length && (
+        <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-4 py-3 sm:px-5">
+          <span className="text-[11.5px] text-muted">
+            Showing {displayed.length} of {visible.length} active updates
+          </span>
+          <Link
+            href="/bulletin"
+            className="pressable inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-[12px] font-medium text-accent hover:bg-accent/10"
+          >
+            Open the full bulletin <ArrowRight size={13} />
+          </Link>
+        </div>
+      )}
 
       {verifying && (
         <StudentVerifyDialog

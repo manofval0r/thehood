@@ -59,14 +59,10 @@ export default function Nav() {
   const groupButtons = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const countdown = useCountdown();
-  const [ms, setMs] = useState(0);
-  useEffect(() => {
-    if (!countdown.ready) return;
-    const [hours, minutes, seconds] = countdown.text.split(":").map(Number);
-    setMs(
-      ((hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0)) * 1000
-    );
-  }, [countdown.text, countdown.ready]);
+  const [hours, minutes, seconds] = countdown.text.split(":").map(Number);
+  const ms = countdown.ready
+    ? ((hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0)) * 1000
+    : 0;
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
   useDialogFocus({
@@ -82,12 +78,6 @@ export default function Nav() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    setMobileOpen(false);
-    setOpenGroup(null);
-    setPinnedGroup(null);
-  }, [pathname]);
 
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 640px)");
@@ -153,7 +143,7 @@ export default function Nav() {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       setOpenGroup(group.id);
-      focusMenuItem(group, event.key === "ArrowDown" ? "first" : "last");
+      window.setTimeout(() => focusMenuItem(group, event.key === "ArrowDown" ? "first" : "last"), 0);
     }
     if (event.key === "Escape") {
       setOpenGroup(null);
@@ -243,6 +233,10 @@ export default function Nav() {
                     >
                       <Link
                         href={group.href}
+                        onClick={() => {
+                          setOpenGroup(null);
+                          setPinnedGroup(null);
+                        }}
                         aria-current={active ? "page" : undefined}
                         className={cn(
                           "pressable relative inline-flex h-9 items-center rounded-l-md pl-3 pr-1 text-[13px] font-medium transition-colors",
@@ -288,6 +282,10 @@ export default function Nav() {
                                 key={item.href}
                                 role="menuitem"
                                 href={item.href}
+                                onClick={() => {
+                                  setOpenGroup(null);
+                                  setPinnedGroup(null);
+                                }}
                                 aria-current={current ? "page" : undefined}
                                 onKeyDown={(event) => itemKey(event, group, index)}
                                 className={cn(
