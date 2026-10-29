@@ -1,6 +1,6 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Text, RoundedBox, Environment } from "@react-three/drei";
 import { useMemo, useRef, useState, Suspense } from "react";
 import * as THREE from "three";
@@ -29,12 +29,13 @@ function getNoteColor(item: BulletinItem): string {
   return NOTE_COLORS.notice;
 }
 
-function StickyNote({ item, index, onSelect }: { item: BulletinItem; index: number; onSelect: (i: BulletinItem) => void }) {
+function StickyNote({ item, index, onSelect, onDrag }: { item: BulletinItem; index: number; onSelect: (i: BulletinItem) => void; onDrag?: (pos:[number,number,number]) => void }) {
   const color = getNoteColor(item);
   const ref = useRef<THREE.Mesh>(null);
   const [hover, setHover] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const dragOffset = useRef([0, 0, 0]);
 
-  // Gentle floating rotation + position scatter
   const pos = useMemo(() => {
     const x = (Math.random() - 0.5) * 7;
     const y = 3 + (Math.random() - 0.5) * 3;
@@ -45,14 +46,23 @@ function StickyNote({ item, index, onSelect }: { item: BulletinItem; index: numb
     return [Math.random() * 0.15 - 0.075, Math.random() * 0.15 - 0.075, Math.random() * 0.05] as [number, number, number];
   }, []);
 
+  useFrame((_, delta) => {
+    if (!dragging && ref.current) {
+      ref.current.rotation.y += delta * 0.15;
+      ref.current.rotation.z += delta * 0.05;
+    }
+  });
+
   return (
     <mesh
       ref={ref}
       position={pos}
       rotation={rot}
-      onClick={() => onSelect(item)}
-      onPointerOver={() => setHover(true)}
+      onPointerOver={() => !dragging && setHover(true)}
       onPointerOut={() => setHover(false)}
+      onPointerDown={(e) => { e.stopPropagation(); setDragging(true); dragOffset.current = [0, 0, 0]; }}
+      onPointerUp={() => setDragging(false)}
+      onClick={() => { if (!dragging) onSelect(item); }}
       castShadow
       receiveShadow
     >
@@ -184,9 +194,22 @@ export default function BulletinBoard3D({ feed, fullPage = false }: { feed: Bull
         <CorkBoard feed={feed} filter={filter} onNoteSelect={setSelected} />
       </Canvas>
 
-      {/* Mobile fallback 2D sticky grid shown when mobile / reduced-motion / no WebGL */}
-      <div className="sr-only" aria-hidden="false">
-        <div className="md:hidden absolute inset-0 pointer-events-none" aria-label="Mobile bulletin view fallback" />
+      {/* Mobile 2D sticky grid fallback (visible on small screens / no-WebGL) */}
+      <div className="md:hidden absolute inset-0 z-20 overflow-y-auto p-3 bg-gradient-to-b from-[#A8704A]/40 to-[#8B5A2B]/60">
+        <div className="grid grid-cols-2 gap-3">
+          {feed.items?.map((item, idx) => (
+            <button
+              key={item.id || idx}
+              onClick={() => setSelected(item)}
+              className="relative rounded-xl p-3 shadow-md transition-all duration-150 hover:-translate-y-1 hover:shadow-xl active:scale-[0.97] text-left"
+              style={{ backgroundColor: getNoteColor(item) }}
+              aria-label={`${item.title || "Note"}, ${item.venue ? "in person" : "online"}`}
+            >
+              <div className="text-xs font-semibold text-stone-900 leading-tight">{item.title?.slice(0, 40) || "Note"}</div>
+              <div className="text-[10px] text-stone-700 mt-1 opacity-90">{item.venue ? "In person" : "Online"}</div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Detail card when note selected */}
