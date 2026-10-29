@@ -10,6 +10,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import FlipClock from "@/components/FlipClock";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
@@ -268,13 +269,18 @@ export default function Nav() {
                         />
                       </button>
 
-                      {open && (
-                        <div
-                          id={`nav-menu-${group.id}`}
-                          role="menu"
-                          aria-label={`${group.label} pages`}
-                          className="absolute left-0 top-[calc(100%+0.45rem)] w-72 overflow-hidden rounded-xl border border-border-strong bg-surface-raised p-1.5 shadow-lift"
-                        >
+                      <AnimatePresence>
+                        {open && (
+                          <motion.div
+                            id={`nav-menu-${group.id}`}
+                            role="menu"
+                            aria-label={`${group.label} pages`}
+                            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                            transition={{ duration: 0.18, ease: [0.2, 0, 0.2, 1] }}
+                            className="absolute left-0 top-[calc(100%+0.45rem)] w-72 overflow-hidden rounded-xl border border-border-strong bg-surface-raised p-1.5 shadow-lift"
+                          >
                           {group.children.map((item, index) => {
                             const current = publicItem?.href === item.href;
                             return (
@@ -309,8 +315,9 @@ export default function Nav() {
                               </Link>
                             );
                           })}
-                        </div>
-                      )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })}

@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import BulletinBoard from "@/components/BulletinBoard";
+import BulletinBoard3D from "@/components/BulletinBoard3D";
 import { getBulletinFeed } from "@/lib/bulletin";
 import { currentStudent } from "@/lib/student-session";
 
 export const metadata = {
-  title: "Campus bulletin · Cybersecurity 300L",
-  description: "Current classes, cancellations, events, deadlines and cohort notices.",
+  title: "Campus bulletin · Cybersecurity 300L — Interactive cork board",
+  description: "Interactive bulletin board with sticky notes, events, classes, deadlines, and alerts.",
 };
 
 export default function BulletinPage({
@@ -33,5 +33,5 @@ async function Board({
   const archive = params.view === "archive";
   const student = await currentStudent();
   const feed = await getBulletinFeed({ archive, student });
-  return <BulletinBoard initialFeed={feed} initialVerified={Boolean(student)} fullPage />;
+  return <BulletinBoard3D feed={feed} fullPage />;
 }
