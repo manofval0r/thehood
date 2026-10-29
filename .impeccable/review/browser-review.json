@@ -1,0 +1,821 @@
+{
+  "results": [
+    {
+      "name": "dark 1440 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "dark 1440 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 1440,
+        "sw": 1440,
+        "theme": "dark",
+        "board": {
+          "x": 112,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1328,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 112,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 401,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "dark 1440 theme",
+      "ok": true,
+      "detail": "dark"
+    },
+    {
+      "name": "dark 1440 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 1440,
+        "sw": 1440,
+        "theme": "dark",
+        "board": {
+          "x": 112,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1328,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 112,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 401,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "dark 1440 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 1440,
+        "sw": 1440,
+        "theme": "dark",
+        "board": {
+          "x": 112,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1328,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 112,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 401,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "desktop grouped menu opens",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "desktop ArrowDown focuses menu item",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "desktop Escape closes grouped menu",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "light 1440 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "light 1440 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 1440,
+        "sw": 1440,
+        "theme": "light",
+        "board": {
+          "x": 112,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1328,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 112,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 401,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "light 1440 theme",
+      "ok": true,
+      "detail": "light"
+    },
+    {
+      "name": "light 1440 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 1440,
+        "sw": 1440,
+        "theme": "light",
+        "board": {
+          "x": 112,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1328,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 112,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 401,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "light 1440 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 1440,
+        "sw": 1440,
+        "theme": "light",
+        "board": {
+          "x": 112,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1328,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 112,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 401,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "dark 1280 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "dark 1280 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 1280,
+        "sw": 1280,
+        "theme": "dark",
+        "board": {
+          "x": 32,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1248,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 32,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 321,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "dark 1280 theme",
+      "ok": true,
+      "detail": "dark"
+    },
+    {
+      "name": "dark 1280 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 1280,
+        "sw": 1280,
+        "theme": "dark",
+        "board": {
+          "x": 32,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1248,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 32,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 321,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "dark 1280 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 1280,
+        "sw": 1280,
+        "theme": "dark",
+        "board": {
+          "x": 32,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1248,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 32,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 321,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1799
+      }
+    },
+    {
+      "name": "light 1280 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "light 1280 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 1280,
+        "sw": 1280,
+        "theme": "light",
+        "board": {
+          "x": 32,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1248,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 32,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 321,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "light 1280 theme",
+      "ok": true,
+      "detail": "light"
+    },
+    {
+      "name": "light 1280 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 1280,
+        "sw": 1280,
+        "theme": "light",
+        "board": {
+          "x": 32,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1248,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 32,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 321,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "light 1280 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 1280,
+        "sw": 1280,
+        "theme": "light",
+        "board": {
+          "x": 32,
+          "y": 1220.484375,
+          "w": 1216,
+          "h": 1509.625,
+          "right": 1248,
+          "bottom": 2730.109375
+        },
+        "course": {
+          "x": 32,
+          "y": 533.4375,
+          "w": 289,
+          "h": 189.015625,
+          "right": 321,
+          "bottom": 722.453125
+        },
+        "navVisible": true,
+        "mobileVisible": false,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "dark 390 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "dark 390 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 390,
+        "sw": 390,
+        "theme": "dark",
+        "board": {
+          "x": 16,
+          "y": 2916.328125,
+          "w": 358,
+          "h": 2745.078125,
+          "right": 374,
+          "bottom": 5661.40625
+        },
+        "course": {
+          "x": 16,
+          "y": 766.171875,
+          "w": 358,
+          "h": 189.015625,
+          "right": 374,
+          "bottom": 955.1875
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "dark 390 theme",
+      "ok": true,
+      "detail": "dark"
+    },
+    {
+      "name": "dark 390 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 390,
+        "sw": 390,
+        "theme": "dark",
+        "board": {
+          "x": 16,
+          "y": 2916.328125,
+          "w": 358,
+          "h": 2745.078125,
+          "right": 374,
+          "bottom": 5661.40625
+        },
+        "course": {
+          "x": 16,
+          "y": 766.171875,
+          "w": 358,
+          "h": 189.015625,
+          "right": 374,
+          "bottom": 955.1875
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "dark 390 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 390,
+        "sw": 390,
+        "theme": "dark",
+        "board": {
+          "x": 16,
+          "y": 2916.328125,
+          "w": 358,
+          "h": 2745.078125,
+          "right": 374,
+          "bottom": 5661.40625
+        },
+        "course": {
+          "x": 16,
+          "y": 766.171875,
+          "w": 358,
+          "h": 189.015625,
+          "right": 374,
+          "bottom": 955.1875
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "mobile grouped sheet opens",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "mobile Escape closes grouped sheet",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "student verification dialog opens",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "student verification dialog closes",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "bulletin class filter changes state",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "light 390 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "light 390 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 390,
+        "sw": 390,
+        "theme": "light",
+        "board": {
+          "x": 16,
+          "y": 2916.328125,
+          "w": 358,
+          "h": 2745.078125,
+          "right": 374,
+          "bottom": 5661.40625
+        },
+        "course": {
+          "x": 16,
+          "y": 766.171875,
+          "w": 358,
+          "h": 189.015625,
+          "right": 374,
+          "bottom": 955.1875
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "light 390 theme",
+      "ok": true,
+      "detail": "light"
+    },
+    {
+      "name": "light 390 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 390,
+        "sw": 390,
+        "theme": "light",
+        "board": {
+          "x": 16,
+          "y": 2916.328125,
+          "w": 358,
+          "h": 2745.078125,
+          "right": 374,
+          "bottom": 5661.40625
+        },
+        "course": {
+          "x": 16,
+          "y": 766.171875,
+          "w": 358,
+          "h": 189.015625,
+          "right": 374,
+          "bottom": 955.1875
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "light 390 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 390,
+        "sw": 390,
+        "theme": "light",
+        "board": {
+          "x": 16,
+          "y": 2916.328125,
+          "w": 358,
+          "h": 2745.078125,
+          "right": 374,
+          "bottom": 5661.40625
+        },
+        "course": {
+          "x": 16,
+          "y": 766.171875,
+          "w": 358,
+          "h": 189.015625,
+          "right": 374,
+          "bottom": 955.1875
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "dark 320 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "dark 320 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 320,
+        "sw": 320,
+        "theme": "dark",
+        "board": {
+          "x": 16,
+          "y": 2957.75,
+          "w": 288,
+          "h": 2862.328125,
+          "right": 304,
+          "bottom": 5820.078125
+        },
+        "course": {
+          "x": 16,
+          "y": 807.59375,
+          "w": 288,
+          "h": 189.015625,
+          "right": 304,
+          "bottom": 996.609375
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "dark 320 theme",
+      "ok": true,
+      "detail": "dark"
+    },
+    {
+      "name": "dark 320 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 320,
+        "sw": 320,
+        "theme": "dark",
+        "board": {
+          "x": 16,
+          "y": 2957.75,
+          "w": 288,
+          "h": 2862.328125,
+          "right": 304,
+          "bottom": 5820.078125
+        },
+        "course": {
+          "x": 16,
+          "y": 807.59375,
+          "w": 288,
+          "h": 189.015625,
+          "right": 304,
+          "bottom": 996.609375
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "dark 320 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 320,
+        "sw": 320,
+        "theme": "dark",
+        "board": {
+          "x": 16,
+          "y": 2957.75,
+          "w": 288,
+          "h": 2862.328125,
+          "right": 304,
+          "bottom": 5820.078125
+        },
+        "course": {
+          "x": 16,
+          "y": 807.59375,
+          "w": 288,
+          "h": 189.015625,
+          "right": 304,
+          "bottom": 996.609375
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "light 320 load 200",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "light 320 no document overflow",
+      "ok": true,
+      "detail": {
+        "iw": 320,
+        "sw": 320,
+        "theme": "light",
+        "board": {
+          "x": 16,
+          "y": 2957.75,
+          "w": 288,
+          "h": 2862.328125,
+          "right": 304,
+          "bottom": 5820.078125
+        },
+        "course": {
+          "x": 16,
+          "y": 807.59375,
+          "w": 288,
+          "h": 189.015625,
+          "right": 304,
+          "bottom": 996.609375
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "light 320 theme",
+      "ok": true,
+      "detail": "light"
+    },
+    {
+      "name": "light 320 bulletin rendered",
+      "ok": true,
+      "detail": {
+        "iw": 320,
+        "sw": 320,
+        "theme": "light",
+        "board": {
+          "x": 16,
+          "y": 2957.75,
+          "w": 288,
+          "h": 2862.328125,
+          "right": 304,
+          "bottom": 5820.078125
+        },
+        "course": {
+          "x": 16,
+          "y": 807.59375,
+          "w": 288,
+          "h": 189.015625,
+          "right": 304,
+          "bottom": 996.609375
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    },
+    {
+      "name": "light 320 correct nav mode",
+      "ok": true,
+      "detail": {
+        "iw": 320,
+        "sw": 320,
+        "theme": "light",
+        "board": {
+          "x": 16,
+          "y": 2957.75,
+          "w": 288,
+          "h": 2862.328125,
+          "right": 304,
+          "bottom": 5820.078125
+        },
+        "course": {
+          "x": 16,
+          "y": 807.59375,
+          "w": 288,
+          "h": 189.015625,
+          "right": 304,
+          "bottom": 996.609375
+        },
+        "navVisible": false,
+        "mobileVisible": true,
+        "boardRows": 8,
+        "boardText": 1802
+      }
+    }
+  ],
+  "external": []
+}

@@ -1251,6 +1251,217 @@ html:hover {
 }
 
 /* ============================================================
+   LIVE CAMPUS BOARD
+   One operational frame with ruled lanes, not a dashboard of
+   unrelated cards. State colors always travel with words.
+   ============================================================ */
+
+.bulletin-board {
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: 0 22px 52px -34px rgba(0, 0, 0, 0.68);
+}
+
+.bulletin-board-full {
+  min-height: min(46rem, calc(100dvh - 8rem));
+}
+
+.bulletin-board-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.bulletin-live-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: none;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 0.3rem color-mix(in oklab, var(--accent) 14%, transparent);
+  animation: bulletin-signal 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes bulletin-signal {
+  0%, 62%, 100% { box-shadow: 0 0 0 0.3rem color-mix(in oklab, var(--accent) 14%, transparent); }
+  76% { box-shadow: 0 0 0 0.62rem transparent; }
+}
+
+.bulletin-health {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 0.65rem;
+  color: var(--muted-foreground);
+}
+
+.bulletin-health-ok {
+  border-color: color-mix(in oklab, var(--accent) 38%, var(--border));
+  color: var(--accent);
+}
+
+.bulletin-command-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(16rem, 0.85fr);
+  border-block: 1px solid var(--border);
+}
+
+.bulletin-lead-lane,
+.bulletin-alert-lane {
+  min-height: 18rem;
+  padding: 1.5rem;
+}
+
+.bulletin-alert-lane {
+  border-left: 1px solid var(--border);
+  background: var(--background);
+}
+
+.bulletin-alert-lane-active {
+  background: color-mix(in oklab, #ef4444 5%, var(--background));
+}
+
+.bulletin-lane-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.bulletin-feed-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+
+.bulletin-feed {
+  min-height: 10rem;
+}
+
+.bulletin-row {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 9rem) minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: start;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition:
+    background-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bulletin-row:last-child {
+  border-bottom: 0;
+}
+
+.bulletin-row:hover,
+.bulletin-row:focus-within {
+  background: var(--surface-hover);
+  box-shadow: inset 3px 0 0 color-mix(in oklab, var(--accent) 70%, transparent);
+}
+
+.bulletin-row-urgent {
+  background: color-mix(in oklab, #ef4444 4%, var(--surface));
+}
+
+.bulletin-row-time {
+  min-width: 0;
+}
+
+.bulletin-row-actions {
+  display: flex;
+  max-width: 11rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.bulletin-source,
+.bulletin-state {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.18rem 0.45rem;
+  font-size: 0.625rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.bulletin-state {
+  border-color: color-mix(in oklab, var(--accent) 35%, var(--border));
+  color: var(--accent);
+}
+
+.bulletin-state-alert {
+  border-color: color-mix(in oklab, #ef4444 38%, var(--border));
+  color: #f87171;
+}
+
+@media (max-width: 767px) {
+  .bulletin-board-header {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .bulletin-command-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bulletin-lead-lane,
+  .bulletin-alert-lane {
+    min-height: 0;
+    padding: 1.1rem 1rem;
+  }
+
+  .bulletin-alert-lane {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+
+  .bulletin-feed-header {
+    padding: 0.75rem;
+  }
+
+  .bulletin-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
+    padding: 1rem;
+  }
+
+  .bulletin-row-actions {
+    max-width: none;
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bulletin-live-dot {
+    animation: none;
+  }
+
+  .bulletin-row {
+    transition: none;
+  }
+}
+
+/* ============================================================
    PRINT
    The timetable and the registration list are the two pages
    people actually put on a desk, so they get a real print

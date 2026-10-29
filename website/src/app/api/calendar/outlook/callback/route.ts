@@ -1,70 +1,54 @@
 import { NextResponse } from "next/server";
+import { currentStaff } from "@/lib/admin-session";
+import { isSuper } from "@/lib/staff";
+import {
+  exchangeOutlookCode,
+  storeOutlookConnection,
+  syncManagedOutlook,
+} from "@/lib/outlook-calendar";
+import { readOutlookState } from "@/lib/outlook-calendar-core";
 
-/**
- * Microsoft Outlook OAuth callback endpoint.
- *
- * Microsoft redirects here after the user approves (or denies) access, and
- * the authorization code is exchanged for tokens. The tokens are not stored
- * yet: /timetable subscribes to the site's own .ics feed instead, and this
- * route is the scaffolding for the two-way sync that comes later.
- *
- * The redirect URI is taken from the request so that it matches the one the
- * authorize step sent exactly, including the host the reader is actually on.
- *
- * Requires OUTLOOK_CLIENT_ID and OUTLOOK_CLIENT_SECRET environment variables.
- */
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const { searchParams } = url;
-  const code = searchParams.get("code");
-  const error = searchParams.get("error");
-
   const back = (params: Record<string, string>) => {
-    const target = new URL("/timetable", url.origin);
+    const target = new URL("/admin/bulletin", url.origin);
     for (const [key, value] of Object.entries(params)) {
       target.searchParams.set(key, value);
     }
     return NextResponse.redirect(target);
   };
 
-  if (error || !code) {
-    return back({ calendarError: error || "user_denied" });
-  }
+  const staff = await currentStaff();
+  if (!staff || !isSuper(staff)) return back({ calendarError: "forbidden" });
 
-  const clientId = process.env.OUTLOOK_CLIENT_ID;
-  const clientSecret = process.env.OUTLOOK_CLIENT_SECRET;
-  const redirectUri = `${url.origin}/api/calendar/outlook/callback`;
-
-  if (!clientId || !clientSecret) {
-    return back({ calendarError: "not_configured" });
+  const code = url.searchParams.get("code");
+  const stateValue = url.searchParams.get("state");
+  const error = url.searchParams.get("error");
+  const secret = process.env.ADMIN_SECRET;
+  const state =
+    stateValue && secret ? readOutlookState(stateValue, secret) : null;
+  if (
+    error ||
+    !code ||
+    !state ||
+    state.staffId !== staff.id
+  ) {
+    return back({ calendarError: error || "invalid_state" });
   }
 
   try {
-    const tokenResponse = await fetch(
-      "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          code,
-          client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uri: redirectUri,
-          grant_type: "authorization_code",
-        }),
-      }
-    );
-
-    if (!tokenResponse.ok) {
-      return back({ calendarError: "token_exchange_failed" });
-    }
-
-    // TODO: store the refresh token against this device once the sync job
-    // exists. Until then the exchange only proves the credentials are right.
-    await tokenResponse.json().catch(() => null);
-
+    const token = await exchangeOutlookCode({
+      code,
+      redirectUri: `${url.origin}/api/calendar/outlook/callback`,
+    });
+    await storeOutlookConnection({
+      token,
+      staff: { id: staff.id, name: staff.name },
+    });
+    await syncManagedOutlook();
     return back({ calendarConnected: "outlook" });
-  } catch {
-    return back({ calendarError: "token_exchange_failed" });
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "connection_failed";
+    return back({ calendarError: message.slice(0, 80) });
   }
 }

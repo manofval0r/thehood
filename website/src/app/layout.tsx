@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { ThemeProvider, THEME_BOOTSTRAP } from "@/components/ThemeProvider";
@@ -11,11 +11,6 @@ import CountdownPill from "@/components/CountdownPill";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getAllBreaks } from "@/lib/break-store";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Cybersecurity 300L · Course Resources",
@@ -38,7 +33,7 @@ export default async function RootLayout({
       // using localStorage or the OS preference. No server-side default avoids
       // a hydration mismatch where React would revert the script's correct value.
       suppressHydrationWarning
-      className={`${geistSans.variable} h-full antialiased`}
+      className={`${GeistSans.variable} h-full antialiased`}
     >
       <head>
         {/*

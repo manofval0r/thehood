@@ -12,7 +12,8 @@ import {
 import type { NotificationKind } from "@/lib/notification-kinds";
 import { rest } from "@/lib/rest";
 import { getAllBreaks } from "@/lib/break-store";
-import { breakFor, breaksIn, clockLabel } from "@/lib/breaks";
+import { planClassNotifications } from "@/lib/class-reminders";
+import type { ClassOccurrenceOverride } from "@/lib/bulletin-types";
 
 /**
  * The pushes that happen because something happened.
@@ -95,151 +96,63 @@ export async function announceUnmarked(
  */
 export async function announceClasses(): Promise<{ sent: number }> {
   const now = Date.now();
-
-  /*
-   * How late a moment can still be announced.
-   *
-   * The scheduler runs every five minutes, so a one-minute window around the
-   * start of a class would be missed by most runs. Five minutes is the width
-   * of the gap, and the sent table is what stops a moment being announced
-   * twice when two runs both fall inside it.
-   */
-  const MOMENT = 5 * 60 * 1000;
-
   const slots = classesInWindow(
     new Date(now - 6 * 3600000),
-    new Date(now + 30 * 60 * 1000)
+    new Date(now + 8 * 60 * 60 * 1000)
   );
-
-  // The breaks, because a lecture is not one thing but a series of periods
-  // with a pause in each of them, and a reader who does not know a pause is
-  // coming will sit there for ten minutes wondering.
-  const settings = await getAllBreaks();
+  const [settings, rows] = await Promise.all([
+    getAllBreaks(),
+    rest<
+      {
+        id: string;
+        occurrence_key: string;
+        source_event_id: string | null;
+        course: string;
+        action: "cancel" | "change";
+        status: "active" | "restored";
+        original: ClassOccurrenceOverride["original"];
+        proposed: ClassOccurrenceOverride["proposed"];
+        reason: string;
+        created_by: string;
+        created_by_name: string;
+        created_at: string;
+        updated_at: string;
+        restored_at: string | null;
+      }[]
+    >("class_occurrence_overrides?status=eq.active&select=*").catch(() => []),
+  ]);
+  const overrides: ClassOccurrenceOverride[] = rows.map((row) => ({
+    id: row.id,
+    occurrenceKey: row.occurrence_key,
+    sourceEventId: row.source_event_id,
+    course: row.course,
+    action: row.action,
+    status: row.status,
+    original: row.original,
+    proposed: row.proposed,
+    reason: row.reason,
+    createdBy: row.created_by,
+    createdByName: row.created_by_name,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    restoredAt: row.restored_at,
+  }));
+  const updates = planClassNotifications({
+    slots,
+    overrides,
+    settings,
+    now,
+  });
 
   let sent = 0;
-
-  for (const slot of slots) {
-    const date = new Date(slot.start).toISOString().slice(0, 10);
-    const end = new Date(slot.end).toISOString().slice(0, 10);
-
-    /* Five minutes before. */
-    const startAt = slot.start - 5 * 60 * 1000;
-    if (startAt <= now && now < slot.start) {
-      const update: Update = {
-        id: `class-soon:${slot.course}:${date}:${slot.start}`,
-        kind: "classes",
-        title: `${slot.course} starts in five minutes`,
-        body: `${slot.title} · ${slot.venue}`,
-        at: new Date().toISOString(),
-        href: "/timetable",
-        course: slot.course,
-      };
-      if (!(await hasBeenSent(update.id))) {
-        const result = await broadcast(update, { kind: "classes", course: slot.course });
-        sent += result.sent;
-        await markSent(update);
-      }
-    }
-
-    /* The moment it starts, for the reader who is walking in late. */
-    if (slot.start <= now && now < slot.start + MOMENT) {
-      const update: Update = {
-        id: `class-started:${slot.course}:${date}:${slot.start}`,
-        kind: "classes",
-        title: `${slot.course} has started`,
-        body: `${slot.title} · ${slot.venue}`,
-        at: new Date().toISOString(),
-        href: "/timetable",
-        course: slot.course,
-      };
-      if (!(await hasBeenSent(update.id))) {
-        const result = await broadcast(update, { kind: "classes", course: slot.course });
-        sent += result.sent;
-        await markSent(update);
-      }
-    }
-
-    /* The end of it. */
-    if (slot.end <= now && now < slot.end + MOMENT) {
-      const update: Update = {
-        id: `class-ended:${slot.course}:${end}:${slot.end}`,
-        kind: "classes",
-        title: `${slot.course} has just ended`,
-        body: `${slot.title}. The material for it should be on the course page.`,
-        at: new Date().toISOString(),
-        href: `/courses/${courseSlug(slot.course)}`,
-        course: slot.course,
-      };
-      if (!(await hasBeenSent(update.id))) {
-        const result = await broadcast(update, { kind: "classes", course: slot.course });
-        sent += result.sent;
-        await markSent(update);
-      }
-    }
-
-    /* The breaks inside it. */
-    const length = breakFor(settings, slot.course, slot.dayIndex, slot.startMin);
-    for (const pause of breaksIn(slot.startMin, slot.endMin, length)) {
-      // The break is a set of minutes from the start of the session, and
-      // the session has a real time, so the break does too.
-      const pauseStart = slot.start + (pause.from - slot.startMin) * 60 * 1000;
-      const pauseEnd = slot.start + (pause.to - slot.startMin) * 60 * 1000;
-
-      /* Five minutes before the pause. */
-      const beforePause = pauseStart - 5 * 60 * 1000;
-      if (beforePause <= now && now < pauseStart) {
-        const update: Update = {
-          id: `break-soon:${slot.course}:${pauseStart}`,
-          kind: "classes",
-          title: `${slot.course} has a break in five minutes`,
-          body: `The lecture pauses at ${clockLabel(pause.from)}. It is ${pause.to - pause.from} minutes long.`,
-          at: new Date().toISOString(),
-          href: "/timetable",
-          course: slot.course,
-        };
-        if (!(await hasBeenSent(update.id))) {
-          const result = await broadcast(update, { kind: "classes", course: slot.course });
-          sent += result.sent;
-          await markSent(update);
-        }
-      }
-
-      /* The moment the pause begins. */
-      if (pauseStart <= now && now < pauseStart + MOMENT) {
-        const update: Update = {
-          id: `break-started:${slot.course}:${pauseStart}`,
-          kind: "classes",
-          title: `${slot.course} is on a break`,
-          body: `The lecture pauses at ${clockLabel(pause.from)} for ${pause.to - pause.from} minutes.`,
-          at: new Date().toISOString(),
-          href: "/timetable",
-          course: slot.course,
-        };
-        if (!(await hasBeenSent(update.id))) {
-          const result = await broadcast(update, { kind: "classes", course: slot.course });
-          sent += result.sent;
-          await markSent(update);
-        }
-      }
-
-      /* The pause is over. */
-      if (pauseEnd <= now && now < pauseEnd + MOMENT) {
-        const update: Update = {
-          id: `break-over:${slot.course}:${pauseEnd}`,
-          kind: "classes",
-          title: `The break in ${slot.course} is over`,
-          body: `The lecture is teaching again. It runs until ${clockLabel(slot.endMin)}.`,
-          at: new Date().toISOString(),
-          href: "/timetable",
-          course: slot.course,
-        };
-        if (!(await hasBeenSent(update.id))) {
-          const result = await broadcast(update, { kind: "classes", course: slot.course });
-          sent += result.sent;
-          await markSent(update);
-        }
-      }
-    }
+  for (const planned of updates) {
+    if (await hasBeenSent(planned.id)) continue;
+    const result = await broadcast(planned, {
+      kind: "classes",
+      course: planned.course,
+    });
+    sent += result.sent;
+    await markSent(planned);
   }
 
   return { sent };
