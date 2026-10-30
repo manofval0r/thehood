@@ -338,10 +338,10 @@ export default function Nav() {
                         href={item.href}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "pressable relative flex h-9 shrink-0 items-center rounded-md px-3 text-[13px] font-medium",
+                          "pressable relative flex min-h-[44px] h-auto shrink-0 items-center rounded-xl px-3.5 text-[13px] font-medium transition-colors duration-150",
                           active
-                            ? "font-semibold text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-accent"
-                            : "text-muted-foreground hover:text-foreground"
+                            ? "font-semibold text-foreground bg-accent/10 after:absolute after:bottom-1 after:left-3 after:right-3 after:h-[3px] after:rounded-full after:bg-accent shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.06)] dark:shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.06)]"
+                            : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
                         )}
                       >
                         {item.label}
