@@ -49,7 +49,7 @@ export default function BulletinBoard({
   const [verified, setVerified] = useState(initialVerified);
   const [verifying, setVerifying] = useState(false);
   const [now, setNow] = useState(() => Date.parse(initialFeed.generatedAt));
-  const [view, setView] = useState<"list" | "board">("list");
+  const [view, setView] = useState<"list" | "board">("board");
   const [hideLectures, setHideLectures] = useState(false);
   const [onlineOnly, setOnlineOnly] = useState(false);
 
