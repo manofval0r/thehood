@@ -14,6 +14,36 @@ export interface NavGroup {
   children: NavItem[];
 }
 
+/** One line that frames the group at the top of the mega menu. */
+export const NAV_GROUP_TAGLINES: Record<NavGroup["id"], string> = {
+  courses: "Every course, the week's times, and what is due.",
+  study: "Software to install and reading beyond the slides.",
+  campus: "What is happening now, next, and after graduation.",
+};
+
+/**
+ * Cross-group shortcuts shown in the mega menu's quick rail. They point at
+ * existing pages only, so the rail stays truthful even when a group has few
+ * children of its own.
+ */
+export const NAV_GROUP_QUICK_LINKS: Record<
+  NavGroup["id"],
+  { href: string; label: string; hint: string }[]
+> = {
+  courses: [
+    { href: "/bulletin", label: "Live bulletin", hint: "Changes as they land" },
+    { href: "/tools", label: "Setup tools", hint: "Install before lab" },
+  ],
+  study: [
+    { href: "/timetable", label: "This week", hint: "Times and venues" },
+    { href: "/assessments", label: "Deadlines", hint: "Counting down" },
+  ],
+  campus: [
+    { href: "/", label: "All courses", hint: "Files and folders" },
+    { href: "/timetable", label: "Timetable", hint: "Subscribe from here" },
+  ],
+};
+
 export const PUBLIC_NAV_GROUPS: NavGroup[] = [
   {
     id: "courses",
