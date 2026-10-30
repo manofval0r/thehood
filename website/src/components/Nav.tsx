@@ -11,6 +11,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import {
+  ArrowLeft,
   BookOpen,
   Briefcase,
   CalendarDays,
@@ -21,7 +22,7 @@ import {
   FileCheck2,
   FolderOpen,
   GraduationCap,
-  LayoutGrid,
+  
   Mail,
   Megaphone,
   Menu,
@@ -679,9 +680,9 @@ export default function Nav() {
               <>
                 <nav
                   aria-label="Staff pages"
-                  className="hidden h-full min-w-0 flex-1 items-center overflow-x-auto sm:flex"
+                  className="hidden h-full flex-1 items-center gap-1 sm:flex"
                 >
-                  <div className="mx-auto flex w-max items-center">
+                  <div className="flex items-center gap-1">
                     {staffLinks.map((item) => {
                       const active = item.exact
                         ? pathname === item.href
@@ -704,25 +705,7 @@ export default function Nav() {
                     })}
                   </div>
                 </nav>
-                <div
-                  className="hidden h-full items-center sm:flex"
-                  onMouseEnter={() => openWithDirection("pages")}
-                >
-                  <Trigger
-                    panel="pages"
-                    label="Pages"
-                    href="/admin"
-                    icon={LayoutGrid}
-                    active={pathname.startsWith("/admin")}
-                    open={panelId === "pages"}
-                    onNavigate={closePanel}
-                    onToggle={() => togglePinned("pages")}
-                    onTriggerKey={(event) => triggerKey(event, "pages")}
-                    buttonRef={(element) => {
-                      triggerButtons.current["pages"] = element;
-                    }}
-                  />
-                </div>
+
               </>
             )}
 
@@ -745,9 +728,10 @@ export default function Nav() {
               <button
                 type="button"
                 onClick={signOut}
-                className="pressable ml-1.5 inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface px-3 text-[12px] font-medium text-muted-foreground hover:border-border-strong hover:text-foreground sm:h-9 sm:px-2.5"
+                aria-label="Sign out and return to public site"
+                className="pressable ml-1.5 inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-[12px] font-medium text-muted-foreground hover:border-border-strong hover:text-foreground sm:h-9 sm:px-2.5"
               >
-                Sign out
+                <ArrowLeft size={13} aria-hidden="true" /> Sign out
               </button>
             )}
 
