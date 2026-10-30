@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Archive, ArrowRight, Radio, RefreshCw, ShieldCheck } from "lucide-react";
+import { Archive, ArrowRight, LayoutGrid, List, Radio, RefreshCw, ShieldCheck } from "lucide-react";
 import BulletinItemRow from "@/components/BulletinItemRow";
+import BulletinBoardView from "@/components/BulletinBoardView";
 import StudentVerifyDialog from "@/components/StudentVerifyDialog";
 import type { BulletinFeed } from "@/lib/bulletin-feed";
 import {
@@ -48,6 +49,9 @@ export default function BulletinBoard({
   const [verified, setVerified] = useState(initialVerified);
   const [verifying, setVerifying] = useState(false);
   const [now, setNow] = useState(() => Date.parse(initialFeed.generatedAt));
+  const [view, setView] = useState<"list" | "board">("list");
+  const [hideLectures, setHideLectures] = useState(false);
+  const [onlineOnly, setOnlineOnly] = useState(false);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 60_000);
@@ -67,6 +71,12 @@ export default function BulletinBoard({
     [feed.items, filter, now]
   );
   const displayed = fullPage ? visible : visible.slice(0, 8);
+  const boardItems = useMemo(() => {
+    let list = displayed;
+    if (hideLectures) list = list.filter((item) => item.kind !== "class");
+    if (onlineOnly) list = list.filter((item) => !item.location);
+    return list;
+  }, [displayed, hideLectures, onlineOnly]);
   const lead = useMemo(
     () => pickLeadBulletinItem(feed.items, now),
     [feed.items, now]
@@ -177,7 +187,65 @@ export default function BulletinBoard({
           ))}
         </div>
         <div className="flex items-center gap-2">
-          {!verified && (
+          <div role="group" aria-label="Bulletin view" className="hidden items-center gap-1 md:flex">
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              aria-pressed={view === "list"}
+              className={cn(
+                "pressable inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-[11.5px] font-medium transition-colors",
+                view === "list"
+                  ? "border-accent bg-accent/12 text-accent"
+                  : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground"
+              )}
+            >
+              <List size={13} /> List
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("board")}
+              aria-pressed={view === "board"}
+              className={cn(
+                "pressable inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-[11.5px] font-medium transition-colors",
+                view === "board"
+                  ? "border-accent bg-accent/12 text-accent"
+                  : "border-border text-muted-foreground hover:border-border-strong hover:text-foreground"
+              )}
+            >
+              <LayoutGrid size={13} /> Board
+            </button>
+            {view === "board" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setHideLectures((on) => !on)}
+                  aria-pressed={hideLectures}
+                  className={cn(
+                    "pressable inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-[11.5px] font-medium transition-colors",
+                    hideLectures
+                      ? "border-accent bg-accent/12 text-accent"
+                      : "border-border text-muted-foreground hover:border-accent/60"
+                  )}
+                >
+                  Hide lectures
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOnlineOnly((on) => !on)}
+                  aria-pressed={onlineOnly}
+                  className={cn(
+                    "pressable inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-[11.5px] font-medium transition-colors",
+                    onlineOnly
+                      ? "border-accent bg-accent/12 text-accent"
+                      : "border-border text-muted-foreground hover:border-accent/60"
+                  )}
+                >
+                  Online only
+                </button>
+              </>
+            )}
+          </div>
+            {!verified && (
             <button type="button" onClick={() => setVerifying(true)} className="pressable inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-3 text-[11.5px] text-muted-foreground hover:border-accent hover:text-foreground">
               <ShieldCheck size={14} /> Verify this device
             </button>
@@ -187,9 +255,15 @@ export default function BulletinBoard({
           </Link>
         </div>
       </div>
-
       <div className="bulletin-feed" role="tabpanel">
-        {displayed.length > 0 ? (
+        {view === "board" ? (
+          <BulletinBoardView
+            items={boardItems}
+            verified={verified}
+            onVerify={() => setVerifying(true)}
+            onRefresh={refresh}
+          />
+        ) : displayed.length > 0 ? (
           displayed.map((item) => (
             <BulletinItemRow
               key={item.id}
@@ -208,7 +282,7 @@ export default function BulletinBoard({
         )}
       </div>
 
-      {!fullPage && visible.length > displayed.length && (
+      {!fullPage && view === "list" && visible.length > displayed.length && (
         <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-4 py-3 sm:px-5">
           <span className="text-[11.5px] text-muted">
             Showing {displayed.length} of {visible.length} active updates

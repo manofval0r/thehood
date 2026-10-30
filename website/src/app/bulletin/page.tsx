@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import BulletinBoard3D from "@/components/BulletinBoard3D";
+import BulletinBoard from "@/components/BulletinBoard";
 import { getBulletinFeed } from "@/lib/bulletin";
 import { currentStudent } from "@/lib/student-session";
 
 export const metadata = {
-  title: "Campus bulletin · Cybersecurity 300L — Interactive cork board",
-  description: "Interactive bulletin board with sticky notes, events, classes, deadlines, and alerts.",
+  title: "Campus bulletin · Cybersecurity 300L",
+  description:
+    "The live campus board: classes, deadlines, events, notices and urgent updates from Outlook, the timetable, staff and the academic calendar.",
 };
 
 export default function BulletinPage({
@@ -33,5 +34,11 @@ async function Board({
   const archive = params.view === "archive";
   const student = await currentStudent();
   const feed = await getBulletinFeed({ archive, student });
-  return <BulletinBoard3D feed={feed} fullPage />;
+  return (
+    <BulletinBoard
+      initialFeed={feed}
+      initialVerified={Boolean(student)}
+      fullPage
+    />
+  );
 }
