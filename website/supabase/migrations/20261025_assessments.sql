@@ -35,37 +35,35 @@ create index if not exists assessment_reminders_assessment_id_idx on assessment_
 create index if not exists assessment_reminders_student_id_idx on assessment_reminders(student_id);
 
 -- Row level security: visitors can read, only the owner can write their own.
+-- (create policy has no IF NOT EXISTS on this Postgres, so existence is
+-- checked through pg_policies inside a DO block.)
 alter table assessments enable row level security;
 alter table assessment_reminders enable row level security;
 
-create policy if not exists "Anyone can read assessments"
-  on assessments for select
-  using (true);
-
-create policy if not exists "Owners can insert their own assessments"
-  on assessments for insert
-  with check (true);
-
-create policy if not exists "Owners can update their own assessments"
-  on assessments for update
-  using (true);
-
-create policy if not exists "Owners can delete their own assessments"
-  on assessments for delete
-  using (true);
-
-create policy if not exists "Anyone can read reminders"
-  on assessment_reminders for select
-  using (true);
-
-create policy if not exists "Owners can insert their own reminders"
-  on assessment_reminders for insert
-  with check (true);
-
-create policy if not exists "Owners can update their own reminders"
-  on assessment_reminders for update
-  using (true);
-
-create policy if not exists "Owners can delete their own reminders"
-  on assessment_reminders for delete
-  using (true);
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessments' and policyname = 'Anyone can read assessments') then
+    create policy "Anyone can read assessments" on assessments for select using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessments' and policyname = 'Owners can insert their own assessments') then
+    create policy "Owners can insert their own assessments" on assessments for insert with check (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessments' and policyname = 'Owners can update their own assessments') then
+    create policy "Owners can update their own assessments" on assessments for update using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessments' and policyname = 'Owners can delete their own assessments') then
+    create policy "Owners can delete their own assessments" on assessments for delete using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessment_reminders' and policyname = 'Anyone can read reminders') then
+    create policy "Anyone can read reminders" on assessment_reminders for select using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessment_reminders' and policyname = 'Owners can insert their own reminders') then
+    create policy "Owners can insert their own reminders" on assessment_reminders for insert with check (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessment_reminders' and policyname = 'Owners can update their own reminders') then
+    create policy "Owners can update their own reminders" on assessment_reminders for update using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'assessment_reminders' and policyname = 'Owners can delete their own reminders') then
+    create policy "Owners can delete their own reminders" on assessment_reminders for delete using (true);
+  end if;
+end $$;
