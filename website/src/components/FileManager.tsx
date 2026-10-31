@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   ArrowUp,
   Check,
   ChevronRight,
@@ -36,6 +37,7 @@ import {
   type FolderNode,
 } from "@/lib/file-tree";
 import { resourceUrl } from "@/lib/resources";
+import { friendlyUploadError, preflightUploadFile } from "@/lib/upload-errors";
 import {
   announceCourseFolder,
   createCourseFolder,
@@ -627,8 +629,7 @@ export default function FileManager({
           await uploadOne(entry.file, folder, title);
           done += 1;
         } catch (e) {
-          const message =
-            e instanceof Error ? e.message : "The file could not be added.";
+          const message = friendlyUploadError(e);
 
           /*
            * Two files in one folder can share a stem: lecture.pdf and
@@ -651,8 +652,7 @@ export default function FileManager({
         setFolderUpload({ label, done, total: entries.length });
       }
     } catch (e) {
-      firstError ??=
-        e instanceof Error ? e.message : "The folder could not be added.";
+      firstError ??= friendlyUploadError(e);
     } finally {
       folderUploadingRef.current = false;
       setFolderUpload(null);
@@ -789,13 +789,16 @@ export default function FileManager({
       {(notice || problem) && (
         <p
           role="status"
-          className={`mt-3 rounded-md border px-3 py-2 text-[12.5px] ${
+          className={`mt-3 flex items-start gap-2 rounded-md border px-3 py-2 text-[12.5px] leading-relaxed ${
             problem
               ? "border-red-500/40 bg-red-500/10 text-red-300"
               : "border-accent/30 bg-accent/10 text-accent"
           }`}
         >
-          {problem ?? notice}
+          {problem && (
+            <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+          )}
+          <span>{problem ?? notice}</span>
         </p>
       )}
 
@@ -982,8 +985,12 @@ export default function FileManager({
             </div>
 
             {uploadState.error && (
-              <p role="alert" className="mt-2 text-[12px] text-red-300">
-                {uploadState.error}
+              <p
+                role="alert"
+                className="mt-3 flex items-start gap-2 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-[12.5px] leading-relaxed text-red-300"
+              >
+                <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{uploadState.error}</span>
               </p>
             )}
           </div>
@@ -1528,6 +1535,19 @@ function useActionStateShim(): [
     setState({});
 
     try {
+      // Reject the obvious failures before spending a request: an empty
+      // selection or a file past the limit gets its own clear sentence
+      // immediately, not a round trip to be told the same thing.
+      const file = formData.get("file");
+      if (file instanceof File) {
+        const preflight = preflightUploadFile(file);
+        if (preflight) {
+          const result: UploadState = { error: preflight };
+          setState(result);
+          return result;
+        }
+      }
+
       const result = await uploadCourseFile({}, formData);
       setState(result);
       return result;
@@ -1535,15 +1555,12 @@ function useActionStateShim(): [
       /*
        * The action itself can reject before it can report anything: the
        * connection drops, the deployment is being replaced, the session has
-       * gone. The old shim let that rejection escape, so the button stopped
-       * spinning and nothing else happened.
+       * gone, or the request body was refused by the framework. The old shim
+       * let that rejection escape, so the button stopped spinning and
+       * nothing else happened; worse, it printed Next's generic transport
+       * text verbatim.
        */
-      const result: UploadState = {
-        error:
-          e instanceof Error
-            ? e.message
-            : "The file could not be added. Check your connection and try again.",
-      };
+      const result: UploadState = { error: friendlyUploadError(e) };
       setState(result);
       return result;
     } finally {
