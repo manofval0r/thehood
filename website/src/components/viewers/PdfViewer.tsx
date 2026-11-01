@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FileText, Loader2 } from "lucide-react";
 
 /**
@@ -60,6 +60,11 @@ export default function PdfViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const [innerW, setInnerW] = useState(680);
 
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (el) setInnerW(el.clientWidth - 32);
+  }, []);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -106,7 +111,7 @@ export default function PdfViewer({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div ref={containerRef} className="flex min-h-0 flex-1 justify-start overflow-auto bg-background px-4 py-4 sm:px-6 sm:py-6">
-        <div className="mx-auto overflow-hidden rounded border border-border bg-white shadow-lift" style={{ width: pageW, maxWidth: "100%" }}>
+        <div className="mx-auto rounded border border-border bg-white shadow-lift" style={{ width: pageW, maxWidth: "100%" }}>
           <pdfLib.Document
             file={url}
             onLoadSuccess={({ numPages: n }: { numPages: number }) =>
