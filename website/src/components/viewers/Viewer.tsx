@@ -74,7 +74,7 @@ export default function Viewer({
   return (
     <div
       className={`flex flex-col bg-background ${
-        height === "full" ? "min-h-0 flex-1" : "min-h-[24rem]"
+        height === "full" ? "min-h-0 flex-1" : "min-h-[24rem] flex-1"
       }`}
     >
       {body()}
