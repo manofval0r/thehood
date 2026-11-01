@@ -77,21 +77,24 @@ export default function TextViewer({ url }: { url: string }) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto">
-        <pre
-          className={`px-4 py-4 font-mono text-[12.5px] leading-[1.7] text-foreground ${
-            wrap ? "whitespace-pre-wrap break-words" : "whitespace-pre"
-          }`}
-        >
+        <pre className={`px-4 py-4 font-mono text-[12.5px] leading-[1.7] text-foreground`}>
           {lines.map((line, i) => (
-            <span key={i} className="block">
+            <div
+              key={i}
+              className="flex items-start min-w-0"
+            >
               <span
-                className="tnum mr-4 inline-block w-8 select-none text-right text-[11px] text-muted"
+                className="tnum shrink-0 w-8 select-none text-right text-[11px] text-muted"
                 aria-hidden="true"
               >
                 {i + 1}
               </span>
-              <span className={line ? "" : "text-muted"}>{line || " "}</span>
-            </span>
+              <span
+                className={`flex-1 min-w-0 ${wrap ? "break-words" : "whitespace-pre"}`}
+              >
+                {line || " "}
+              </span>
+            </div>
           ))}
         </pre>
       </div>
