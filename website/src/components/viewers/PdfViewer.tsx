@@ -68,7 +68,7 @@ export default function PdfViewer({
     return () => ro.disconnect();
   }, []);
 
-  const pageW = Math.min(680, Math.max(200, innerW));
+  const pageW = Math.min(680, Math.max(200, Math.round(innerW * zoom)));
 
   if (error) {
     return (
@@ -106,7 +106,7 @@ export default function PdfViewer({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div ref={containerRef} className="flex min-h-0 flex-1 justify-start overflow-auto bg-background px-4 py-4 sm:px-6 sm:py-6">
-        <div className="mx-auto overflow-hidden rounded border border-border bg-white shadow-lift" style={{ width: pageW, transform: `scale(${zoom})`, transformOrigin: "top center" }}>
+        <div className="mx-auto overflow-hidden rounded border border-border bg-white shadow-lift" style={{ width: pageW, maxWidth: "100%" }}>
           <pdfLib.Document
             file={url}
             onLoadSuccess={({ numPages: n }: { numPages: number }) =>
