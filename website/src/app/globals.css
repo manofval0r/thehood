@@ -1212,6 +1212,7 @@ html:hover {
   margin: 0 auto !important;
   overflow: visible !important;
   max-width: 100%;
+  height: auto !important;
 }
 
 .pptx-host .pptx-preview-wrapper-next {
@@ -1227,6 +1228,7 @@ html:hover {
   border-radius: 6px;
   box-shadow: var(--lift-shadow);
   max-width: 100%;
+  margin: 0 auto 10px;
 }
 
 /* The landing page's clock, in green.

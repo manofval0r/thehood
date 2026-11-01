@@ -51,8 +51,11 @@ export default function SlidesViewer({
   const [failed, setFailed] = useState<string | null>(null);
   const [full, setFull] = useState(false);
 
+  const [aspect, setAspect] = useState(0.75);
+  const savedIndex = useRef(0);
+
   const draw = useCallback(
-    async (buffer: ArrayBuffer, width: number) => {
+    async (buffer: ArrayBuffer, width: number, mode: "slide" | "list" = "list") => {
       const host = hostRef.current;
       if (!host) return;
 
@@ -67,19 +70,26 @@ export default function SlidesViewer({
 
         const previewer = init(host, {
           width,
-          height: Math.round(width * 0.75),
-          mode: "slide",
+          mode,
+          ...(mode === "slide" ? { height: 0 } : {}),
         });
         previewerRef.current = previewer;
 
         await previewer.preview(buffer);
         setCount(previewer.slideCount);
         setSlide(0);
+        savedIndex.current = 0;
+        if (mode === "slide") {
+          const first = host.querySelector(".pptx-preview-slide-wrapper") as HTMLElement | null;
+          if (first && first.style.height) {
+            const h = parseFloat(first.style.height);
+            const w = parseFloat(first.style.width || String(width));
+            if (w > 0) setAspect(h / w);
+          }
+        }
         setFailed(null);
       } catch {
-        setFailed(
-          "This deck could not be drawn here. Download it to open it in PowerPoint or Google Slides."
-        );
+        setFailed("This deck could not be drawn here. Download it to open it in PowerPoint or Google Slides.");
       }
     },
     []
@@ -92,7 +102,7 @@ export default function SlidesViewer({
     if (!host) return;
 
     const width = Math.min(host.clientWidth || MAX_WIDTH, MAX_WIDTH);
-    void draw(state.value, width);
+    void draw(state.value, width, full ? "slide" : "list");
   }, [state, draw]);
 
   // Draw again when the frame changes shape, but only when it changes
@@ -110,7 +120,7 @@ export default function SlidesViewer({
       last = width;
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
-        if (state.status === "ready") void draw(state.value, width);
+        if (state.status === "ready") void draw(state.value, width, full ? "slide" : "list");
       }, 200);
     });
 
@@ -140,6 +150,7 @@ export default function SlidesViewer({
     if (!previewer || !count) return;
     const next = (slide + step + count) % count;
     previewer.renderSingleSlide(next);
+    savedIndex.current = next;
     setSlide(next);
   };
 
@@ -148,6 +159,7 @@ export default function SlidesViewer({
     if (!previewer) return;
     const next = Math.max(0, Math.min(count - 1, index));
     previewer.renderSingleSlide(next);
+    savedIndex.current = next;
     setSlide(next);
   };
 
@@ -170,6 +182,20 @@ export default function SlidesViewer({
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
+
+  // When fullscreen toggles, redraw in slide mode at the saved index.
+  useEffect(() => {
+    if (!full || state.status !== "ready" || count === 0) return;
+    const host = hostRef.current;
+    if (!host) return;
+    const width = Math.min(host.clientWidth || MAX_WIDTH, MAX_WIDTH);
+    draw(state.value, width, "slide");
+    const t = window.setTimeout(() => {
+      previewerRef.current?.renderSingleSlide(savedIndex.current);
+      setSlide(savedIndex.current);
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [full, state, draw, count]);
 
   if (state.status === "loading") {
     return (
