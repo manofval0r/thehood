@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FileText, Loader2 } from "lucide-react";
 
 /**
@@ -55,6 +55,21 @@ export default function PdfViewer({
     return () => document.removeEventListener("keydown", onKey);
   }, [pdfLib, numPages]);
 
+  const [zoom, setZoom] = useState(1);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [innerW, setInnerW] = useState(680);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setInnerW(el.clientWidth - 32));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const pageW = Math.min(680, Math.max(200, innerW));
+
   if (error) {
     return (
       <div className="flex min-h-[45vh] flex-col items-center justify-center gap-4 p-12 text-center">
@@ -90,8 +105,8 @@ export default function PdfViewer({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 justify-center overflow-auto bg-background p-4 sm:p-6">
-        <div className="overflow-hidden rounded border border-border bg-white shadow-lift">
+      <div ref={containerRef} className="flex min-h-0 flex-1 justify-start overflow-auto bg-background px-4 py-4 sm:px-6 sm:py-6">
+        <div className="mx-auto overflow-hidden rounded border border-border bg-white shadow-lift" style={{ width: pageW, transform: `scale(${zoom})`, transformOrigin: "top center" }}>
           <pdfLib.Document
             file={url}
             onLoadSuccess={({ numPages: n }: { numPages: number }) =>
@@ -119,7 +134,7 @@ export default function PdfViewer({
           >
             <pdfLib.Page
               pageNumber={page}
-              width={680}
+              width={pageW}
               className="max-w-full"
               renderTextLayer={false}
               renderAnnotationLayer={false}
@@ -144,7 +159,10 @@ export default function PdfViewer({
           >
             <ChevronLeft size={17} />
           </button>
-          <span className="tnum min-w-[4.5rem] text-center text-[12.5px] text-muted-foreground">
+          <button type="button" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="pressable text-xs text-muted px-1" aria-label="Zoom out">-</button>
+        <span className="text-[11px] text-muted-foreground">{Math.round(zoom * 100)}%</span>
+        <button type="button" onClick={() => setZoom(z => Math.min(2.5, z + 0.1))} className="pressable text-xs text-muted px-1" aria-label="Zoom in">+</button>
+        <span className="tnum min-w-[4.5rem] text-center text-[12.5px] text-muted-foreground">
             {page} / {numPages}
           </span>
           <button
