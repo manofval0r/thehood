@@ -1482,6 +1482,12 @@ html:hover {
   display: none;
 }
 
+/* Named landscape page for slide decks. The viewer only prints slides here. */
+@page slides {
+  size: A4 landscape;
+  margin: 0;
+}
+
 @media print {
   /* Paper is white and ink is expensive. Re-point the tokens rather than
      overriding a hundred utilities. */
@@ -1508,6 +1514,37 @@ html:hover {
 
   @page {
     margin: 14mm 12mm;
+  }
+
+  /* Slide decks print as decks: landscape, one slide per page, nothing else. */
+  .pptx-host {
+    page: slides;
+  }
+
+  .pptx-host .pptx-preview-wrapper {
+    background: #ffffff !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .pptx-host .pptx-preview-slide-wrapper {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0;
+    break-after: page;
+    page-break-after: always;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pptx-host .pptx-preview-slide-wrapper:last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
 
   /* Chrome and decoration have no business on paper. */

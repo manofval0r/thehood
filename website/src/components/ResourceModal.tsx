@@ -50,7 +50,7 @@ export default function ResourceModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 p-0 sm:p-6">
+    <div className="fixed inset-0 z-50 p-0 print:hidden sm:p-6">
       <div
         className="absolute inset-0 bg-[var(--scrim)]"
         onClick={() => onOpenChange(false)}

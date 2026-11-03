@@ -9,6 +9,7 @@ import {
   Minimize2,
   Presentation,
   Loader2,
+  Printer,
 } from "lucide-react";
 import { useFileBuffer } from "./use-file";
 
@@ -230,7 +231,7 @@ export default function SlidesViewer({
       ref={shellRef}
       className="flex min-h-0 flex-1 flex-col bg-background"
     >
-      <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-5">
+      <div className="min-h-0 flex-1 overflow-auto p-3 print:p-0 sm:p-5">
         {failed ? (
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-12 text-center">
             <Presentation size={44} className="text-muted" />
@@ -249,7 +250,7 @@ export default function SlidesViewer({
         )}
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2">
+      <div className="print-hide flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2">
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -291,6 +292,15 @@ export default function SlidesViewer({
           <span className="mr-2 hidden text-[11.5px] text-muted sm:inline">
             Arrow keys move between slides
           </span>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="pressable flex h-8 items-center gap-1.5 rounded-md px-2 text-[11.5px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:h-11 max-sm:px-3"
+            aria-label="Save slides as PDF"
+          >
+            <Printer size={14} />
+            Save PDF
+          </button>
           <button
             type="button"
             onClick={toggleFull}

@@ -68,8 +68,8 @@ export default async function ViewPage({
   const displaySize = fileSize(file.size);
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col px-4 py-8 print:px-0 print:py-0 sm:px-6 sm:py-10 lg:px-8">
+      <div className="print-hide flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           {course && (
             <Link
@@ -103,7 +103,7 @@ export default async function ViewPage({
         </a>
       </div>
 
-      <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface">
+      <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface print:mt-0 print:overflow-visible print:rounded-none print:border-0 print:bg-transparent">
         <Suspense fallback={null}>
           <Viewer
             file={{
