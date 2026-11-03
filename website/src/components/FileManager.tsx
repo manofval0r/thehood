@@ -976,11 +976,14 @@ export default function FileManager({
                 course={course}
                 path={path}
                 state={uploadState}
-                action={(formData) => void uploadAction(formData)}
+                action={(formData) => uploadAction(formData)}
                 pending={uploading}
                 onDone={(file) => {
                   if (file) addUploaded(file);
                 }}
+                onBatchComplete={(done, label) =>
+                  void announceCourseFolder(course, label, done)
+                }
               />
             </div>
 
@@ -1455,15 +1458,18 @@ function UploadForm({
   action,
   pending,
   onDone,
+  onBatchComplete,
 }: {
   course: string;
   path: string;
   state: UploadState;
-  action: (formData: FormData) => void;
+  action: (formData: FormData) => Promise<UploadState>;
   pending: boolean;
   onDone: (file: UploadState["file"]) => void;
+  onBatchComplete?: (count: number, label: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [skipped, setSkipped] = useState<string | null>(null);
 
   useEffect(() => {
     if (state.file) onDone(state.file);
@@ -1471,32 +1477,46 @@ function UploadForm({
   }, [state.file]);
 
   return (
-    <form
-      action={action}
-      className="flex items-center gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const form = e.currentTarget;
-        const data = new FormData(form);
-        data.set("course", course);
-        data.set("folder", path);
-        action(data);
-        form.reset();
-      }}
-    >
-      <input type="hidden" name="course" value={course} />
-      <input type="hidden" name="folder" value={path} />
+    <div className="flex flex-col gap-1.5">
       <input
         ref={inputRef}
         type="file"
+        multiple
         name="file"
+        aria-label="Choose files to upload (up to 5)"
         className="sr-only"
         onChange={(e) => {
-          const form = e.currentTarget.form;
-          if (!form) return;
-          const data = new FormData(form);
-          action(data);
-          e.currentTarget.value = "";
+          const input = e.currentTarget;
+          const list = Array.from(input.files ?? []);
+          input.value = "";
+          if (list.length === 0) return;
+          const capped = list.slice(0, 5);
+          const extra = list.length - capped.length;
+          if (extra > 0) {
+            setSkipped(`You chose ${list.length} files. Only the first 5 are added.`);
+          } else {
+            setSkipped(null);
+          }
+          void (async () => {
+            let added = 0;
+            for (const file of capped) {
+              const data = new FormData();
+              data.set("course", course);
+              data.set("folder", path);
+              data.set("notify", "0");
+              data.set("file", file);
+              try {
+                const res = await action(data);
+                if (res.file) added += 1;
+              } catch {
+                // One bad file should not stop the rest of the selection.
+              }
+            }
+            if (added > 0) {
+              const label = path ? folderName(path) : "the course";
+              onBatchComplete?.(added, label);
+            }
+          })();
         }}
       />
       <button
@@ -1510,9 +1530,14 @@ function UploadForm({
         ) : (
           <Upload size={13} />
         )}
-        {pending ? "Adding" : "Choose a file"}
+        {pending ? "Adding" : "Choose files"}
       </button>
-    </form>
+      {skipped && (
+        <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+          {skipped}
+        </p>
+      )}
+    </div>
   );
 }
 
