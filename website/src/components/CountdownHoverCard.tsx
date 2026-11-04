@@ -10,11 +10,10 @@ import { cn } from "@/lib/utils";
 /**
  * A hover card that hangs off the countdown clock.
  *
- * Shows what period comes next, whether it is the same class that is already
- * running, and how many breaks fall inside it — the things a student wants
- * to know at a glance without opening the timetable.
- *
- * Positioned absolutely so it never shifts the nav bar when it appears.
+ * Fully self-contained: it manages its own hover state, so it can be placed
+ * anywhere next to the clock and just works. Shows what period comes next,
+ * whether it is the same class that is already running, and how many breaks
+ * fall inside it.
  */
 export default function CountdownHoverCard() {
   const { text, next, ready, phase } = useCountdown();
