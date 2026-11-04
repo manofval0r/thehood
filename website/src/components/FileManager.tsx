@@ -727,10 +727,10 @@ export default function FileManager({
   /* ---------------------------------------------------------------- render */
 
   return (
-    <section className="rounded-lg border border-border bg-surface p-4 sm:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="rounded-xl border border-border bg-surface p-6 sm:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="text-[13px] font-bold uppercase tracking-[0.12em] text-foreground">
+          <h2 className="text-[14px] font-bold uppercase tracking-[0.12em] text-foreground">
             Files
           </h2>
           <p className="mt-1 text-[12px] font-medium text-muted-foreground">
@@ -740,13 +740,13 @@ export default function FileManager({
             </span>
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 max-sm:w-full">
+        <div className="flex flex-wrap items-center gap-3 max-sm:w-full">
           <button
             type="button"
             onClick={() => setNewFolder((n) => !n)}
-            className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-hover max-sm:min-h-11 max-sm:px-3"
+            className="pressable inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-[12.5px] font-medium text-foreground transition-colors hover:bg-surface-hover sm:min-h-11 sm:px-4"
           >
-            <FolderPlus size={14} className="text-accent" />
+            <FolderPlus size={15} className="text-accent" />
             New folder
           </button>
           <input
@@ -771,19 +771,19 @@ export default function FileManager({
             type="button"
             onClick={() => folderInputRef.current?.click()}
             disabled={folderUpload !== null}
-            className="pressable inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[12px] font-medium text-foreground transition-colors hover:bg-surface-hover disabled:opacity-50 max-sm:min-h-11 max-sm:w-full max-sm:justify-center max-sm:px-3"
+            className="pressable inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-[12.5px] font-medium text-foreground transition-colors hover:bg-surface-hover disabled:opacity-50 sm:min-h-11 sm:w-full sm:justify-center sm:px-4"
           >
             {folderUpload ? (
-              <Loader2 size={14} className="animate-spin text-accent" />
+              <Loader2 size={15} className="animate-spin text-accent" />
             ) : (
-              <FolderUp size={14} className="text-accent" />
+              <FolderUp size={15} className="text-accent" />
             )}
             Upload folder
           </button>
         </div>
       </div>
 
-      <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">
         A file added here appears on the course page, in the search and in
         the counts within a request or two. Twenty-five megabytes is the
         limit. Drop files or a folder here, or drop a file onto a folder to
@@ -793,14 +793,14 @@ export default function FileManager({
       {(notice || problem) && (
         <p
           role="status"
-          className={`mt-3 flex items-start gap-2 rounded-md border px-3 py-2 text-[12.5px] leading-relaxed ${
+          className={`mt-4 flex items-start gap-3 rounded-md border px-4 py-3 text-[13px] leading-relaxed ${
             problem
               ? "border-red-500/40 bg-red-500/10 text-red-300"
               : "border-accent/30 bg-accent/10 text-accent"
           }`}
         >
           {problem && (
-            <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden="true" />
           )}
           <span>{problem ?? notice}</span>
         </p>
@@ -809,15 +809,15 @@ export default function FileManager({
       {folderUpload && (
         <p
           role="status"
-          className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-[12.5px] text-accent"
+          className="mt-4 flex flex-wrap items-center gap-3 rounded-md border border-accent/30 bg-accent/10 px-4 py-3 text-[13px] text-accent"
         >
-          <Loader2 size={13} className="animate-spin" />
+          <Loader2 size={14} className="animate-spin" />
           Adding {folderUpload.label}: {folderUpload.done} of{" "}
           {folderUpload.total}
         </p>
       )}
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)]">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
         {/* The tree. On a wide screen it is a column beside the list. On a
             narrow one it is folded away behind a button, because a column
             beside the list would leave the list too narrow to read, and a
@@ -828,7 +828,7 @@ export default function FileManager({
           type="button"
           onClick={() => setShowTree((s) => !s)}
           aria-expanded={showTree}
-          className="pressable flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 text-[12.5px] font-medium text-foreground transition-colors hover:bg-surface-hover max-sm:min-h-11 lg:hidden"
+          className="pressable flex items-center justify-between gap-3 rounded-md border border-border px-4 py-3 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-hover sm:min-h-11 lg:hidden"
         >
           <span className="truncate">
             Folder tree

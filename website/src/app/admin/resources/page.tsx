@@ -27,7 +27,7 @@ export default function AdminResourcesPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   return (
-    <div className="mx-auto w-full max-w-4xl px-5 py-14 sm:px-8 sm:py-20">
+    <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
       <AdminHeader
         title="Resources"
         lede="Files and videos for every course, in one place. Choose the course first, then the kind of material. A file added here appears on the course page, in the search and in the counts, and a video's picture is kept on this site."

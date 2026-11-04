@@ -43,6 +43,7 @@ import FlipClock from "@/components/FlipClock";
 import PixelArt from "@/components/PixelArt";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
+import CountdownHoverCard from "@/components/CountdownHoverCard";
 import { useDialogFocus } from "@/hooks/useDialogFocus";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/admin/actions";
@@ -289,6 +290,7 @@ export default function Nav({
   const ms = countdown.ready
     ? ((hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0)) * 1000
     : 0;
+  const [hoverOpen, setHoverOpen] = useState(false);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
   useDialogFocus({
@@ -849,23 +851,34 @@ export default function Nav({
             )}
 
             {next && (
-              <Link
-                href="/timetable"
-                className="pressable ml-2 hidden shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1 transition-colors hover:border-border-strong hover:bg-surface-hover sm:flex"
-                aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
-                title={`${next.course.title} · ${next.course.code}`}
-              >
-                <span
-                  className={cn(
-                    "h-1.5 w-1.5 shrink-0 rounded-full",
-                    next.inProgress ? "bg-accent" : "bg-muted"
-                  )}
-                />
-                <FlipClock ms={ms} size="nav" className="shrink-0" />
-                <span className="hidden font-mono text-[11px] text-foreground lg:block">
-                  {next.course.code}
-                </span>
-              </Link>
+              <div className="relative ml-2">
+                <div
+                  className="relative inline-block"
+                  onMouseEnter={() => setHoverOpen(true)}
+                  onMouseLeave={() => setHoverOpen(false)}
+                >
+                  <Link
+                    href="/timetable"
+                    className="pressable ml-2 hidden shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1 transition-colors hover:border-border-strong hover:bg-surface-hover sm:flex"
+                    aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
+                    title={`${next.course.title} · ${next.course.code}`}
+                  >
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 rounded-full",
+                        next.inProgress ? "bg-accent" : "bg-muted"
+                      )}
+                    />
+                    <FlipClock ms={ms} size="nav" className="shrink-0" />
+                    <span className="hidden font-mono text-[11px] text-foreground lg:block">
+                      {next.course.code}
+                    </span>
+                  </Link>
+                </div>
+                {hoverOpen && (
+                  <CountdownHoverCard />
+                )}
+              </div>
             )}
 
             <AnimatePresence>{megaPanel}</AnimatePresence>

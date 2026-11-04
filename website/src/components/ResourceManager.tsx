@@ -75,64 +75,60 @@ export default function ResourceManager({
     );
 
   return (
-    <div className="mt-10">
-      <CoursePicker courses={courses} value={course} onChange={setCourse} />
-
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <div
-          role="tablist"
-          aria-label="Resource type"
-          className="inline-flex rounded-full border border-border bg-surface p-1"
-        >
-          <button
-            type="button"
-            id="resource-tab-files"
-            role="tab"
-            aria-selected={tab === "files"}
-            aria-controls="resource-panel"
-            onClick={() => selectTab("files")}
-            className={tabClass(tab === "files")}
-          >
-            <FolderOpen size={13} aria-hidden="true" />
-            Files
-            <span
-              className={cn(
-                "tnum rounded-full px-1.5 py-0.5 text-[10px] leading-none",
-                tab === "files"
-                  ? "bg-accent-foreground/15 text-accent-foreground"
-                  : "bg-surface-hover text-muted"
-              )}
+    <div className="mt-14">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <CoursePicker courses={courses} value={course} onChange={setCourse} />
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-border bg-surface p-1">
+            <button
+              type="button"
+              id="resource-tab-files"
+              role="tab"
+              aria-selected={tab === "files"}
+              aria-controls="resource-panel"
+              onClick={() => selectTab("files")}
+              className={tabClass(tab === "files")}
             >
-              {fileCount}
-            </span>
-          </button>
-          <button
-            type="button"
-            id="resource-tab-videos"
-            role="tab"
-            aria-selected={tab === "videos"}
-            aria-controls="resource-panel"
-            onClick={() => selectTab("videos")}
-            className={tabClass(tab === "videos")}
-          >
-            <Play size={13} aria-hidden="true" />
-            Videos
-            <span
-              className={cn(
-                "tnum rounded-full px-1.5 py-0.5 text-[10px] leading-none",
-                tab === "videos"
-                  ? "bg-accent-foreground/15 text-accent-foreground"
-                  : "bg-surface-hover text-muted"
-              )}
+              <FolderOpen size={13} aria-hidden="true" />
+              Files
+              <span
+                className={cn(
+                  "tnum rounded-full px-1.5 py-0.5 text-[10px] leading-none",
+                  tab === "files"
+                    ? "bg-accent-foreground/15 text-accent-foreground"
+                    : "bg-surface-hover text-muted"
+                )}
+              >
+                {fileCount}
+              </span>
+            </button>
+            <button
+              type="button"
+              id="resource-tab-videos"
+              role="tab"
+              aria-selected={tab === "videos"}
+              aria-controls="resource-panel"
+              onClick={() => selectTab("videos")}
+              className={tabClass(tab === "videos")}
             >
-              {videoCount}
-            </span>
-          </button>
+              <Play size={13} aria-hidden="true" />
+              Videos
+              <span
+                className={cn(
+                  "tnum rounded-full px-1.5 py-0.5 text-[10px] leading-none",
+                  tab === "videos"
+                    ? "bg-accent-foreground/15 text-accent-foreground"
+                    : "bg-surface-hover text-muted"
+                )}
+              >
+                {videoCount}
+              </span>
+            </button>
+          </div>
+          <p className="text-[11.5px] text-muted">
+            Both appear on the course page.
+          </p>
         </div>
-
-        <p className="text-[11.5px] text-muted">
-          Both appear on the course page.
-        </p>
       </div>
 
       <div
@@ -141,7 +137,7 @@ export default function ResourceManager({
         aria-labelledby={
           tab === "files" ? "resource-tab-files" : "resource-tab-videos"
         }
-        className="mt-3"
+        className="mt-4 rounded-xl border border-border bg-surface p-4 sm:p-6"
       >
         {tab === "files" ? (
           <FileManager
