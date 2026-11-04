@@ -10,6 +10,7 @@ import ThemePill from "@/components/ThemePill";
 import CountdownPill from "@/components/CountdownPill";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getAllBreaks } from "@/lib/break-store";
+import { getDisabledPages } from "@/lib/pages-settings";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,6 +26,8 @@ export default async function RootLayout({
   // need them, and both run in the browser, so they are read once here and
   // handed down. Cached, so this costs the same on every page.
   const breaks = await getAllBreaks();
+  const disabledPublic = await getDisabledPages("public");
+  const disabledAdmin = await getDisabledPages("admin");
 
   return (
     <html
@@ -90,7 +93,7 @@ export default async function RootLayout({
                   the countdown and the timetable cannot disagree about
                   them. */}
               <ScheduleProvider breaks={breaks}>
-                <Nav />
+                <Nav disabledPublic={disabledPublic} disabledAdmin={disabledAdmin} />
                 {/* The light and dark switch. It floats below the bar on
                     every screen, because it is put in the page's own top
                     padding, and the top of a page is the one place on it

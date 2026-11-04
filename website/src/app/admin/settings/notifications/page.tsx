@@ -61,7 +61,7 @@ async function CatalogueArea() {
   if (!isSuper(me)) {
     return (
       <>
-        <SettingsTabs showNotifications={false} />
+        <SettingsTabs showNotifications={false} superRole={isSuper(me)} />
         <div className="mt-10 rounded-lg border border-border bg-surface p-5">
           <h2 className="text-[15px] font-semibold text-foreground">
             Only a super admin can send a test to everybody&apos;s phone
@@ -80,7 +80,7 @@ async function CatalogueArea() {
 
   return (
     <>
-      <SettingsTabs showNotifications />
+      <SettingsTabs showNotifications superRole />
       <NotificationCatalogue disabledKinds={disabled} />
       <NotificationKindSwitches disabled={disabled} />
     </>

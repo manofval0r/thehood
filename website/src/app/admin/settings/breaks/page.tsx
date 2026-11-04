@@ -58,7 +58,7 @@ async function BreaksArea() {
 
   return (
     <>
-      <SettingsTabs showNotifications={isSuper(me)} />
+      <SettingsTabs showNotifications={isSuper(me)} superRole={isSuper(me)} />
       <BreakEditor breaks={breaks} />
     </>
   );

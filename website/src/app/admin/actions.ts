@@ -914,6 +914,38 @@ export async function cancelScheduledAnnouncement(id: string): Promise<void> {
 }
 
 /**
+ * Turn a page on or off, for everybody.
+ *
+ * Only a super admin. The flip is site-wide: the nav stops naming the page,
+ * and a direct visit to its address answers with a redirect. This is for
+ * pages that are not wrong, just not ready to show — a beta, or an old
+ * page being retired while it still needs to keep working.
+ */
+export async function setPageEnabled(
+  scope: "public" | "admin",
+  path: string,
+  enabled: boolean
+): Promise<void> {
+  await requireSuper();
+
+  if (scope !== "public" && scope !== "admin") {
+    throw new Error("Pick public or staff.");
+  }
+
+  const { PUBLIC_PAGES, ADMIN_PAGES, setPageEnabled: persist } = await import(
+    "@/lib/pages-settings"
+  );
+  const valid = scope === "public" ? PUBLIC_PAGES : ADMIN_PAGES;
+  if (!valid.some((p) => p.path === path)) {
+    throw new Error("There is no such page.");
+  }
+
+  await persist(scope, path, enabled);
+  revalidatePath(path);
+  revalidatePath("/admin/settings/pages");
+}
+
+/**
  * Turn a kind of notification on or off, for everybody.
  *
  * Only a super admin. A reader chooses what they want to be told about;

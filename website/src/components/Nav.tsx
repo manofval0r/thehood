@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ComponentType,
@@ -97,6 +98,35 @@ const ADMIN_ITEM_ICONS: Record<string, IconType> = {
   "/admin/bulletin": Radio,
   "/admin/settings": Settings2,
 };
+
+/**
+ * The staff area keeps the same quiet underline as the public bar: one
+ * accent rule under the current page, no pill, no fill.
+ */
+function StaffTab({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "pressable relative inline-flex h-9 items-center rounded-md px-3.5 text-[13px] font-medium transition-colors max-xl:px-2",
+        active
+          ? "font-semibold text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {label}
+    </Link>
+  );
+}
 
 const ADMIN_TABS: {
   href: string;
@@ -246,7 +276,13 @@ function Trigger({
   );
 }
 
-export default function Nav() {
+export default function Nav({
+  disabledPublic,
+  disabledAdmin,
+}: {
+  disabledPublic?: string[];
+  disabledAdmin?: string[];
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { session, refresh } = useStaffSession();
@@ -305,7 +341,33 @@ export default function Nav() {
     return () => document.removeEventListener("mousedown", outside);
   }, []);
 
+  const offAdmin = useMemo(() => new Set(disabledAdmin ?? []), [disabledAdmin]);
+  const offPublic = useMemo(() => new Set(disabledPublic ?? []), [disabledPublic]);
+
+  const publicGroups = useMemo(
+    () =>
+      PUBLIC_NAV_GROUPS.map((group) => ({
+        ...group,
+        children: group.children.filter((child) => !offPublic.has(child.href)),
+      })).filter((group) => group.children.length > 0),
+    [offPublic]
+  );
+  const quickLinks = useMemo(
+    () =>
+      (Object.keys(NAV_GROUP_QUICK_LINKS) as NavGroup["id"][]).reduce(
+        (acc, id) => ({
+          ...acc,
+          [id]: NAV_GROUP_QUICK_LINKS[id].filter(
+            (entry) => !offPublic.has(entry.href)
+          ),
+        }),
+        {} as Record<NavGroup["id"], { href: string; label: string; hint: string }[]>
+      ),
+    [offPublic]
+  );
+
   const staffLinks = ADMIN_TABS.filter((item) => {
+    if (offAdmin.has(item.href)) return false;
     if (!isStaff) return false;
     if (item.superOnly) return session?.role === "super";
     if (!item.permission) return true;
@@ -480,7 +542,7 @@ export default function Nav() {
               Browse
             </p>
             <div className="grid gap-0.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              {PUBLIC_NAV_GROUPS.flatMap((group) => group.children)
+              {publicGroups.flatMap((group) => group.children)
                 .slice(0, 8)
                 .map((item, index) => (
                   <MegaItem
@@ -504,9 +566,9 @@ export default function Nav() {
       ) : (
         /* A public group: its pages in a grid plus the quick rail. */
         (() => {
-          const group = PUBLIC_NAV_GROUPS.find((g) => g.id === panelId);
+          const group = publicGroups.find((g) => g.id === panelId);
           if (!group) return null;
-          const quick = NAV_GROUP_QUICK_LINKS[group.id];
+          const quick = quickLinks[group.id];
           return (
             <div className="grid gap-6 p-5 lg:grid-cols-[1fr_15rem]">
               <AnimatePresence mode="popLayout" initial={false}>
@@ -655,7 +717,7 @@ export default function Nav() {
                 aria-label="Public pages"
                 className="hidden h-full items-center gap-1 sm:flex"
               >
-                {PUBLIC_NAV_GROUPS.map((group) => (
+                {publicGroups.map((group) => (
                   <div
                     key={group.id}
                     onMouseEnter={() => openWithDirection(group.id)}
@@ -683,26 +745,20 @@ export default function Nav() {
                   className="hidden h-full flex-1 items-center gap-1 sm:flex"
                 >
                   <div className="flex items-center gap-1">
-                    {staffLinks.map((item) => {
-                      const active = item.exact
-                        ? pathname === item.href
-                        : pathname === item.href || pathname.startsWith(`${item.href}/`);
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          aria-current={active ? "page" : undefined}
-                          className={cn(
-                            "pressable relative flex min-h-[44px] h-auto shrink-0 items-center rounded-xl px-3.5 text-[13px] font-medium transition-colors duration-150",
-                            active
-                              ? "font-semibold text-foreground bg-accent/10 after:absolute after:bottom-1 after:left-3 after:right-3 after:h-[3px] after:rounded-full after:bg-accent shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.06)] dark:shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.06)]"
-                              : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
-                          )}
-                        >
-                          {item.label}
-                        </Link>
-                      );
-                    })}
+                    {!offAdmin.has("/admin/resources") && (
+                      <StaffTab
+                        href="/admin/resources"
+                        label="Resources"
+                        active={pathname === "/admin/resources" || pathname.startsWith("/admin/resources/")}
+                      />
+                    )}
+                    {!offAdmin.has("/admin/settings") && (
+                      <StaffTab
+                        href="/admin/settings"
+                        label="Settings"
+                        active={pathname === "/admin/settings" || pathname.startsWith("/admin/settings/")}
+                      />
+                    )}
                   </div>
                 </nav>
 
@@ -854,7 +910,7 @@ export default function Nav() {
                 </div>
               )}
 
-              {PUBLIC_NAV_GROUPS.map((group) => (
+              {publicGroups.map((group) => (
                 <div key={group.id} className="mt-3 first:mt-0">
                   <p className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
                     {isStaff ? `Browse: ${group.label}` : group.label}
