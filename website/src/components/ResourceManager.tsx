@@ -24,6 +24,7 @@ export default function ResourceManager({
   videos,
   thumbBase,
   initialTab,
+  initialCourse,
 }: {
   courses: CourseOption[];
   files: FileRow[];
@@ -33,8 +34,14 @@ export default function ResourceManager({
   thumbBase: string;
   /** The tab named in the URL, so a shared link opens the right one. */
   initialTab: "files" | "videos";
+  /** The course named in the URL, e.g. ?course=NUT-MAN+315. */
+  initialCourse?: string;
 }) {
-  const [course, setCourse] = useState(courses[0]?.code ?? "");
+  const [course, setCourse] = useState(
+    () => (initialCourse && courses.some((c) => c.code === initialCourse)
+      ? initialCourse
+      : courses[0]?.code ?? "")
+  );
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

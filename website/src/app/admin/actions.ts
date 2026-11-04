@@ -411,7 +411,8 @@ export async function uploadCourseFile(
   }
 
   const title =
-    String(formData.get("title") ?? "").trim() || file.name.replace(/\.[^.]+$/, "");
+    String(formData.get("title") ?? "").trim() ||
+    file.name.replace(/\.[^.]+$/, "").replace(/_/g, " ").replace(/\s{2,}/g, " ");
 
   let created;
   try {

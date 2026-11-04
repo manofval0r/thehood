@@ -85,7 +85,7 @@ export default function ResourceCard({
         </div>
 
         <h4
-          className="card-depth mt-4 text-[14px] font-medium leading-snug text-foreground"
+          className="card-depth mt-4 line-clamp-3 min-w-0 text-[14px] font-medium leading-snug text-foreground [overflow-wrap:anywhere]"
           style={{ "--depth": "30px" } as React.CSSProperties}
         >
           {resource.title}

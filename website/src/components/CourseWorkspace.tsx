@@ -1,9 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Download, FileArchive, FolderPlus, Loader2 } from "lucide-react";
+import {
+  ArrowUp,
+  ChevronRight,
+  Download,
+  FileArchive,
+  FolderPlus,
+  Loader2,
+} from "lucide-react";
 import AppleCard from "@/components/AppleCard";
 import PixelMotif from "@/components/PixelMotif";
 import ResourceCard from "@/components/ResourceCard";
@@ -51,10 +64,31 @@ export default function CourseWorkspace({
   files: FileNode[];
   folders: string[];
 }) {
-  const [path, setPath] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [path, setPath] = useState(() => searchParams.get("folder") ?? "");
   const [filter, setFilter] = useState<ViewerKind | "all">("all");
   const [preview, setPreview] = useState<FileNode | null>(null);
   const [zipping, setZipping] = useState(false);
+
+  /**
+   * The folder is part of the address, so Back and Forward work the way a
+   * browser's are supposed to: enter "Week 3", press Back, and you are in
+   * "Week 2". A replace, not a push, on the initial load, and a push on every
+   * deliberate navigation, so the history is a list of places you have chosen.
+   */
+  const go = useCallback(
+    (target: string) => {
+      setPath(target);
+      const params = new URLSearchParams(window.location.search);
+      if (target) params.set("folder", target);
+      else params.delete("folder");
+      const qs = params.toString();
+      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router]
+  );
 
   /**
    * Search can deep-link straight to a file: /courses/<slug>?r=<fileId>.
@@ -72,6 +106,11 @@ export default function CourseWorkspace({
   const seenSearch = useRef<string | null>(null);
 
   useEffect(() => {
+    const wanted = searchParams.get("folder") ?? "";
+    setPath(wanted);
+  }, [searchParams]);
+
+  useEffect(() => {
     const search = window.location.search;
     if (seenSearch.current === search) return;
     seenSearch.current = search;
@@ -81,7 +120,7 @@ export default function CourseWorkspace({
     const file = files.find((f) => f.id === wanted);
     if (!file) return;
     setPreview(file);
-    if (file.folder) setPath(file.folder);
+    if (file.folder) go(file.folder);
   });
 
   const tree = useMemo(() => buildTree(files, folders), [files, folders]);
@@ -219,6 +258,21 @@ export default function CourseWorkspace({
         aria-label="Folder"
         className="mt-5 flex flex-wrap items-center gap-1 text-[12.5px]"
       >
+        {path && (
+          <button
+            type="button"
+            onClick={() => {
+              const parent = path.split("/").filter(Boolean).slice(0, -1).join("/");
+              go(parent);
+            }}
+            aria-label="Up one folder"
+            title="Up one folder"
+            className="pressable inline-flex items-center gap-1 rounded border border-border px-1.5 py-1 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground max-sm:min-h-11 max-sm:px-2"
+          >
+            <ArrowUp size={13} />
+            Up
+          </button>
+        )}
         <Link
           href={`/courses/${courseSlug}`}
           className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-2"
@@ -230,7 +284,7 @@ export default function CourseWorkspace({
             <ChevronRight size={13} className="text-muted" />
             <button
               type="button"
-              onClick={() => setPath(part)}
+              onClick={() => go(part)}
               className="pressable rounded px-1.5 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:inline-flex max-sm:min-h-11 max-sm:items-center max-sm:px-2"
             >
               {part.split("/").pop()}
@@ -263,7 +317,7 @@ export default function CourseWorkspace({
             <FolderCard
               key={folder.path}
               folder={folder}
-              onOpen={() => setPath(folder.path)}
+              onOpen={() => go(folder.path)}
             />
           ))}
 

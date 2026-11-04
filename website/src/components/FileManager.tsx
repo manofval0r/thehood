@@ -623,7 +623,11 @@ export default function FileManager({
           ...startPath.split("/").filter(Boolean),
           ...parts.slice(0, -1),
         ].join("/");
-        const title = base.replace(/\.[^.]+$/, "") || base;
+        const title =
+          base
+            .replace(/\.[^.]+$/, "")
+            .replace(/_/g, " ")
+            .replace(/\s{2,}/g, " ") || base;
 
         try {
           await uploadOne(entry.file, folder, title);

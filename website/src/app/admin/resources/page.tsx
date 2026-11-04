@@ -55,7 +55,10 @@ async function ResourcesArea({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await connection();
-  const initialTab = (await searchParams).tab === "videos" ? "videos" : "files";
+  const params = await searchParams;
+  const initialTab = params.tab === "videos" ? "videos" : "files";
+  const requestedCourse =
+    typeof params.course === "string" ? params.course : undefined;
   const me = await currentStaff();
 
   if (!me) {
@@ -109,6 +112,7 @@ async function ResourcesArea({
       }))}
       thumbBase={thumbBaseUrl() ?? ""}
       initialTab={initialTab}
+      initialCourse={requestedCourse}
     />
   );
 }
