@@ -30,7 +30,7 @@ export default function SettingsTabs({
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Settings sections" className="mt-8">
+    <nav aria-label="Settings sections" className="mt-10">
       <Link
         href="/admin/settings"
         className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground max-sm:min-h-11"
@@ -39,7 +39,9 @@ export default function SettingsTabs({
         Settings
       </Link>
 
-      <div className="mt-2 flex gap-1 overflow-x-auto border-b border-border">
+      <div
+        className="mt-3 flex h-11 items-center gap-0.5 overflow-x-auto border-b border-border scroll-none"
+      >
         {TABS.filter((tab) => !tab.superOnly || showNotifications || superRole).map(
           (tab) => {
             const active =
@@ -51,10 +53,10 @@ export default function SettingsTabs({
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "pressable -mb-px inline-flex shrink-0 items-center border-b-2 px-3 py-2 text-[12.5px] font-medium transition-colors max-sm:min-h-11 max-sm:px-4",
+                  "pressable relative inline-flex h-full shrink-0 items-center px-4 text-[12.5px] font-medium transition-colors",
                   active
-                    ? "border-accent font-semibold text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "text-foreground font-semibold after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {tab.label}

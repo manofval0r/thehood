@@ -19,6 +19,8 @@ import {
   CalendarRange,
   ChevronDown,
   ClipboardCheck,
+  Play,
+  FileText,
   ClipboardList,
   FileCheck2,
   FolderOpen,
@@ -38,6 +40,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import FlipClock from "@/components/FlipClock";
+import PixelArt from "@/components/PixelArt";
 import { Wordmark } from "@/components/Wordmark";
 import { useCountdown } from "@/hooks/useCountdown";
 import { useDialogFocus } from "@/hooks/useDialogFocus";
@@ -67,11 +70,18 @@ import {
  * pages, because signing out to reach the timetable is a broken path.
  */
 
-type PanelId = NavGroup["id"] | "pages";
+type PanelId = NavGroup["id"] | "pages" | "resources" | "settings";
 
 const EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
-const PANEL_ORDER: PanelId[] = ["courses", "study", "campus", "pages"];
+const PANEL_ORDER: PanelId[] = [
+  "courses",
+  "study",
+  "campus",
+  "resources",
+  "settings",
+  "pages",
+];
 
 type IconType = ComponentType<{ size?: number; className?: string }>;
 
@@ -92,41 +102,17 @@ const NAV_ITEM_ICONS: Record<string, IconType> = {
 const ADMIN_ITEM_ICONS: Record<string, IconType> = {
   "/admin/attendance": ClipboardList,
   "/admin/resources": FolderOpen,
+  "/admin/videos": Play,
+  "/admin/files": FileText,
   "/admin/roll": Users,
   "/admin": UserCog,
   "/admin/announce": Megaphone,
   "/admin/bulletin": Radio,
   "/admin/settings": Settings2,
+  "/admin/settings/breaks": CalendarRange,
+  "/admin/settings/notifications": Megaphone,
+  "/admin/settings/pages": ShieldCheck,
 };
-
-/**
- * The staff area keeps the same quiet underline as the public bar: one
- * accent rule under the current page, no pill, no fill.
- */
-function StaffTab({
-  href,
-  label,
-  active,
-}: {
-  href: string;
-  label: string;
-  active: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "pressable relative inline-flex h-9 items-center rounded-md px-3.5 text-[13px] font-medium transition-colors max-xl:px-2",
-        active
-          ? "font-semibold text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent"
-          : "text-muted-foreground hover:text-foreground"
-      )}
-    >
-      {label}
-    </Link>
-  );
-}
 
 const ADMIN_TABS: {
   href: string;
@@ -472,27 +458,32 @@ export default function Nav({
     list[(Math.max(current, 0) + delta + list.length) % list.length]?.focus();
   }
 
-  /** The live next-class chip, reused from the navbar's countdown data. */
-  const nextClassChip = next ? (
-    <Link
-      href="/timetable"
-      onClick={closePanel}
-      role="menuitem"
-      onKeyDown={(event) => panelId && itemKey(event, panelId)}
-      className="pressable flex min-h-11 items-center justify-between gap-2 rounded-lg border border-accent/25 bg-accent/5 px-2.5 py-1.5"
-      aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
-    >
-      <span className="min-w-0">
-        <span className="block text-[9px] font-bold uppercase tracking-[0.14em] text-accent">
-          {next.inProgress ? "In progress" : "Next class"}
-        </span>
-        <span className="mt-0.5 block truncate font-mono text-[11px] text-foreground">
-          {next.course.code}
-        </span>
-      </span>
-      <FlipClock ms={ms} size="dock" className="shrink-0" />
-    </Link>
-  ) : null;
+  const resourcesStaffLinks = useMemo(
+    () =>
+      [
+        { href: "/admin/resources", label: "Files and videos", description: "Course resources: files, folders, videos", icon: "/admin/resources" },
+        { href: "/admin/files", label: "Files", description: "The file index across all courses", icon: "/admin/files" },
+        { href: "/admin/videos", label: "Videos", description: "Recorded sessions and links", icon: "/admin/videos" },
+      ].filter((l) => !offAdmin.has(l.href)),
+    [offAdmin]
+  );
+
+  const settingsStaffLinks = useMemo(
+    () =>
+      [
+        { href: "/admin/settings", label: "Settings overview", description: "Links to every section of the staff area", icon: "/admin/settings" },
+        { href: "/admin/settings/notifications", label: "Notifications", description: "Which notifications the site is allowed to send", icon: "/admin/settings/notifications", superOnly: true },
+        { href: "/admin/settings/breaks", label: "Session breaks", description: "Breaks inside a lecture, counted by the timetable", icon: "/admin/settings/breaks" },
+        { href: "/admin/settings/pages", label: "Pages", description: "Which public and staff routes are shown, with flips", icon: "/admin/settings/pages", superOnly: true },
+        { href: "/admin/attendance", label: "Attendance", description: "Mark and review attendance", icon: "/admin/attendance" },
+        { href: "/admin/roll", label: "Roll", description: "The registered student roster", icon: "/admin/roll" },
+      ].filter((l) => {
+        if (offAdmin.has(l.href)) return false;
+        if ("superOnly" in l && l.superOnly) return session?.role === "super";
+        return true;
+      }),
+    [offAdmin, session]
+  );
 
   /**
    * The mega panel itself. Rendered at pill level so it always spans the full
@@ -512,7 +503,47 @@ export default function Nav({
       onMouseEnter={cancelPanelClose}
       className="absolute inset-x-0 top-[calc(100%+0.55rem)] z-50 overflow-hidden rounded-2xl border border-border-strong bg-surface-raised shadow-lift"
     >
-      {panelId === "pages" ? (
+      {panelId === "resources" || panelId === "settings" ? (
+        /* A staff panel: its tools in a grid plus the hood aside. */
+        (() => {
+          const items =
+            panelId === "resources" ? resourcesStaffLinks : settingsStaffLinks;
+          return (
+            <div className="grid gap-6 p-5 lg:grid-cols-[1fr_15rem]">
+              <section aria-label={panelId === "resources" ? "Resources tools" : "Settings"} className="min-w-0">
+                <p className="px-2.5 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+                  {panelId === "resources" ? "Resources" : "Settings"}
+                </p>
+                <div className="grid gap-0.5 sm:grid-cols-2">
+                  {items.map((item, index) => (
+                    <MegaItem
+                      key={item.href}
+                      href={item.href}
+                      label={item.label}
+                      description={item.description}
+                      icon={ADMIN_ITEM_ICONS[item.href] ?? ShieldCheck}
+                      current={
+                        item.href.startsWith("/admin/settings/")
+                          ? pathname.startsWith(item.href)
+                          : pathname === item.href || pathname.startsWith(`${item.href}/`)
+                      }
+                      index={index}
+                      onNavigate={closePanel}
+                      onItemKeyDown={(event) => itemKey(event, panelId)}
+                    />
+                  ))}
+                </div>
+              </section>
+              <aside className="hidden flex-col items-center justify-center gap-3 border-l border-border pl-5 lg:flex">
+                <PixelArt className="h-auto w-full max-w-[9rem] opacity-90" />
+                <p className="text-center text-[11px] leading-snug text-muted">
+                  The hoodie that holds it all together
+                </p>
+              </aside>
+            </div>
+          );
+        })()
+      ) : panelId === "pages" ? (
         /* The staff panel: admin tools plus the public pages. */
         <div className="grid gap-6 p-5 lg:grid-cols-[1fr_1fr_15rem]">
           <section aria-label="Staff tools" className="min-w-0">
@@ -559,8 +590,11 @@ export default function Nav({
                 ))}
             </div>
           </section>
-          <aside className="hidden flex-col gap-3 border-l border-border pl-5 lg:flex">
-            {nextClassChip}
+          <aside className="hidden flex-col items-center justify-center gap-3 border-l border-border pl-5 lg:flex">
+            <PixelArt className="h-auto w-full max-w-[9rem] opacity-90" />
+            <p className="text-center text-[11px] leading-snug text-muted">
+              The hoodie that holds it all together
+            </p>
           </aside>
         </div>
       ) : (
@@ -605,7 +639,10 @@ export default function Nav({
               </AnimatePresence>
 
               <aside className="hidden flex-col gap-4 border-l border-border pl-5 lg:flex">
-                {nextClassChip}
+                <PixelArt className="mx-auto mt-2 h-auto w-full max-w-[9rem] opacity-90" />
+                <p className="text-center text-[10px] leading-snug text-muted">
+                  The hoodie that holds it all together
+                </p>
                 {group.id === "courses" ? (
                   <div>
                     <p className="pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
@@ -746,18 +783,38 @@ export default function Nav({
                 >
                   <div className="flex items-center gap-1">
                     {!offAdmin.has("/admin/resources") && (
-                      <StaffTab
-                        href="/admin/resources"
-                        label="Resources"
-                        active={pathname === "/admin/resources" || pathname.startsWith("/admin/resources/")}
-                      />
+                      <div onMouseEnter={() => openWithDirection("resources")}>
+                        <Trigger
+                          panel="resources"
+                          label="Resources"
+                          href="/admin/resources"
+                          active={pathname === "/admin/resources" || pathname.startsWith("/admin/resources/") || pathname === "/admin/files" || pathname.startsWith("/admin/files/") || pathname === "/admin/videos" || pathname.startsWith("/admin/videos/")}
+                          open={panelId === "resources"}
+                          onNavigate={closePanel}
+                          onToggle={() => togglePinned("resources")}
+                          onTriggerKey={(event) => triggerKey(event, "resources")}
+                          buttonRef={(element) => {
+                            triggerButtons.current.resources = element;
+                          }}
+                        />
+                      </div>
                     )}
                     {!offAdmin.has("/admin/settings") && (
-                      <StaffTab
-                        href="/admin/settings"
-                        label="Settings"
-                        active={pathname === "/admin/settings" || pathname.startsWith("/admin/settings/")}
-                      />
+                      <div onMouseEnter={() => openWithDirection("settings")}>
+                        <Trigger
+                          panel="settings"
+                          label="Settings"
+                          href="/admin/settings"
+                          active={pathname === "/admin/settings" || pathname.startsWith("/admin/settings/") || pathname === "/admin/attendance" || pathname === "/admin/roll"}
+                          open={panelId === "settings"}
+                          onNavigate={closePanel}
+                          onToggle={() => togglePinned("settings")}
+                          onTriggerKey={(event) => triggerKey(event, "settings")}
+                          buttonRef={(element) => {
+                            triggerButtons.current.settings = element;
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
                 </nav>

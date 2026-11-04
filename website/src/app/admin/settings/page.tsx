@@ -60,7 +60,7 @@ const SECTIONS: {
  */
 export default function AdminSettingsPage() {
   return (
-    <div className="mx-auto w-full max-w-4xl px-5 py-14 sm:px-8 sm:py-20">
+    <div className="mx-auto w-full max-w-4xl px-5 py-14 sm:px-8 sm:py-20 settings-enter">
       <AdminHeader
         eyebrow="Settings"
         title="Settings"
