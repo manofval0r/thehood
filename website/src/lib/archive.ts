@@ -51,14 +51,6 @@ export const ARCHIVE: ArchiveEntry[] = [
     size: 84551,
   },
   {
-    id: "csc312-week1",
-    course: "NUT-CSC 312",
-    title: "Week 1 - Data Management Foundations",
-    url: "/courses/Data Structures/DTS304_Week1_Data_Management_Foundations.pptx",
-    folder: "",
-    size: 1105760,
-  },
-  {
     id: "cyb305-preliminary",
     course: "CYB 305",
     title: "Preliminary Report (DRAFT)",

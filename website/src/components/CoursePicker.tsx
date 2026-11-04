@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import CourseDropdown from "@/components/CourseDropdown";
 
 export interface CourseOption {
   code: string;
@@ -29,7 +29,7 @@ export default function CoursePicker({
   if (!current) return null;
 
   return (
-    <div className="mt-6 rounded-lg border border-border bg-background p-3.5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-4">
+    <div className="mt-6 rounded-lg border border-border bg-background p-3.5 sm:flex sm:items-center sm:justify-between sm:p-4">
       <div className="min-w-0">
         <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-accent">
           Working on
@@ -45,22 +45,7 @@ export default function CoursePicker({
           Change course
         </span>
         <span className="relative mt-1 block">
-          <select
-            value={current.code}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full appearance-none rounded-md border border-border bg-surface py-2 pl-3 pr-9 text-[12.5px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11 max-sm:text-base"
-          >
-            {courses.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.title} ({c.code})
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
-            aria-hidden="true"
-          />
+          <CourseDropdown courses={courses} value={value} onChange={onChange} />
         </span>
       </label>
     </div>

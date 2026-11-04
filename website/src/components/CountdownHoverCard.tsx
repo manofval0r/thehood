@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
  * Shows what period comes next, whether it is the same class that is already
  * running, and how many breaks fall inside it — the things a student wants
  * to know at a glance without opening the timetable.
+ *
+ * Positioned absolutely so it never shifts the nav bar when it appears.
  */
 export default function CountdownHoverCard() {
   const { text, next, ready, phase } = useCountdown();
@@ -61,7 +63,7 @@ export default function CountdownHoverCard() {
         type="button"
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="pressable flex min-h-11 items-center justify-between gap-3 rounded-2xl border border-border-strong bg-surface/95 px-3 py-1.5 shadow-lift backdrop-blur-xl transition-colors hover:border-accent hover:text-accent"
+        className="pressable flex min-h-11 items-center justify-between gap-3 rounded-full border border-border-strong bg-surface px-3 py-1.5 shadow-lift backdrop-blur-xl transition-colors hover:border-accent hover:text-accent"
       >
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-accent">
@@ -88,8 +90,22 @@ export default function CountdownHoverCard() {
           role="dialog"
           aria-modal="true"
           aria-label="Next class details"
-          className="absolute z-50 mt-2 w-[220px] rounded-xl border border-border-strong bg-surface shadow-lift animate-[fadeIn_220ms_ease-out]"
+          className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 w-[240px] rounded-xl border border-border-strong bg-surface shadow-lift animate-[fadeIn_220ms_ease-out]"
         >
+          {/* Arrow pointing up to the trigger */}
+          <svg
+            className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 text-border-strong rotate-45"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+              d="M9 15l3-3m0 0l3 3m-3-3l-3 3"
+            />
+          </svg>
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
@@ -106,7 +122,7 @@ export default function CountdownHoverCard() {
 
             <div className="space-y-2">
               <div className="flex items-start justify-between gap-2 text-[11px]">
-                <span className="text-muted-foreground">Period</span>
+                <span className="text-muted-foreground">Periods</span>
                 <span className="text-foreground font-medium">
                   {periodCount} teaching{" "}{periodCount === 1 ? "block" : "blocks"}
                 </span>
@@ -126,9 +142,12 @@ export default function CountdownHoverCard() {
             </div>
           </div>
           <div className="border-t border-border bg-surface/50 p-3 text-center">
-            <span className="text-[10px] text-muted">
+            <a
+              href="/timetable"
+              className="text-[10px] text-muted transition-colors hover:text-accent"
+            >
               Opens the timetable
-            </span>
+            </a>
           </div>
         </div>
       )}

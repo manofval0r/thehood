@@ -190,12 +190,6 @@ export const COURSES: Course[] = [
         type: "pptx",
         url: `${base}/Data Structures/CSC301 Data Structures.pptx`,
       },
-      {
-        id: "csc312-week1",
-        title: "Week 1 - Data Management Foundations",
-        type: "pptx",
-        url: `${base}/Data Structures/DTS304_Week1_Data_Management_Foundations.pptx`,
-      },
     ],
   },
   {
