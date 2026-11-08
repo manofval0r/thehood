@@ -12,6 +12,8 @@ import {
   Printer,
 } from "lucide-react";
 import { useFileBuffer } from "./use-file";
+import { useComments } from "./useComments";
+import CommentBadge from "./CommentBadge";
 
 /**
  * A slide deck, rendered in the browser.
@@ -54,6 +56,8 @@ export default function SlidesViewer({
 
   const [aspect, setAspect] = useState(0.75);
   const savedIndex = useRef(0);
+
+  const { comments } = useComments({ fileId: url, fileKind: "slides" });
 
   const draw = useCallback(
     async (buffer: ArrayBuffer, width: number, mode: "slide" | "list" = "list") => {
@@ -246,7 +250,48 @@ export default function SlidesViewer({
             </a>
           </div>
         ) : (
-          <div ref={hostRef} className="pptx-host mx-auto w-full" />
+          <div className="relative w-full h-full">
+            <div ref={hostRef} className="pptx-host mx-auto w-full" />
+            {/* Comment badges positioned over each slide */}
+            {comments.map((c) => {
+              if (c.comment.target_type !== "slide") return null;
+              const slideIndex = Number(
+                (c.comment.target_selector as any)?.slideIndex
+              );
+              if (slideIndex === undefined || slideIndex >= count) return null;
+
+              const slideWidth =
+                (hostRef.current?.clientWidth || MAX_WIDTH) * 1;
+              const slideHeight = slideWidth * aspect;
+
+              let top: number, right: number;
+              if (full) {
+                const slideTop = Math.max(
+                  0,
+                  (window.innerHeight - slideHeight) / 2
+                );
+                top = slideTop;
+                right = 0;
+              } else {
+                top = slideIndex * (slideHeight + 10);
+                right = 0;
+              }
+
+              return (
+                <div
+                  key={c.comment.id}
+                  style={{ position: "absolute", top, right, zIndex: 10 }}
+                >
+                  <CommentBadge
+                    fileId={url}
+                    fileKind="slides"
+                    targetType="slide"
+                    targetSelector={{ slideIndex }}
+                  />
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
