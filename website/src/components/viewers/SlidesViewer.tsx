@@ -10,10 +10,12 @@ import {
   Presentation,
   Loader2,
   Printer,
+  MessageSquarePlus,
 } from "lucide-react";
 import { useFileBuffer } from "./use-file";
-import { useComments } from "./useComments";
+import { CommentsProvider, useCommentsContext } from "./comments-context";
 import CommentBadge from "./CommentBadge";
+import { cn } from "@/lib/utils";
 
 /**
  * A slide deck, rendered in the browser.
@@ -56,8 +58,8 @@ export default function SlidesViewer({
 
   const [aspect, setAspect] = useState(0.75);
   const savedIndex = useRef(0);
-
-  const { comments } = useComments({ fileId: url, fileKind: "slides" });
+  const [annotate, setAnnotate] = useState(false);
+  const [hostW, setHostW] = useState(MAX_WIDTH);
 
   const draw = useCallback(
     async (buffer: ArrayBuffer, width: number, mode: "slide" | "list" = "list") => {
@@ -107,6 +109,7 @@ export default function SlidesViewer({
     if (!host) return;
 
     const width = Math.min(host.clientWidth || MAX_WIDTH, MAX_WIDTH);
+    setHostW(width);
     void draw(state.value, width, full ? "slide" : "list");
   }, [state, draw]);
 
@@ -123,6 +126,7 @@ export default function SlidesViewer({
       const width = Math.min(host.clientWidth || MAX_WIDTH, MAX_WIDTH);
       if (Math.abs(width - last) < 24) return;
       last = width;
+      setHostW(width);
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         if (state.status === "ready") void draw(state.value, width, full ? "slide" : "list");
@@ -231,6 +235,7 @@ export default function SlidesViewer({
   }
 
   return (
+    <CommentsProvider fileId={url} fileKind="slides">
     <div
       ref={shellRef}
       className="flex min-h-0 flex-1 flex-col bg-background"
@@ -252,50 +257,38 @@ export default function SlidesViewer({
         ) : (
           <div className="relative w-full h-full">
             <div ref={hostRef} className="pptx-host mx-auto w-full" />
-            {/* Comment badges positioned over each slide */}
-            {comments.map((c) => {
-              if (c.comment.target_type !== "slide") return null;
-              const slideIndex = Number(
-                (c.comment.target_selector as any)?.slideIndex
-              );
-              if (slideIndex === undefined || slideIndex >= count) return null;
-
-              const slideWidth =
-                (hostRef.current?.clientWidth || MAX_WIDTH) * 1;
-              const slideHeight = slideWidth * aspect;
-
-              let top: number, right: number;
-              if (full) {
-                const slideTop = Math.max(
-                  0,
-                  (window.innerHeight - slideHeight) / 2
-                );
-                top = slideTop;
-                right = 0;
-              } else {
-                top = slideIndex * (slideHeight + 10);
-                right = 0;
-              }
-
-              return (
-                <div
-                  key={c.comment.id}
-                  style={{ position: "absolute", top, right, zIndex: 10 }}
-                >
-                  <CommentBadge
-                    fileId={url}
-                    fileKind="slides"
-                    targetType="slide"
-                    targetSelector={{ slideIndex }}
-                  />
-                </div>
-              );
-            })}
+            {/* One badge per slide, top-right of the paper. The badge
+                itself hides unless it has something to say or annotate
+                mode is on. */}
+            <SlideBadges
+              hostW={hostW}
+              count={count}
+              full={full}
+              current={slide}
+              aspect={aspect}
+              annotate={annotate}
+            />
           </div>
         )}
       </div>
 
       <div className="print-hide flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setAnnotate((v) => !v)}
+            aria-pressed={annotate}
+            className={cn(
+              "pressable flex h-9 items-center gap-1.5 rounded-md px-2 text-[11.5px] font-medium transition-colors max-sm:h-11 max-sm:px-3",
+              annotate
+                ? "bg-accent/15 text-accent"
+                : "text-muted hover:bg-surface-hover hover:text-foreground"
+            )}
+          >
+            <MessageSquarePlus size={14} aria-hidden="true" />
+            {annotate ? "Annotating" : "Annotate"}
+          </button>
+        </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -365,5 +358,69 @@ export default function SlidesViewer({
         </div>
       </div>
     </div>
+    </CommentsProvider>
+  );
+}
+
+/**
+ * One badge slot per slide, pinned to the top-right of the paper.
+ *
+ * Slides are library-rendered, so the badges live in an absolutely
+ * positioned layer above the host. The badge itself hides when the slide
+ * has no comments and annotate mode is off; this only places the anchors.
+ */
+function SlideBadges({
+  hostW,
+  count,
+  full,
+  current,
+  aspect,
+  annotate,
+}: {
+  hostW: number;
+  count: number;
+  full: boolean;
+  current: number;
+  aspect: number;
+  annotate: boolean;
+}) {
+  const { comments } = useCommentsContext();
+  if (count <= 0) return null;
+
+  const slideH = Math.max(1, Math.round(hostW * aspect));
+  const gap = 10;
+
+  const has = (slideIndex: number) =>
+    comments.some(
+      (c) =>
+        c.comment.target_type === "slide" &&
+        JSON.stringify(c.comment.target_selector) ===
+          JSON.stringify({ slideIndex })
+    );
+
+  return (
+    <>
+      {Array.from({ length: count }, (_, slideIndex) => {
+        if (full && slideIndex !== current) return null;
+        if (!has(slideIndex) && !annotate) return null;
+        const top = full
+          ? Math.max(0, Math.round((window.innerHeight - slideH) / 2)) + 8
+          : slideIndex * (slideH + gap) + 8;
+        return (
+          <span
+            key={slideIndex}
+            className="print-hide absolute right-2 z-10"
+            style={{ top }}
+          >
+            <CommentBadge
+              targetType="slide"
+              targetSelector={{ slideIndex }}
+              label={`Slide ${slideIndex + 1} comments`}
+              annotate={annotate}
+            />
+          </span>
+        );
+      })}
+    </>
   );
 }

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concept B · The Reader — Cybersecurity 300L mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f3ea;
+    --white:#fffdf8;
+    --ink:#161310;
+    --ink-soft:#3d3831;
+    --faint:#79746a;
+    --rule:#dcd6c8;
+    --rule-dark:#b9b2a2;
+    --green:#14532d;
+    --green-deep:#0e3d21;
+    --green-tint:#e7eee4;
+    --amber:#8a5a12;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{
+    background:#22211f;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0);
+    background-size:26px 26px;
+    color:#e9e6df;
+    font-family:"Newsreader",Georgia,serif;
+    padding:40px 0 80px;
+  }
+  .board-head{
+    max-width:1460px;margin:0 auto;padding:0 44px 26px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap;
+    border-bottom:1px solid #3a3936;padding-bottom:26px;
+  }
+  .board-head .kicker{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#8fd6a8;margin-bottom:12px}
+  .board-head h1{font-size:46px;font-weight:500;letter-spacing:-.015em;line-height:1;color:#f3efe6}
+  .board-head h1 em{font-style:italic;color:#8fd6a8}
+  .thesis{max-width:430px;font-size:14px;line-height:1.65;color:#a8a49a}
+  .thesis strong{color:#e8e4d8;font-weight:600}
+  .meta{display:flex;gap:26px;max-width:1460px;margin:16px auto 0;padding:0 44px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:10px;color:#8f8b80;letter-spacing:.05em}
+  .meta b{color:#d5d1c6;display:block;font-family:"Newsreader";font-weight:600;font-size:11px;letter-spacing:0;margin-bottom:3px}
+  .swatches{display:flex;gap:6px;margin-top:6px}
+  .sw{width:22px;height:22px;border-radius:4px;border:1px solid rgba(255,255,255,.16)}
+  .rail{display:flex;gap:34px;overflow-x:auto;padding:34px 44px 26px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#3f3e3a #1a1917}
+  .frame{scroll-snap-align:start;flex:0 0 auto}
+  .caption{display:flex;align-items:baseline;gap:12px;margin-top:14px;padding:0 4px;font-family:"IBM Plex Mono",monospace}
+  .caption .n{font-size:10px;color:#8fd6a8;letter-spacing:.14em}
+  .caption .t{font-size:12px;color:#d9d6cd;font-family:"Newsreader"}
+  .caption .d{font-size:10.5px;color:#7d7970;margin-left:auto}
+
+  /* ============ PHONE ============ */
+  .phone{
+    width:390px;height:844px;border-radius:52px;background:#111;
+    border:11px solid #2a2926;outline:1px solid #4a4844;
+    box-shadow:0 40px 90px rgba(0,0,0,.7);
+    overflow:hidden;position:relative;display:flex;flex-direction:column;
+  }
+  .statusbar{
+    height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px 0 28px;background:var(--paper);color:var(--ink);
+    font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:6px}
+  .screen{flex:1;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+  .masthead{
+    display:flex;align-items:flex-end;justify-content:space-between;padding:14px 20px 10px;border-bottom:2.5px solid var(--ink)
+  }
+  .masthead .tm{font-size:37px;font-weight:600;letter-spacing:-.03em;line-height:.95}
+  .masthead .tm small{display:block;font-family:"IBM Plex Mono",monospace;font-size:7px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;margin-top:5px;font-weight:400}
+  .masthead .reg{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:7.5px;letter-spacing:.14em;color:var(--ink-soft);text-transform:uppercase;line-height:1.7}
+  .datebar{
+    display:flex;justify-content:space-between;align-items:center;padding:7px 20px;
+    border-bottom:1px solid var(--ink);font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)
+  }
+  .body{flex:1;overflow:hidden;padding:14px 20px 0}
+
+  /* ---- Screen 1 ---- */
+  .nextclass{border-bottom:1px solid var(--rule-dark);padding-bottom:14px}
+  .nc-k{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:var(--green);display:flex;justify-content:space-between;margin-bottom:8px}
+  .nextclass h2{font-size:42px;line-height:.98;letter-spacing:-.02em;font-weight:600}
+  .nextclass h2 em{font-style:italic;font-weight:500}
+  .leader{display:flex;align-items:baseline;gap:10px;margin-top:12px;font-family:"IBM Plex Mono",monospace}
+  .leader .t{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .leader .dots{flex:1;border-bottom:2px dotted var(--rule-dark);transform:translateY(-3px)}
+  .leader .v{font-size:12px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+  .nc-meta{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--ink-soft);font-style:italic}
+
+  .recital{padding:13px 0 0}
+  .recital h3{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--rule);padding-bottom:6px;display:flex;justify-content:space-between}
+  .reading{display:flex;align-items:baseline;gap:12px;padding:11px 2px;border-bottom:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+  .reading .folio{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--green);width:22px;flex:0 0 auto}
+  .reading .what{flex:1;min-width:0}
+  .reading .what b{display:block;font-size:13.5px;font-weight:600;letter-spacing:-.005em}
+  .reading .what span{display:block;font-family:"IBM Plex Mono",monospace;font-size:7.5px;color:var(--faint);letter-spacing:.08em;margin-top:2px;text-transform:uppercase}
+  .reading .dots{flex:0 0 34px;border-bottom:1.5px dotted var(--rule-dark);transform:translateY(-3px)}
+  .reading .ct{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--ink-soft)}
+
+  .footernav{flex:0 0 auto;border-top:1.5px solid var(--ink);display:flex;background:var(--white)}
+  .footernav a{flex:1;text-align:center;padding:11px 0 12px;text-decoration:none;color:var(--faint);font-family:"IBM Plex Mono",monospace;font-size:7px;letter-spacing:.2em;text-transform:uppercase}
+  .footernav a.on{color:var(--green)}
+  .footernav a small{display:block;font-size:13px;margin-bottom:3px;font-family:"Newsreader"}
+
+  /* ---- Screen 2 : viewer ---- */
+  .viewbar{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--rule-dark)}
+  .vback{width:36px;height:36px;border-radius:50%;border:1px solid var(--rule-dark);display:flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+  .viewbar .vt{flex:1;min-width:0}
+  .viewbar .vt b{font-size:12px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .viewbar .vt span{font-family:"IBM Plex Mono",monospace;font-size:7.5px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase}
+  .pill{border:1px solid var(--rule-dark);border-radius:999px;padding:8px 12px;font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.1em;color:var(--ink-soft);display:flex;gap:6px;align-items:center;text-transform:uppercase}
+  .pill.g{border-color:var(--green);color:var(--green)}
+  .pagewrap{flex:1;background:#e9e4d6;display:flex;justify-content:center;padding:16px 0 0;position:relative;overflow:hidden}
+  .sheetpage{
+    width:264px;height:345px;background:var(--white);position:relative;padding:16px 16px 22px;
+    box-shadow:6px 10px 0 rgba(22,19,16,.08), 0 24px 48px rgba(22,19,16,.28);border:1px solid #e2ddd0;
+  }
+  .sheetpage .org{font-family:"IBM Plex Mono",monospace;font-size:6px;letter-spacing:.2em;color:var(--green);border-bottom:1.5px solid var(--green);padding-bottom:5px;text-transform:uppercase}
+  .sheetpage h4{font-size:16px;font-weight:600;margin:9px 0 1px}
+  .sheetpage .by{font-style:italic;font-size:8px;color:var(--faint)}
+  .sheetpage .fig{margin:9px 0;border:1px solid var(--rule);height:66px;background:
+     repeating-linear-gradient(-45deg,#f0ece1 0 7px,#e7e3d5 7px 14px);display:flex;align-items:center;justify-content:center;
+     font-family:"IBM Plex Mono",monospace;font-size:6px;letter-spacing:.14em;color:#8a8577}
+  .sheetpage .ln i{display:block;height:4px;background:#dfdacd;margin:5px 0;border-radius:1px}
+  .sheetpage .ln i:nth-child(2){width:86%}.sheetpage .ln i:nth-child(3){width:58%}
+  .marginnote{
+    position:absolute;left:-6px;top:118px;width:26px;height:26px;border-radius:50%;
+    background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:600;font-style:italic;box-shadow:0 3px 10px rgba(20,83,45,.4)
+  }
+  .pageno{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:7px;color:#a09b8d}
+  .anno-sheet{
+    position:absolute;left:0;right:0;bottom:0;background:var(--white);border-top:1.5px solid var(--ink);
+    padding:9px 16px 14px;box-shadow:0 -14px 40px rgba(22,19,16,.25);z-index:3
+  }
+  .grab{width:36px;height:3px;background:var(--rule-dark);margin:0 auto 8px}
+  .anno-sheet h5{font-family:"IBM Plex Mono",monospace;font-size:7.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--green);display:flex;justify-content:space-between;margin-bottom:8px}
+  .anno-sheet h5 span{color:var(--faint)}
+  .fn{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+  .fn:last-of-type{border-bottom:none}
+  .fn .no{font-family:"Newsreader";font-style:italic;font-size:14px;color:var(--green);width:16px;flex:0 0 auto}
+  .fn p{font-size:11.5px;line-height:1.5;color:var(--ink-soft)}
+  .fn .who{font-family:"IBM Plex Mono",monospace;font-size:7px;color:var(--faint);letter-spacing:.08em;margin-top:4px;text-transform:uppercase}
+  .anno-input{display:flex;gap:8px;margin-top:8px;border-top:1px solid var(--rule);padding-top:8px}
+  .anno-input div{flex:1;font-style:italic;font-size:11px;color:var(--faint);padding:8px 2px}
+  .anno-input b{color:var(--green);font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.1em;align-self:center;text-transform:uppercase}
+
+  /* ---- Screen 3 : assignments ---- */
+  .a-page{flex:1;display:flex;flex-direction:column}
+  .a-head{display:flex;justify-content:space-between;align-items:baseline;padding:12px 20px 10px;border-bottom:2.5px solid var(--ink)}
+  .a-head h1{font-size:30px;font-weight:600;letter-spacing:-.02em}
+  .a-head span{font-family:"IBM Plex Mono",monospace;font-size:7.5px;color:var(--faint);letter-spacing:.18em;text-transform:uppercase}
+  .filterline{display:flex;gap:0;border-bottom:1px solid var(--rule-dark);padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;overflow:hidden}
+  .filterline a{color:var(--faint);text-decoration:none;padding:7px 12px;border-right:1px solid var(--rule)}
+  .filterline a:first-child{padding-left:6px}
+  .filterline a.on{color:var(--paper);background:var(--ink);border-radius:4px}
+  .ledger{padding:10px 20px}
+  .entry{display:grid;grid-template-columns:1fr auto;gap:12px;padding:13px 0;border-bottom:1px solid var(--rule-dark)}
+  .entry .d1{font-family:"IBM Plex Mono",monospace;font-size:7.5px;letter-spacing:.18em;color:var(--green);text-transform:uppercase}
+  .entry h3{font-size:15.5px;font-weight:600;line-height:1.2;letter-spacing:-.005em;margin:4px 0 6px}
+  .entry .d2{font-family:"IBM Plex Mono",monospace;font-size:7px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+  .entry .when{text-align:right}
+  .entry .when small{font-family:"IBM Plex Mono",monospace;font-size:7px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;display:block}
+  .entry .when b{font-size:23px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .entry .when span{font-family:"IBM Plex Mono",monospace;font-size:7px;color:var(--amber);letter-spacing:.1em}
+
+  /* ---- Screen 4 : compose slip ---- */
+  .slipbar{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--rule-dark)}
+  .slipbar b{font-size:12.5px}
+  .slipbar span{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:7px;color:var(--faint);letter-spacing:.12em;text-transform:uppercase}
+  .slip{flex:1;overflow:hidden;padding:14px 22px 16px;display:flex;flex-direction:column;background:var(--white)}
+  .slipno{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between;border-bottom:1px solid var(--ink);padding-bottom:8px;text-transform:uppercase}
+  .slip h2{font-size:24px;font-weight:600;letter-spacing:-.015em;margin:12px 0 2px}
+  .slip .hint{font-style:italic;font-size:10.5px;color:var(--faint);margin-bottom:12px}
+  .kv{display:flex;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px dotted var(--rule-dark)}
+  .kv label{font-family:"IBM Plex Mono",monospace;font-size:7.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);width:88px;flex:0 0 auto}
+  .kv .v{font-size:13px;font-weight:500;flex:1}
+  .kv .v small{font-style:italic;font-weight:400;color:var(--faint);font-size:10px}
+  .checkrow{display:flex;gap:14px;padding:11px 0;border-bottom:1px dotted var(--rule-dark);align-items:center}
+  .checkbox{width:16px;height:16px;border:1.5px solid var(--ink);display:inline-flex;align-items:center;justify-content:center;margin-right:7px;vertical-align:-2px}
+  .checkbox.on{background:var(--green);border-color:var(--green)}
+  .stampbox{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:14px;border-top:1px solid var(--ink)}
+  .stamp{font-family:"IBM Plex Mono",monospace;font-size:7px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;line-height:1.8}
+  .stamp b{color:var(--ink)}
+  .bigbtn{background:var(--green);color:#fff;border:none;border-radius:4px;padding:14px 22px;font-family:"Newsreader";font-size:15px;font-weight:600;letter-spacing:-.01em}
+
+  /* ---- Screen 5 : menu ---- */
+  .contents{flex:1;padding:16px 22px 18px;display:flex;flex-direction:column;background:var(--white)}
+  .contents h1{font-size:38px;font-weight:600;letter-spacing:-.025em;border-bottom:2.5px solid var(--ink);padding-bottom:10px;margin-bottom:4px}
+  .contents h1 em{font-style:italic;font-weight:500}
+  .tocgroup{margin-top:12px}
+  .tocgroup h6{font-family:"IBM Plex Mono",monospace;font-size:8px;letter-spacing:.26em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+  .tocrow{display:flex;align-items:baseline;gap:10px;padding:9px 2px;text-decoration:none;color:var(--ink);border-bottom:1px solid var(--rule)}
+  .tocrow .no{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--green);width:20px}
+  .tocrow b{font-size:14px;font-weight:600;flex:1;letter-spacing:-.005em}
+  .tocrow .dots{width:38px;border-bottom:1.5px dotted var(--rule-dark);transform:translateY(-3px)}
+  .tocrow small{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--ink-soft)}
+  .colophon{margin-top:auto;border-top:1.5px solid var(--ink);padding-top:12px;display:flex;justify-content:space-between;align-items:center}
+  .colophon p{font-style:italic;font-size:10px;color:var(--faint);max-width:190px;line-height:1.5}
+  .toggle{width:44px;height:24px;border:1.5px solid var(--ink);border-radius:999px;position:relative;background:var(--white)}
+  .toggle::after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--ink)}
+</style>
+</head>
+<body>
+
+<header class="board-head">
+  <div>
+    <p class="kicker">Mobile concepts · 02 of 03</p>
+    <h1>The <em>Reader</em></h1>
+  </div>
+  <p class="thesis"><strong>What it is.</strong> The department’s site as a printed course reader that happens to be interactive — Newsreader serif, warm paper, deep green ink. Countdowns become timetable entries with dot leaders; comments become footnotes in the margin. <strong>Why it fits.</strong> Universities run on paper: syllabi, handouts, exam scripts. Nobody else in Nigerian higher-ed tech looks like this. <strong>How it moves.</strong> Pages cross-fade like leaves turning; the annotation sheet lifts like a slip of paper.</p>
+</header>
+<div class="meta">
+  <div>PALETTE<div class="swatches"><span class="sw" style="background:#f7f3ea"></span><span class="sw" style="background:#fffdf8"></span><span class="sw" style="background:#14532d"></span><span class="sw" style="background:#8a5a12"></span><span class="sw" style="background:#161310"></span></div></div>
+  <div>TYPE<b>Newsreader + IBM Plex Mono</b></div>
+  <div>TOUCH TARGETS<b>44px rows, underlined links, no icon-only buttons</b></div>
+  <div>NAV PATTERN<b>Contents page — numbered, with dot leaders</b></div>
+  <div>COMMENTS<b>Marginal footnotes · numbered 1, 2, 3…</b></div>
+  <div>BEST FOR<b>Light-first · reading-heavy cohorts · brand repositioning</b></div>
+</div>
+
+<div class="rail">
+
+  <!-- ============ SCREEN 1 — NOW ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Reader: home page on a phone">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.4"/></svg><svg width="16" height="11" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1.5 4.2a9.5 9.5 0 0 1 13 0M4.2 7a6 6 0 0 1 7.6 0M7 9.8a2.2 2.2 0 0 1 2 0"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.55"/><rect x="2" y="2" width="15" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="masthead">
+          <div class="tm">The Hood<small>Cybersecurity 300L · NUTM</small></div>
+          <div class="reg">Apapa<br/>Lagos</div>
+        </div>
+        <div class="datebar"><span>Sun · 8 Nov 2026</span><span>First Semester</span></div>
+        <div class="body">
+          <section class="nextclass">
+            <div class="nc-k"><span>Next class</span><span>№ 303</span></div>
+            <h2>Cyber&shy;security Risks <em>Analysis</em></h2>
+            <div class="leader"><span class="t">Rings in</span><span class="dots"></span><span class="v">13:09:23</span></div>
+            <div class="nc-meta"><span>Hall B, 10:00</span><span>·</span><span>Week 8 — risk assessment workshop</span></div>
+          </section>
+          <section class="recital">
+            <h3><span>Readings</span><span>61 filed</span></h3>
+            <a class="reading" href="#"><span class="folio">309</span><span class="what"><b>Intro to Artificial Intelligence</b><span>Lecture · PDF · 1.1 MB · 12 readings</span></span><span class="dots"></span><span class="ct">12</span></a>
+            <a class="reading" href="#"><span class="folio">305</span><span class="what"><b>Preliminary Report (DRAFT)</b><span>Text · 6 KB · SHA-256 attested</span></span><span class="dots"></span><span class="ct">9</span></a>
+            <a class="reading" href="#"><span class="folio">304</span><span class="what"><b>Trees &amp; Traversal — Week 6</b><span>Slides · PPTX · 4.2 MB</span></span><span class="dots"></span><span class="ct">8</span></a>
+            <a class="reading" href="#"><span class="folio">312</span><span class="what"><b>GST 312 Session 1 — Use of English</b><span>Slides · 2.8 MB</span></span><span class="dots"></span><span class="ct">5</span></a>
+          </section>
+        </div>
+        <nav class="footernav" aria-label="Primary">
+          <a href="#" class="on"><small>i.</small>Today</a>
+          <a href="#"><small>ii.</small>Readings</a>
+          <a href="#"><small>iii.</small>Tasks</a>
+          <a href="#"><small>iv.</small>Contents</a>
+        </nav>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">B·1</span><span class="t">Today — next class set like a timetable entry</span><span class="d">home</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 2 — VIEWER ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Reader: course outline with marginal notes">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.55"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.55"/><rect x="2" y="2" width="18" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="viewbar">
+          <div class="vback"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div class="vt"><b>CSC 309 — Course Outline</b><span>1.1 MB · p. 1 of 12</span></div>
+          <a class="pill g" href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Save</a>
+        </div>
+        <div class="pagewrap">
+          <div class="sheetpage">
+            <div class="org">NUTM · Cybersecurity</div>
+            <h4>Artificial Intelligence</h4>
+            <p class="by">Charles Igah · Course Outline</p>
+            <div class="fig">FIG. 1 — THE AGENT LOOP</div>
+            <div class="ln"><i></i><i></i><i></i></div>
+            <div class="marginnote">1</div>
+            <div class="pageno">— 1 —</div>
+          </div>
+          <section class="anno-sheet" aria-label="Marginal annotations">
+            <div class="grab"></div>
+            <h5>Marginalia<span>2 notes · page 1</span></h5>
+            <div class="fn"><span class="no">1.</span><div><p>Does the agent loop appear in the mid-semester test? Scoping my revision — Adaeze</p><div class="who">Adaeze Owuy · 14:02 · p. 1, fig. 1</div></div></div>
+            <div class="fn"><span class="no">2.</span><div><p>Yes — weeks 1–6 are all examinable. Bring the outline to every class. — Valor (staff)</p><div class="who">Valor · 14:20 · reply</div></div></div>
+            <div class="anno-input"><div>Pencil in a note…</div><b>Post</b></div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">B·2</span><span class="t">Viewer — a bound page with marginalia</span><span class="d">view/[id]</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 3 — ASSIGNMENTS ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Reader: task ledger">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.55"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.55"/><rect x="2" y="2" width="12" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="a-page">
+          <div class="a-head"><h1>Tasks</h1><span>3 open — 14 Nov, first due</span></div>
+          <div class="filterline"><a class="on" href="#">All</a><a href="#">Individual</a><a href="#">Group</a><a href="#">CYB 305</a><a href="#">CSC 309</a><a href="#">Due ↓</a></div>
+          <div class="ledger">
+            <article class="entry">
+              <div><p class="d1">CYB 305 · Group of 4 · Email</p><h3>Evidence-integrity write-up for the E01–E09 set</h3><p class="d2">Fri 14 Nov · 23:59 · 2 resources · remind 1 wk</p></div>
+              <div class="when"><small>Days left</small><b>06</b><span>days</span></div>
+            </article>
+            <article class="entry">
+              <div><p class="d1">CSC 309 · Individual · In class</p><h3>Agent-loop critique: 800-word teardown</h3><p class="d2">Mon 17 Nov · 10:00 · bring outline · 1 resource</p></div>
+              <div class="when"><small>Days left</small><b>09</b><span>days</span></div>
+            </article>
+            <article class="entry">
+              <div><p class="d1">DTS 304 · Group of 3 · Presentation</p><h3>Traversal worksheet — trees &amp; BST</h3><p class="d2">Fri 28 Nov · in class · 3 resources · weekly</p></div>
+              <div class="when"><small>Days left</small><b>20</b><span>days</span></div>
+            </article>
+            <div class="entry" style="border-bottom:none;padding-top:14px"><p style="font-style:italic;font-size:10.5px;color:var(--faint)">— End of list. Completed tasks are filed under your name in the course page.</p></div>
+          </div>
+        </div>
+        <nav class="footernav" aria-label="Primary">
+          <a href="#"><small>i.</small>Today</a>
+          <a href="#"><small>ii.</small>Readings</a>
+          <a href="#" class="on"><small>iii.</small>Tasks</a>
+          <a href="#"><small>iv.</small>Contents</a>
+        </nav>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">B·3</span><span class="t">Tasks — set like a printed ledger</span><span class="d">/assignments</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 4 — COMPOSE ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Reader: assignment slip">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.5"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="10" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="slipbar">
+          <div class="vback"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <b>Set an assignment</b>
+          <span>Slip № 2026-014</span>
+        </div>
+        <div class="slip">
+          <div class="slipno"><span>Department of Cybersecurity</span><span>Form A/19</span></div>
+          <h2>Set an assignment</h2>
+          <p class="hint">Filed to the course page upon creation; students are reminded on schedule.</p>
+          <div class="kv"><label>Course</label><div class="v">CYB 305 <small>— Preliminary Investigation</small></div></div>
+          <div class="kv"><label>Title</label><div class="v">Evidence-integrity write-up…</div></div>
+          <div class="checkrow"><span class="checkbox"></span>Individual &nbsp;&nbsp;<span class="checkbox on"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Group of 4</div>
+          <div class="kv"><label>Submit via</label><div class="v">Email <small>· cyb305@nutm.edu.ng ✓ valid</small></div></div>
+          <div class="kv"><label>Due</label><div class="v">Fri 14 Nov 2026 <small>· 23:59 GMT+1</small></div></div>
+          <div class="kv"><label>Remind</label><div class="v">1 week before <small>· then every 2 weeks</small></div></div>
+          <div class="kv"><label>Enclosures</label><div class="v">2 <small>· SHA-256 walkthrough (video), Brief.pdf</small></div></div>
+          <div class="stampbox">
+            <p class="stamp">Received<br/><b>______ / ______ / 2026</b></p>
+            <button class="bigbtn">File it →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">B·4</span><span class="t">Compose — a department submission slip</span><span class="d">/assignments/new</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 5 — CONTENTS ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Reader: contents menu">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.4"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="7" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="contents">
+          <h1>Con<em>tents</em></h1>
+          <div class="tocgroup"><h6>Study</h6>
+            <a class="tocrow" href="#"><span class="no">01</span><b>All courses</b><span class="dots"></span><small>10 · 61</small></a>
+            <a class="tocrow" href="#"><span class="no">02</span><b>Timetable</b><span class="dots"></span><small>Sem 1</small></a>
+            <a class="tocrow" href="#"><span class="no">03</span><b>Registration</b><span class="dots"></span><small>26/27</small></a>
+            <a class="tocrow" href="#"><span class="no">04</span><b>Study resources</b><span class="dots"></span><small>Guides</small></a>
+          </div>
+          <div class="tocgroup"><h6>Session</h6>
+            <a class="tocrow" href="#"><span class="no">05</span><b>Academic calendar</b><span class="dots"></span><small>26/27</small></a>
+            <a class="tocrow" href="#"><span class="no">06</span><b>Timetable PDF</b><span class="dots"></span><small>↓</small></a>
+            <a class="tocrow" href="#"><span class="no">07</span><b>Staff area</b><span class="dots"></span><small>Sign in</small></a>
+          </div>
+          <div class="tocgroup"><h6>Colophon</h6>
+            <a class="tocrow" href="#"><span class="no">08</span><b>github.com/manofval0r/thehood</b><span class="dots"></span><small>Source</small></a>
+            <a class="tocrow" href="#"><span class="no">09</span><b>davidowu.tech</b><span class="dots"></span><small>Valor</small></a>
+          </div>
+          <div class="colophon">
+            <p>Set in Newsreader &amp; Plex Mono. Printed on paper-white, evening mode available.</p>
+            <div class="toggle" role="switch" aria-checked="false" aria-label="Evening mode"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">B·5</span><span class="t">Contents — the site as a table of contents</span><span class="d">hamburger</span></figcaption>
+  </figure>
+
+</div>
+</body>
+</html>

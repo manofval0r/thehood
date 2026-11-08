@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concept C · The Index — Cybersecurity 300L mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#efede3;
+    --paper:#f7f5ec;
+    --ink:#101010;
+    --acid:#c9f24e;
+    --acid-deep:#a8d62e;
+    --grey:#7d7a6e;
+    --rule:2px solid #101010;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{
+    background:#191917;
+    background-image:repeating-linear-gradient(45deg, rgba(255,255,255,.028) 0 2px, transparent 2px 10px);
+    color:#e9e7dd;
+    font-family:"Archivo",system-ui,sans-serif;
+    padding:40px 0 80px;
+  }
+  .board-head{
+    max-width:1460px;margin:0 auto;padding:0 44px 26px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap;
+    border-bottom:2px solid #333330;padding-bottom:26px;
+  }
+  .board-head .kicker{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#c9f24e;font-weight:700;margin-bottom:12px}
+  .board-head h1{font-family:"Archivo Black";font-size:46px;letter-spacing:-.01em;line-height:.95;color:#f2f0e6;text-transform:uppercase}
+  .board-head h1 em{font-style:normal;color:#c9f24e}
+  .thesis{max-width:440px;font-size:13.5px;line-height:1.6;color:#a3a096}
+  .thesis strong{color:#eceade;font-weight:700}
+  .meta{display:flex;gap:24px;max-width:1460px;margin:16px auto 0;padding:0 44px;flex-wrap:wrap;font-size:10px;color:#8f8d82;letter-spacing:.06em;text-transform:uppercase}
+  .meta b{color:#d8d6cc;display:block;font-family:"Archivo Black";font-size:9px;letter-spacing:.1em;margin-bottom:3px}
+  .swatches{display:flex;gap:6px;margin-top:6px}
+  .sw{width:22px;height:22px;border:2px solid #333;border-radius:2px}
+  .rail{display:flex;gap:34px;overflow-x:auto;padding:34px 44px 26px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#3a3a35 #1c1c1a}
+  .frame{scroll-snap-align:start;flex:0 0 auto}
+  .caption{display:flex;align-items:baseline;gap:12px;margin-top:14px;padding:0 4px}
+  .caption .n{font-family:"Archivo Black";font-size:10px;color:#c9f24e;letter-spacing:.1em}
+  .caption .t{font-size:12.5px;color:#dcdad0}
+  .caption .d{font-size:10px;color:#7c7a70;margin-left:auto;text-transform:uppercase;letter-spacing:.1em}
+
+  /* ============ PHONE ============ */
+  .phone{
+    width:390px;height:844px;border-radius:8px;background:#101010;
+    border:11px solid #2b2b28;outline:2px solid #c9f24e;
+    box-shadow:10px 10px 0 rgba(201,242,78,.16), 0 40px 90px rgba(0,0,0,.75);
+    overflow:hidden;position:relative;display:flex;flex-direction:column;
+  }
+  .statusbar{
+    height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;background:var(--ink);color:var(--acid);
+    font-family:"Archivo Black";font-size:12px;letter-spacing:.08em;
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:6px;color:#efede3}
+  .screen{flex:1;background:var(--ground);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+  .topbar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:var(--rule);background:var(--ground)}
+  .logo-block{width:38px;height:38px;background:var(--ink);color:var(--acid);display:flex;align-items:center;justify-content:center;font-family:"Archivo Black";font-size:17px}
+  .wordmark{font-family:"Archivo Black";font-size:13px;line-height:1;text-transform:uppercase}
+  .wordmark span{display:block;font-family:"Archivo";font-weight:600;font-size:7px;letter-spacing:.22em;color:var(--grey);margin-top:3px}
+  .bell{margin-left:auto;width:42px;height:42px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;position:relative;background:var(--paper)}
+  .bell .n{position:absolute;top:-9px;right:-9px;background:var(--acid);border:2px solid var(--ink);width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:"Archivo Black";font-size:10px}
+
+  .body{flex:1;overflow:hidden}
+  .ticker{background:var(--ink);color:var(--acid);font-family:"Archivo Black";font-size:9px;letter-spacing:.14em;padding:6px 0;white-space:nowrap;overflow:hidden;text-transform:uppercase}
+  .ticker span{padding-right:36px}
+
+  /* ---- Screen 1 ---- */
+  .hero{padding:14px 16px 12px;border-bottom:var(--rule)}
+  .hero .dateline{display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:.2em;font-weight:700;text-transform:uppercase;margin-bottom:8px}
+  .hero .dateline em{font-style:normal;background:var(--acid);padding:1px 6px;border:2px solid var(--ink)}
+  .hero h2{font-family:"Archivo Black";font-size:39px;line-height:.94;letter-spacing:-.005em;text-transform:uppercase}
+  .hero h2 .outline{-webkit-text-stroke:1.6px var(--ink);color:transparent}
+  .hero .sub{margin-top:8px;font-size:10.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--ink)}
+  .clockbar{display:flex;border:var(--rule);margin-top:10px;background:var(--paper)}
+  .clockbar .cell{flex:1;text-align:center;padding:6px 0 7px;position:relative}
+  .clockbar .cell+.cell{border-left:var(--rule)}
+  .clockbar .num{font-family:"Archivo Black";font-size:32px;line-height:1;font-variant-numeric:tabular-nums}
+  .clockbar .lbl{font-size:6.5px;letter-spacing:.3em;font-weight:700;margin-top:2px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;border-bottom:var(--rule)}
+  .stats .cell{padding:9px 16px;border-right:var(--rule);background:var(--ground)}
+  .stats .cell:nth-child(2n){border-right:none}
+  .stats .cell:nth-child(n+3){border-top:var(--rule)}
+  .stats .n{font-family:"Archivo Black";font-size:25px}
+  .stats .n i{font-style:normal;background:var(--acid);padding:0 4px}
+  .stats .l{font-size:6.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--grey)}
+  .fileshead{display:flex;justify-content:space-between;align-items:center;padding:9px 16px;background:var(--ink);color:var(--paper)}
+  .fileshead h3{font-family:"Archivo Black";font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+  .fileshead span{font-size:7px;letter-spacing:.18em;color:var(--acid);font-weight:700;text-transform:uppercase}
+  .filerow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:2px solid var(--ink);background:var(--paper);text-decoration:none;color:var(--ink)}
+  .filerow .idx{font-family:"Archivo Black";font-size:15px;width:34px;flex:0 0 auto;border:2px solid var(--ink);text-align:center;padding:3px 0}
+  .filerow b{font-size:11px;display:block;line-height:1.25}
+  .filerow small{font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);font-weight:700}
+  .filerow .ct{margin-left:auto;font-family:"Archivo Black";font-size:13px}
+  .tabbar{flex:0 0 62px;display:flex;border-top:var(--rule);background:var(--ground);padding-bottom:6px}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:var(--ink);font-size:7px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+  .tabbar a .k{width:30px;height:22px;display:flex;align-items:center;justify-content:center;border:2px solid transparent}
+  .tabbar a.on .k{background:var(--acid);border-color:var(--ink)}
+
+  /* ---- Screen 2 : viewer ---- */
+  .viewerbar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:var(--rule);background:var(--ground)}
+  .vback{width:40px;height:40px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;background:var(--paper)}
+  .viewerbar .vt{flex:1;min-width:0}
+  .viewerbar .vt b{display:block;font-family:"Archivo Black";font-size:11px;text-transform:uppercase;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .viewerbar .vt span{font-size:7px;font-weight:700;letter-spacing:.16em;color:var(--grey);text-transform:uppercase}
+  .sqbtn{width:40px;height:40px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;background:var(--paper)}
+  .sqbtn.acid{background:var(--acid)}
+  .sqbtn{position:relative}
+  .sqbtn .n{position:absolute;top:-9px;right:-9px;background:var(--ink);color:var(--acid);width:21px;height:21px;display:flex;align-items:center;justify-content:center;font-family:"Archivo Black";font-size:9px;border:2px solid var(--ground)}
+  .docstage{flex:1;background:#e4e1d2;display:flex;justify-content:center;padding:14px 0 0;overflow:hidden}
+  .bigpage{width:262px;height:342px;background:#fff;border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:14px;position:relative}
+  .bigpage .org{background:var(--ink);color:var(--acid);font-size:6.5px;letter-spacing:.18em;padding:4px 6px;text-transform:uppercase;display:inline-block}
+  .bigpage h4{font-family:"Archivo Black";font-size:16px;line-height:1.05;margin:10px 0 2px;text-transform:uppercase}
+  .bigpage .by{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#444}
+  .bigpage .fig{margin:8px 0;border:2px solid var(--ink);height:66px;background:var(--acid);display:flex;align-items:center;justify-content:center;font-family:"Archivo Black";font-size:7px;letter-spacing:.18em;text-transform:uppercase;padding:0 10px;text-align:center}
+  .bigpage i{display:block;height:5px;background:#111;opacity:.16;margin:6px 0}
+  .bigpage i:nth-child(2){width:80%}.bigpage i:nth-child(3){width:55%}
+  .bigpage .pg{position:absolute;bottom:8px;right:10px;font-family:"Archivo Black";font-size:10px;border:2px solid var(--ink);width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--paper)}
+  .pinbadge{
+    position:absolute;right:0;top:104px;transform:translateX(50%);
+    background:var(--ink);color:var(--acid);border:3px solid var(--ground);
+    width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+    font-family:"Archivo Black";font-size:15px;box-shadow:4px 4px 0 rgba(16,16,16,.35)
+  }
+  .sheet2{
+    position:absolute;left:0;right:0;bottom:0;background:var(--paper);
+    border-top:3px solid var(--ink);padding:9px 14px 14px;z-index:3;box-shadow:0 -8px 0 rgba(16,16,16,.06)
+  }
+  .grab2{width:44px;height:5px;background:var(--ink);margin:0 auto 9px}
+  .sheet2 h5{font-family:"Archivo Black";font-size:9px;letter-spacing:.24em;text-transform:uppercase;display:flex;justify-content:space-between;margin-bottom:8px}
+  .sheet2 h5 span{color:var(--grey)}
+  .cnote{border:2px solid var(--ink);background:var(--ground);padding:8px 9px;margin-bottom:6px;position:relative}
+  .cnote::before{content:"";position:absolute;left:-2px;top:-2px;width:14px;height:14px;background:var(--acid);border:2px solid var(--ink)}
+  .cnote p{font-size:10px;line-height:1.45;font-weight:500;position:relative;padding-left:12px}
+  .cnote .who{font-size:6.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--grey);margin-top:4px;padding-left:12px}
+  .sheet2 .cinput{display:flex;border:2px solid var(--ink);margin-top:9px;background:#fff}
+  .sheet2 .cinput div{flex:1;padding:10px;font-size:10px;color:#666;font-weight:500}
+  .sheet2 .cinput b{background:var(--acid);border-left:2px solid var(--ink);width:44px;display:flex;align-items:center;justify-content:center;font-family:"Archivo Black"}
+
+  /* ---- Screen 3 : tasks ---- */
+  .t-page{flex:1;display:flex;flex-direction:column}
+  .t-head{padding:12px 16px 10px;border-bottom:var(--rule);display:flex;justify-content:space-between;align-items:center;background:var(--ground)}
+  .t-head h1{font-family:"Archivo Black";font-size:29px;text-transform:uppercase;line-height:.95}
+  .t-head span{font-size:7px;font-weight:700;letter-spacing:.2em;display:block;margin-top:4px;color:var(--grey);text-transform:uppercase}
+  .addbtn{background:var(--acid);border:2px solid var(--ink);font-family:"Archivo Black";font-size:9px;letter-spacing:.14em;padding:12px 14px;text-transform:uppercase;box-shadow:3px 3px 0 var(--ink);text-decoration:none;color:var(--ink)}
+  .frow{display:flex;gap:6px;padding:9px 16px;border-bottom:var(--rule);background:var(--paper)}
+  .fchip{font-size:7.5px;font-weight:700;letter-spacing:.12em;border:2px solid var(--ink);padding:6px 9px;text-transform:uppercase;background:transparent}
+  .fchip.on{background:var(--ink);color:var(--acid)}
+  .cards{padding:12px 16px;overflow:hidden}
+  .tcard{border:2px solid var(--ink);background:var(--paper);box-shadow:4px 4px 0 var(--ink);padding:11px 12px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:10px}
+  .tcard .k{font-size:6.5px;font-weight:700;letter-spacing:.2em;color:var(--grey);text-transform:uppercase}
+  .tcard h3{font-family:"Archivo Black";font-size:13px;line-height:1.15;margin:4px 0 7px;text-transform:uppercase}
+  .tcard .tags{display:flex;gap:5px;flex-wrap:wrap}
+  .ttag{font-size:6.5px;font-weight:700;letter-spacing:.1em;border:2px solid var(--ink);padding:2px 6px;text-transform:uppercase}
+  .ttag.acid{background:var(--acid)}
+  .stamp2{align-self:center;text-align:center;border:2px solid var(--ink);padding:6px 9px;transform:rotate(-2deg)}
+  .stamp2 small{font-size:6px;font-weight:700;letter-spacing:.2em;display:block;text-transform:uppercase}
+  .stamp2 b{font-family:"Archivo Black";font-size:21px;line-height:1}
+  .tcard .row{grid-column:1/-1;border-top:2px solid var(--ink);padding-top:7px;display:flex;justify-content:space-between;font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--grey)}
+
+  /* ---- Screen 4 : form ---- */
+  .formbar2{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:var(--rule);background:var(--ink);color:var(--paper)}
+  .formbar2 b{font-family:"Archivo Black";font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  .formbar2 span{margin-left:auto;font-size:7px;letter-spacing:.2em;color:var(--acid);font-weight:700;text-transform:uppercase}
+  .form2{flex:1;overflow:hidden;padding:13px 16px 12px;display:flex;flex-direction:column;gap:8px;background:var(--ground)}
+  .f-label{font-size:7px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;margin-bottom:4px;display:flex;justify-content:space-between}
+  .f-label i{font-style:normal;color:var(--grey)}
+  .f-slot{border:2px solid var(--ink);background:var(--paper);padding:9px 11px;font-size:11.5px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .f-seg{display:flex;border:2px solid var(--ink)}
+  .f-seg div{flex:1;text-align:center;padding:9px 4px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--paper)}
+  .f-seg div+.div{border-left:2px solid var(--ink)}
+  .f-seg div.on{background:var(--ink);color:var(--acid)}
+  .f-valid{display:flex;gap:6px;align-items:center;font-size:7px;font-weight:700;letter-spacing:.14em;color:#0f7a35;margin-top:4px;text-transform:uppercase}
+  .f-res{display:flex;gap:6px}
+  .f-rchip{font-size:8.5px;font-weight:600;border:2px solid var(--ink);background:var(--paper);padding:6px 8px}
+  .f-rchip.dashed{border-style:dashed;color:var(--grey)}
+  .f-reminder{display:flex;gap:6px}
+  .f-reminder .f-slot{flex:1;font-size:9.5px;padding:8px 9px}
+  .f-cta{margin-top:auto;background:var(--acid);border:3px solid var(--ink);text-align:center;padding:13px;font-family:"Archivo Black";font-size:14px;text-transform:uppercase;letter-spacing:.06em;box-shadow:5px 5px 0 var(--ink);color:var(--ink)}
+
+  /* ---- Screen 5 : menu ---- */
+  .menuwrap{flex:1;background:var(--ink);color:var(--paper);padding:13px 16px 16px;display:flex;flex-direction:column}
+  .menuwrap .m-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #2e2e28;padding-bottom:10px;margin-bottom:12px}
+  .menuwrap .m-head p{font-family:"Archivo Black";font-size:10px;letter-spacing:.28em;color:var(--acid);text-transform:uppercase}
+  .xbtn{border:2px solid #3a3a34;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--paper)}
+  .m-item{display:flex;align-items:baseline;gap:12px;padding:12px 4px;border-bottom:2px solid #26261f;text-decoration:none;color:var(--paper)}
+  .m-item .no{font-family:"Archivo Black";font-size:10px;color:#55554c}
+  .m-item b{font-family:"Archivo Black";font-size:16px;text-transform:uppercase;letter-spacing:.01em}
+  .m-item small{margin-left:auto;font-size:7px;letter-spacing:.18em;color:#8a887c;text-transform:uppercase;font-weight:700}
+  .m-item.on b{color:var(--acid)}
+  .m-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;border-top:2px solid #2e2e28;padding-top:12px}
+  .m-foot b{font-family:"Archivo Black";font-size:11px;text-transform:uppercase}
+  .m-foot small{display:block;font-size:7px;letter-spacing:.18em;color:#8a887c;margin-top:4px;text-transform:uppercase}
+  .mtoggle{width:50px;height:28px;border:2px solid var(--acid);position:relative}
+  .mtoggle::after{content:"";position:absolute;top:3px;right:3px;width:18px;height:18px;background:var(--acid)}
+</style>
+</head>
+<body>
+
+<header class="board-head">
+  <div>
+    <p class="kicker">Mobile concepts · 03 of 03</p>
+    <h1>The <em>Index</em></h1>
+  </div>
+  <p class="thesis"><strong>What it is.</strong> The department bulletin board, rebuilt as a machine — off-white newsprint ground, black ink, acid-green highlight, Archivo Black shouting. Every screen is a filing card from the registry. <strong>Why it fits.</strong> Nigerian campus noticeboards are loud, physical, taped-up artefacts; this is that, digitised without losing the volume. <strong>How it moves.</strong> Hard cuts, slam-in cards, zero fades — motion with impact.</p>
+</header>
+<div class="meta">
+  <div>PALETTE<div class="swatches"><span class="sw" style="background:#efede3"></span><span class="sw" style="background:#101010"></span><span class="sw" style="background:#c9f24e"></span><span class="sw" style="background:#f7f5ec"></span></div></div>
+  <div>TYPE<b>Archivo Black + Archivo</b></div>
+  <div>TOUCH TARGETS<b>48px+, 2–3px borders, visible focus</b></div>
+  <div>NAV PATTERN<b>Inverse black menu sheet, numbered files</b></div>
+  <div>COMMENTS<b>Stamped comment cards in a bordered tray</b></div>
+  <div>BEST FOR<b>Maximum distinctiveness · poster-grade presence</b></div>
+</div>
+
+<div class="rail">
+
+  <!-- ============ SCREEN 1 — NOW ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Index: home bulletin">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4"/><rect x="4.5" y="4.8" width="3" height="6.2"/><rect x="9" y="2.4" width="3" height="8.6"/><rect x="13.5" y="0" width="3" height="11" opacity="0.4"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" stroke="currentColor" opacity="0.6"/><rect x="2" y="2" width="16" height="8" fill="#c9f24e"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="topbar">
+          <div class="logo-block">N</div>
+          <div class="wordmark">The Hood<span>Cybersec · 300L</span></div>
+          <div class="bell"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#101010" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="n">3</span></div>
+        </div>
+        <div class="ticker"><span>CYB 303 · Risks Analysis — Hall B 10:00</span><span>Week 9 · First Semester</span><span>61 files filed</span></div>
+        <div class="body">
+          <section class="hero">
+            <div class="dateline"><span>Sun 08.11.2026</span><em>Next class</em></div>
+            <h2>CYB<br/><span class="outline">303</span></h2>
+            <p class="sub">Cybersecurity Risks Analysis · Dr. Challa</p>
+            <div class="clockbar" aria-hidden="true">
+              <div class="cell"><div class="num">13</div><div class="lbl">HRS</div></div>
+              <div class="cell"><div class="num">09</div><div class="lbl">MIN</div></div>
+              <div class="cell"><div class="num">23</div><div class="lbl">SEC</div></div>
+            </div>
+          </section>
+          <div class="stats">
+            <div class="cell"><div class="n">10</div><div class="l">Courses</div></div>
+            <div class="cell"><div class="n">9</div><div class="l">With files</div></div>
+            <div class="cell"><div class="n"><i>61</i></div><div class="l">Files filed</div></div>
+            <div class="cell"><div class="n">3</div><div class="l">Open tasks</div></div>
+          </div>
+          <div class="fileshead"><h3>Latest filings</h3><span>See all 61 →</span></div>
+          <a class="filerow" href="#"><span class="idx">309</span><span><b>Intro to Artificial Intelligence</b><small>CSC 309 · PDF · 1.1 MB</small></span><span class="ct">12</span></a>
+          <a class="filerow" href="#"><span class="idx">305</span><span><b>Preliminary Report (DRAFT)</b><small>CYB 305 · TEXT · SHA-256 ✓</small></span><span class="ct">9</span></a>
+          <a class="filerow" href="#" style="border-bottom:none"><span class="idx">304</span><span><b>Trees &amp; Traversal — Week 6</b><small>DTS 304 · PPTX · 4.2 MB</small></span><span class="ct">8</span></a>
+        </div>
+        <nav class="tabbar" aria-label="Primary">
+          <a href="#" class="on"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/></svg></span>Now</a>
+          <a href="#"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Files</a>
+          <a href="#"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tasks</a>
+          <a href="#"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="5" width="18" height="16"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>Timetable</a>
+        </nav>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">C·1</span><span class="t">Bulletin — the shoutiest noticeboard</span><span class="d">home</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 2 — VIEWER ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Index: PDF with stamped comments">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4"/><rect x="4.5" y="4.8" width="3" height="6.2"/><rect x="9" y="2.4" width="3" height="8.6"/><rect x="13.5" y="0" width="3" height="11" opacity="0.55"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" stroke="currentColor" opacity="0.55"/><rect x="2" y="2" width="18" height="8" fill="#c9f24e"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="viewerbar">
+          <div class="vback"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div class="vt"><b>CSC 309 · Outline</b><span>PDF · 1.1 MB · P.1/12</span></div>
+          <div class="sqbtn acid"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#101010" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.6-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="n">2</span></div>
+          <div class="sqbtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></div>
+        </div>
+        <div class="docstage">
+          <div class="bigpage">
+            <span class="org">NUTM · Cybersecurity</span>
+            <h4>Intro to AI</h4>
+            <p class="by">Charles Igah — Outline</p>
+            <div class="fig">FIG. 1 — THE AGENT LOOP</div>
+            <i></i><i></i><i></i>
+            <div class="pinbadge">2</div>
+            <div class="pg">1</div>
+          </div>
+          <section class="sheet2" aria-label="Stamped comments">
+            <div class="grab2"></div>
+            <h5>Comment tray<span>2 · Page 1</span></h5>
+            <div class="cnote"><p>Does the agent loop appear in the mid-semester test? Scoping my revision.</p><div class="who">Adaeze · 14:02 · P.1</div></div>
+            <div class="cnote"><p>Yes — weeks 1–6 all examinable. Bring the outline to class.</p><div class="who">Valor (staff) · 14:20 · reply</div></div>
+            <div class="cinput"><div>Stamp a comment…</div><b>→</b></div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">C·2</span><span class="t">Viewer — one massive bordered page, stamped notes</span><span class="d">view/[id]</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 3 — TASKS ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Index: task cards">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4"/><rect x="4.5" y="4.8" width="3" height="6.2"/><rect x="9" y="2.4" width="3" height="8.6"/><rect x="13.5" y="0" width="3" height="11" opacity="0.5"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="12" height="8" fill="#c9f24e"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="t-page">
+          <div class="t-head"><div><h1>Open<br/>tasks</h1><span>3 due · fri 14 nov first</span></div><a class="addbtn" href="#">+ New</a></div>
+          <div class="frow"><span class="fchip on">All</span><span class="fchip">Ind.</span><span class="fchip">Group</span><span class="fchip">CYB 305 ▾</span><span class="fchip">Due ↓</span></div>
+          <div class="cards">
+            <article class="tcard">
+              <div>
+                <p class="k">CYB 305 · Group 4 · Email</p>
+                <h3>Evidence-integrity write-up, E01–E09</h3>
+                <div class="tags"><span class="ttag acid">2 resources</span><span class="ttag">Remind 1w</span><span class="ttag">Fri 14 Nov · 23:59</span></div>
+              </div>
+              <div class="stamp2"><small>Due in</small><b>06</b><small>days</small></div>
+              <div class="row"><span>62% read</span><span>Mark done ☐</span></div>
+            </article>
+            <article class="tcard">
+              <div>
+                <p class="k">CSC 309 · Individual · In class</p>
+                <h3>Agent-loop critique, 800 words</h3>
+                <div class="tags"><span class="ttag acid">1 resource</span><span class="ttag">Outline wk1–6</span><span class="ttag">Mon 17 Nov</span></div>
+              </div>
+              <div class="stamp2"><small>Due in</small><b>09</b><small>days</small></div>
+              <div class="row"><span>28% read</span><span>Mark done ☐</span></div>
+            </article>
+            <article class="tcard" style="margin-bottom:0">
+              <div>
+                <p class="k">DTS 304 · Group 3 · Presentation</p>
+                <h3>Traversal worksheet — BST</h3>
+                <div class="tags"><span class="ttag acid">3 resources</span><span class="ttag">Weekly</span><span class="ttag">Fri 28 Nov</span></div>
+              </div>
+              <div class="stamp2"><small>Due in</small><b>20</b><small>days</small></div>
+              <div class="row"><span>8% read</span><span>Mark done ☐</span></div>
+            </article>
+          </div>
+        </div>
+        <nav class="tabbar" aria-label="Primary">
+          <a href="#"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/></svg></span>Now</a>
+          <a href="#"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Files</a>
+          <a href="#" class="on"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tasks</a>
+          <a href="#"><span class="k"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="5" width="18" height="16"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>Timetable</a>
+        </nav>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">C·3</span><span class="t">Tasks — filing cards with rubber-stamp due dates</span><span class="d">/assignments</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 4 — FORM ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Index: assignment spec sheet">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4"/><rect x="4.5" y="4.8" width="3" height="6.2"/><rect x="9" y="2.4" width="3" height="8.6"/><rect x="13.5" y="0" width="3" height="11" opacity="0.4"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="9" height="8" fill="#c9f24e"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="formbar2">
+          <div class="vback" style="border-color:#3a3a34;color:var(--paper);background:transparent;width:38px;height:38px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <b>Set task</b>
+          <span>Form A/19</span>
+        </div>
+        <div class="form2">
+          <div><div class="f-label"><span>Course</span><i>Required</i></div><div class="f-slot">CYB 305 — Preliminary Inves.<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div><div class="f-label"><span>Title</span><i>Slug → slug</i></div><div class="f-slot">Evidence-integrity write-up…</div></div>
+          <div><div class="f-label"><span>Type</span></div><div class="f-seg"><div>Individual</div><div class="on">Group · 4</div></div></div>
+          <div><div class="f-label"><span>Submit via</span></div><div class="f-seg" style="border:2px solid var(--ink)"><div class="on">Email</div><div>Present.</div><div>In class</div><div>Other</div></div>
+            <div class="f-valid"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>cyb305@nutm.edu.ng — valid</div>
+          </div>
+          <div><div class="f-label"><span>Due</span></div><div class="f-slot">Fri 14 Nov 2026 · 23:59<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="16"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div></div>
+          <div><div class="f-label"><span>Enclosures</span><i>2 attached</i></div><div class="f-res"><span class="f-rchip">▶ Walkthrough ×</span><span class="f-rchip">↑ Brief.pdf ×</span><span class="f-rchip dashed">+ Add</span></div></div>
+          <div><div class="f-label"><span>Remind</span></div><div class="f-reminder"><div class="f-slot">1 wk before ▾</div><div class="f-slot">Every 2 wks ▾</div></div></div>
+          <div class="f-cta">File it →</div>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">C·4</span><span class="t">Compose — a spec sheet with a big green stamp</span><span class="d">/assignments/new</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 5 — MENU ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Index: inverse menu">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4"/><rect x="4.5" y="4.8" width="3" height="6.2"/><rect x="9" y="2.4" width="3" height="8.6"/><rect x="13.5" y="0" width="3" height="11" opacity="0.4"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="7" height="8" fill="#c9f24e"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="menuwrap">
+          <div class="m-head"><p>File index</p><div class="xbtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div></div>
+          <a class="m-item on" href="#"><span class="no">01</span><b>All courses</b><small>10 · 61 files</small></a>
+          <a class="m-item" href="#"><span class="no">02</span><b>Timetable</b><small>Sem 1</small></a>
+          <a class="m-item" href="#"><span class="no">03</span><b>Registration</b><small>2026/27</small></a>
+          <a class="m-item" href="#"><span class="no">04</span><b>Study resources</b><small>Guides</small></a>
+          <a class="m-item" href="#"><span class="no">05</span><b>Calendar</b><small>Academic</small></a>
+          <a class="m-item" href="#"><span class="no">06</span><b>Staff area</b><small>Sign in →</small></a>
+          <a class="m-item" href="#"><span class="no">07</span><b>manofval0r/thehood</b><small>Source</small></a>
+          <div class="m-foot">
+            <div><b>Lights-out</b><small>Currently inverted · all-black sheet</small></div>
+            <div class="mtoggle" role="switch" aria-checked="true" aria-label="Toggle theme"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">C·5</span><span class="t">Menu — inverse black registry sheet</span><span class="d">hamburger</span></figcaption>
+  </figure>
+
+</div>
+</body>
+</html>

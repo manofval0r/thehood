@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  ChevronRight,
   Clock,
   Users,
   Mail,
@@ -16,7 +15,6 @@ import {
   Check,
   CheckCircle2,
   Share2,
-  Copy,
 } from "lucide-react";
 import {
   formatRemaining,
@@ -35,6 +33,8 @@ interface AssignmentCardProps {
   onDelete: (id: string) => void;
   onEdit: (a: Assignment) => void;
   onToggleDone: (id: string, done: boolean) => void;
+  /** Hide staff controls (edit, delete, mark done). The share view uses this. */
+  readOnly?: boolean;
 }
 
 export function AssignmentCard({
@@ -43,15 +43,15 @@ export function AssignmentCard({
   onDelete,
   onEdit,
   onToggleDone,
+  readOnly = false,
 }: AssignmentCardProps) {
   const remainingMs = remainingMsFor(assessment.due_at, now);
-  const days = Math.floor(remainingMs / (24 * 60 * 60 * 1000));
-  const hours = Math.floor(
-    (remainingMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
-  );
+  const days = Math.max(0, Math.floor(remainingMs / (24 * 60 * 60 * 1000)));
 
   const isOverdue = remainingMs <= 0;
-  const isDueSoon = remainingMs > 0 && remainingMs < 7 * 24 * 60 * 60 * 1000;
+  const isDueNow = !isOverdue && days === 0;
+  const isDueSoon = remainingMs > 0 && remainingMs < 3 * 24 * 60 * 60 * 1000;
+  const isDone = assessment.done;
 
   const toggleDone = async () => {
     await fetch(`/api/assignments?id=${assessment.id}`, {
@@ -62,10 +62,9 @@ export function AssignmentCard({
     onToggleDone(assessment.id, !assessment.done);
   };
 
-  const shareUrl =
-    assessment.share_token
-      ? `${window.location.origin}/assignments/${assessment.id}?share=${assessment.share_token}`
-      : null;
+  const shareUrl = assessment.share_token
+    ? `${window.location.origin}/assignments/${assessment.id}?share=${assessment.share_token}`
+    : null;
 
   const submitIcon =
     assessment.submit_method === "email" ? (
@@ -78,203 +77,193 @@ export function AssignmentCard({
       <Link size={13} />
     );
 
+  const dueTone = isDone
+    ? "text-muted"
+    : isOverdue
+      ? "text-red"
+      : isDueSoon || isDueNow
+        ? "text-amber"
+        : "text-foreground";
+
   return (
     <article
       className={cn(
-        "rounded-xl border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-surface-hover",
-        isOverdue ? "border-red/30" : isDueSoon ? "border-amber/30" : ""
+        "flex h-full flex-col rounded-xl border border-border bg-surface p-4 transition-colors",
+        isDone ? "opacity-75" : "hover:border-border-strong hover:bg-surface-hover"
       )}
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "h-8 w-8 rounded flex items-center justify-center",
-                typeColour(assessment.type).split(" ")[0]
-              )}
-            >
-              {assessment.type === "group" ? <Users size={13} /> : <Clock size={13} />}
-            </span>
-            <span className="text-[13px] font-semibold text-foreground">
-              {assessment.title}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(assessment);
-              }}
-              aria-label="Edit assignment"
-              className="pressable shrink-0 grid h-8 w-8 place-items-center rounded text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
-            >
-              <Pencil size={13} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleDone();
-              }}
-              aria-label={assessment.done ? "Mark as not done" : "Mark as done"}
-              className={cn(
-                "pressable shrink-0 grid h-8 w-8 place-items-center rounded",
-                assessment.done
-                  ? "text-accent bg-accent/10"
-                  : "text-muted hover:bg-surface-hover hover:text-foreground"
-              )}
-            >
-              {assessment.done ? (
-                <CheckCircle2 size={13} className="text-accent" />
-              ) : (
-                <Check size={13} />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(assessment.id);
-              }}
-              aria-label="Delete assignment"
-              className="pressable shrink-0 grid h-8 w-8 place-items-center rounded text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
-            >
-              <Trash2 size={13} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        {/* Course. */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
-            {assessment.course_code}
-          </span>
-          <span className="text-[12px] text-muted-foreground truncate">
-            {assessment.course_title}
-          </span>
-        </div>
-
-        {/* Type + submit method. */}
-        <div className="flex items-center gap-2">
-          <span
+      {/* Top row: type icon + title + stamp. */}
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "grid h-9 w-9 shrink-0 place-items-center rounded-lg",
+            typeColour(assessment.type).split(" ")[0]
+          )}
+        >
+          {assessment.type === "group" ? <Users size={15} /> : <Clock size={15} />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3
             className={cn(
-              "px-2 py-0.5 rounded text-[10px] font-medium",
-              typeColour(assessment.type)
+              "text-[14px] font-semibold leading-snug tracking-tight text-foreground text-pretty",
+              isDone && "line-through decoration-border-strong decoration-2"
             )}
           >
-            {typeLabel(assessment.type)}
-          </span>
-          <div className="flex items-center gap-1 text-[11px] text-muted">
-            {submitIcon}
-            <span>{submitMethodLabel(assessment.submit_method)}</span>
-          </div>
+            {assessment.title}
+          </h3>
+          <p className="mt-1 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-muted">
+            {assessment.course_code} · {assessment.course_title}
+          </p>
         </div>
 
-        {/* Due date. */}
-        <div className="flex items-center gap-2">
-          <Clock size={12} className="text-muted" />
-          <span className={cn("text-[12px] font-medium", isOverdue ? "text-red" : "text-foreground")}>
-            {formatRemaining(remainingMs)}
+        {/* Countdown stamp. */}
+        <div className="flex shrink-0 flex-col items-end">
+          <span className="font-mono text-[8.5px] font-semibold uppercase tracking-[0.2em] text-muted">
+            {isOverdue ? "Overdue" : isDueNow ? "Today" : "Due in"}
           </span>
-          {assessment.event_title && (
-            <span className="text-[11px] text-muted">
-              · Event: {assessment.event_title}
-            </span>
+          <span
+            className={cn(
+              "font-mono text-[26px] font-semibold leading-none tabular-nums",
+              dueTone
+            )}
+          >
+            {isOverdue ? "00" : days}
+          </span>
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-muted">
+            {days === 1 ? "day" : "days"}
+          </span>
+        </div>
+      </div>
+
+      {/* Meta chips. */}
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <span
+          className={cn(
+            "rounded px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]",
+            typeColour(assessment.type)
           )}
-        </div>
-
-        {/* Notification frequency. */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
-            Remind
+        >
+          {typeLabel(assessment.type)}
+        </span>
+        <span className="flex items-center gap-1.5 rounded bg-surface-hover px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          {submitIcon}
+          {submitMethodLabel(assessment.submit_method)}
+        </span>
+        <span className="rounded bg-surface-hover px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+          Remind: {notificationFrequencyLabel(assessment.notification_frequency)}
+        </span>
+        {assessment.event_title && (
+          <span className="rounded bg-amber/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-amber">
+            In class: {assessment.event_title}
           </span>
-          <span className="text-[12px] text-muted-foreground">
-            {notificationFrequencyLabel(assessment.notification_frequency)}
-          </span>
-        </div>
-
-        {/* Notes. */}
-        {assessment.notes && (
-          <div className="mt-2">
-            <p className="text-[12px] leading-relaxed text-muted-foreground">
-              {assessment.notes}
-            </p>
-          </div>
-        )}
-
-        {/* Resources. */}
-        {assessment.resources.length > 0 && (
-          <div className="mt-3 space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-1">
-              Resources
-            </p>
-            {assessment.resources.map((r) => (
-              <div key={r.id} className="flex items-center gap-2 rounded-md border border-border bg-surface/50 p-2">
-                {r.type === "youtube" ? (
-                  <a
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 flex-1 text-[12px] text-foreground hover:text-accent transition-colors"
-                  >
-                    <Play size={12} className="text-red" />
-                    <span className="flex-1 truncate">{r.title}</span>
-                  </a>
-                ) : (
-                  <a
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 flex-1 text-[12px] text-foreground hover:text-accent transition-colors"
-                  >
-                    <Upload size={12} className="text-muted" />
-                    <span className="flex-1 truncate">{r.title}</span>
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
         )}
       </div>
 
-      {/* Footer with due time + submit detail. */}
-      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-3">
-        <div className="flex items-center gap-1">
-          <span className="text-[11px] text-muted">Due</span>
-          <span className={cn("text-[11px] font-medium", isOverdue ? "text-red" : "text-foreground")}>
-            {new Date(assessment.due_at).toLocaleString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
+      {/* Notes. */}
+      {assessment.notes && (
+        <p className="mt-2.5 text-[12px] leading-relaxed text-muted-foreground line-clamp-3">
+          {assessment.notes}
+        </p>
+      )}
+
+      {/* Resources. */}
+      {assessment.resources.length > 0 && (
+        <div className="mt-3 flex flex-col gap-1.5">
+          {assessment.resources.map((r) => (
+            <a
+              key={r.id}
+              href={r.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pressable flex min-w-0 items-center gap-2 rounded-md bg-surface-hover px-2.5 py-2 text-[11.5px] font-medium text-muted-foreground transition-colors hover:text-accent"
+            >
+              {r.type === "youtube" ? (
+                <Play size={13} className="shrink-0 text-red" aria-hidden="true" />
+              ) : (
+                <Upload size={13} className="shrink-0 text-accent" aria-hidden="true" />
+              )}
+              <span className="min-w-0 truncate">{r.title}</span>
+            </a>
+          ))}
         </div>
-        {assessment.submit_method === "email" && assessment.submit_detail && (
-          <a
-            href={`mailto:${assessment.submit_detail}`}
-            className="flex items-center gap-1 text-[12px] text-accent hover:underline"
-          >
-            <Mail size={12} />
-            Submit by email
-          </a>
-        )}
-        {shareUrl && (
-          <a
-            href={shareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-[12px] text-accent hover:underline"
-          >
-            <Share2 size={12} />
-            Share link
-          </a>
-        )}
+      )}
+
+      {/* Spacer pushes the footer to the bottom on tall cards. */}
+      <div aria-hidden="true" className="min-h-3 flex-1" />
+
+      {/* Footer: full due date + actions. Tone step, not a rule. */}
+      <div className="mt-3 flex items-center justify-between gap-2 rounded-md bg-surface-hover px-2.5 py-2">
+        <span className={cn("tnum text-[11px] font-medium", dueTone)}>
+          {new Date(assessment.due_at).toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+        <div className="flex items-center gap-0.5">
+          {assessment.submit_method === "email" && assessment.submit_detail && (
+            <a
+              href={`mailto:${assessment.submit_detail}`}
+              aria-label={`Submit by email to ${assessment.submit_detail}`}
+              className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface hover:text-accent"
+            >
+              <Mail size={14} aria-hidden="true" />
+            </a>
+          )}
+          {shareUrl && !readOnly && (
+            <a
+              href={shareUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open share link"
+              className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface hover:text-accent"
+            >
+              <Share2 size={14} aria-hidden="true" />
+            </a>
+          )}
+          {!readOnly && (
+            <>
+              <button
+                type="button"
+                onClick={onEdit.bind(null, assessment)}
+                aria-label="Edit assignment"
+                className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface hover:text-foreground"
+              >
+                <Pencil size={14} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(assessment.id)}
+                aria-label="Delete assignment"
+                className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface hover:text-red"
+              >
+                <Trash2 size={14} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={toggleDone}
+                aria-pressed={isDone}
+                aria-label={isDone ? "Mark as not done" : "Mark as done"}
+                title={isDone ? "Mark as not done" : "Mark as done"}
+                className={cn(
+                  "pressable ml-0.5 grid h-9 w-9 place-items-center rounded-md transition-colors",
+                  isDone
+                    ? "bg-accent/15 text-accent"
+                    : "text-muted hover:bg-surface hover:text-accent"
+                )}
+              >
+                {isDone ? (
+                  <CheckCircle2 size={15} aria-hidden="true" />
+                ) : (
+                  <Check size={15} aria-hidden="true" strokeWidth={2.5} />
+                )}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </article>
   );

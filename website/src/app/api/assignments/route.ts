@@ -24,6 +24,15 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const shareToken = searchParams.get("share_token");
+    const idParam = searchParams.get("id");
+
+    if (idParam) {
+      const assignment = await getAssignmentById(idParam);
+      if (!assignment) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+      return NextResponse.json(assignment);
+    }
 
     if (shareToken) {
       const assignment = await getAssignmentByShareToken(shareToken);

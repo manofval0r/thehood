@@ -851,7 +851,7 @@ export default function Nav({
             {next && (
               <Link
                 href="/timetable"
-                className="pressable ml-2 shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1 transition-colors hover:border-border-strong hover:bg-surface-hover sm:flex"
+                className="pressable ml-2 hidden shrink-0 items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1 transition-colors hover:border-border-strong hover:bg-surface-hover sm:flex"
                 aria-label={`${next.inProgress ? "In progress" : "Next class"}: ${next.course.title}, ${next.course.code}, in ${countdown.text}`}
                 title={`${next.course.title} · ${next.course.code}`}
               >

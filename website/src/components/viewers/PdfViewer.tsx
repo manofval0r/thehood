@@ -1,9 +1,19 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Download, FileText, Loader2 } from "lucide-react";
-import { useComments } from "./useComments";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileText,
+  Loader2,
+  MessageSquarePlus,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
+import { CommentsProvider, useCommentsContext } from "./comments-context";
 import CommentBadge from "./CommentBadge";
+import { cn } from "@/lib/utils";
 
 /**
  * A PDF, read page by page.
@@ -12,6 +22,10 @@ import CommentBadge from "./CommentBadge";
  * content delivery network, so nothing about the reader leaves here. It is
  * loaded only when a PDF is actually opened, because it is a megabyte of
  * JavaScript and most readers will never ask for one.
+ *
+ * Annotation lives on the page itself: the badge sits in the top-right
+ * corner of the paper, where a reader can see it without it eating the text.
+ * Hidden until toggled or once a comment exists.
  */
 export default function PdfViewer({
   url,
@@ -24,6 +38,7 @@ export default function PdfViewer({
   const [numPages, setNumPages] = useState(0);
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [annotate, setAnnotate] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,8 +92,6 @@ export default function PdfViewer({
 
   const pageW = Math.min(680, Math.max(200, Math.round(innerW * zoom)));
 
-  const { comments } = useComments({ fileId: url, fileKind: "pdf" });
-
   if (error) {
     return (
       <div className="flex min-h-[45vh] flex-col items-center justify-center gap-4 p-12 text-center">
@@ -113,87 +126,141 @@ export default function PdfViewer({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div ref={containerRef} className="flex min-h-0 flex-1 justify-start overflow-auto bg-background px-4 py-4 sm:px-6 sm:py-6">
-        <div className="relative mx-auto" style={{ width: pageW, maxWidth: "100%" }}>
-          <div className="rounded border border-border bg-white shadow-lift">
-            <pdfLib.Document
-            file={url}
-            onLoadSuccess={({ numPages: n }: { numPages: number }) =>
-              setNumPages(n)
-            }
-            onLoadError={() =>
-              setError("This PDF could not be rendered here.")
-            }
-            loading={
-              <div className="flex h-[50vh] w-[min(90vw,42rem)] items-center justify-center">
-                <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 size={16} className="animate-spin" />
-                  Loading preview
-                </span>
-              </div>
-            }
-            error={
-              <div className="flex h-[40vh] w-[min(90vw,42rem)] flex-col items-center justify-center gap-3 p-8 text-center">
-                <FileText size={40} className="text-muted" />
-                <p className="text-sm text-muted-foreground">
-                  This PDF could not be rendered here.
-                </p>
-              </div>
-            }
-          >
-            <pdfLib.Page
-              pageNumber={page}
-              width={pageW}
-              className="max-w-full"
-              renderTextLayer={false}
-              renderAnnotationLayer={false}
-              loading={
-                <div className="flex h-[50vh] w-full items-center justify-center">
-                  <Loader2 size={18} className="animate-spin text-muted" />
-                </div>
-              }
-            />
-          </pdfLib.Document>
+    <CommentsProvider fileId={url} fileKind="pdf">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div ref={containerRef} className="flex min-h-0 flex-1 justify-start overflow-auto bg-background px-4 py-4 sm:px-6 sm:py-6">
+          <div className="mx-auto" style={{ width: pageW, maxWidth: "100%" }}>
+            <div className="relative rounded border border-border bg-white shadow-lift">
+              <pdfLib.Document
+                file={url}
+                onLoadSuccess={({ numPages: n }: { numPages: number }) =>
+                  setNumPages(n)
+                }
+                onLoadError={() =>
+                  setError("This PDF could not be rendered here.")
+                }
+                loading={
+                  <div className="flex h-[50vh] w-[min(90vw,42rem)] items-center justify-center">
+                    <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 size={16} className="animate-spin" />
+                      Loading preview
+                    </span>
+                  </div>
+                }
+                error={
+                  <div className="flex h-[40vh] w-[min(90vw,42rem)] flex-col items-center justify-center gap-3 p-8 text-center">
+                    <FileText size={40} className="text-muted" />
+                    <p className="text-sm text-muted-foreground">
+                      This PDF could not be rendered here.
+                    </p>
+                  </div>
+                }
+              >
+                <pdfLib.Page
+                  pageNumber={page}
+                  width={pageW}
+                  className="max-w-full"
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  loading={
+                    <div className="flex h-[50vh] w-full items-center justify-center">
+                      <Loader2 size={18} className="animate-spin text-muted" />
+                    </div>
+                  }
+                />
+              </pdfLib.Document>
+              <PageBadge page={page} annotate={annotate} />
+            </div>
           </div>
-          <CommentBadge
-            fileId={url}
-            fileKind="pdf"
-            targetType="page"
-            targetSelector={{ page }}
-            label="Page comments"
-          />
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-border px-3 py-2 sm:px-4">
+          <button
+            type="button"
+            onClick={() => setAnnotate((v) => !v)}
+            aria-pressed={annotate}
+            className={cn(
+              "pressable flex h-9 items-center gap-1.5 rounded-md px-2 text-[11.5px] font-medium transition-colors max-sm:h-11 max-sm:px-3",
+              annotate
+                ? "bg-accent/15 text-accent"
+                : "text-muted hover:bg-surface-hover hover:text-foreground"
+            )}
+          >
+            <MessageSquarePlus size={14} aria-hidden="true" />
+            {annotate ? "Annotating" : "Annotate"}
+          </button>
+
+          <div className="flex items-center gap-1 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+              className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:h-11 max-sm:w-11"
+              aria-label="Zoom out"
+            >
+              <ZoomOut size={15} />
+            </button>
+            <span className="tnum w-10 text-center text-[11px] text-muted-foreground">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={() => setZoom(z => Math.min(2.5, z + 0.1))}
+              className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground max-sm:h-11 max-sm:w-11"
+              aria-label="Zoom in"
+            >
+              <ZoomIn size={15} />
+            </button>
+          </div>
+
+          {numPages > 1 ? (
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={17} />
+              </button>
+              <span className="tnum min-w-[4.5rem] text-center text-[12.5px] text-muted-foreground">
+                {page} / {numPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(numPages, p + 1))}
+                disabled={page >= numPages}
+                className="pressable grid h-9 w-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
+                aria-label="Next page"
+              >
+                <ChevronRight size={17} />
+              </button>
+            </div>
+          ) : (
+            <span className="tnum min-w-[3rem] text-center text-[11px] text-muted">1 page</span>
+          )}
         </div>
       </div>
+    </CommentsProvider>
+  );
+}
 
-      {numPages > 1 && (
-        <div className="flex shrink-0 items-center justify-center gap-1 border-t border-border px-4 py-2">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
-            aria-label="Previous page"
-          >
-            <ChevronLeft size={17} />
-          </button>
-          <button type="button" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="pressable text-xs text-muted px-1" aria-label="Zoom out">-</button>
-        <span className="text-[11px] text-muted-foreground">{Math.round(zoom * 100)}%</span>
-        <button type="button" onClick={() => setZoom(z => Math.min(2.5, z + 0.1))} className="pressable text-xs text-muted px-1" aria-label="Zoom in">+</button>
-        <span className="tnum min-w-[4.5rem] text-center text-[12.5px] text-muted-foreground">
-            {page} / {numPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(numPages, p + 1))}
-            disabled={page >= numPages}
-            className="pressable flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30 max-sm:h-11 max-sm:w-11"
-            aria-label="Next page"
-          >
-            <ChevronRight size={17} />
-          </button>
-        </div>
-      )}
-    </div>
+function PageBadge({ page, annotate }: { page: number; annotate: boolean }) {
+  const { comments } = useCommentsContext();
+  const count = comments.filter(
+    (c) =>
+      c.comment.target_type === "page" &&
+      JSON.stringify(c.comment.target_selector) === JSON.stringify({ page })
+  ).length;
+  if (count === 0 && !annotate) return null;
+  return (
+    <span className="absolute right-2 top-2 z-10">
+      <CommentBadge
+        targetType="page"
+        targetSelector={{ page }}
+        label={`Page ${page} comments`}
+        annotate={annotate}
+      />
+    </span>
   );
 }

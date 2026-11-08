@@ -63,6 +63,11 @@ const FREQUENCY_HOURS: Record<NotificationFrequency, number> = {
 };
 
 interface AssignmentFormProps {
+  /**
+   * Render as a plain in-flow section instead of a full-screen modal. The
+   * page owns the chrome (back link, heading) in this mode.
+   */
+  bare?: boolean;
   assessment?: {
     id: string;
     course_code: string;
@@ -103,6 +108,7 @@ interface AssignmentFormProps {
 }
 
 export function AssignmentForm({
+  bare = false,
   assessment,
   courses,
   onSubmit,
@@ -245,41 +251,69 @@ export function AssignmentForm({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setOpen(false);
-      }}
+      className={cn(
+        bare
+          ? "w-full"
+          : "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto"
+      )}
+      onClick={
+        bare
+          ? undefined
+          : (e) => {
+              if (e.target === e.currentTarget) setOpen(false);
+            }
+      }
     >
       {/* Backdrop. */}
-      <button
-        type="button"
-        onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-background/60 backdrop-blur-sm"
-        aria-hidden="true"
-      />
+      {!bare && (
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+          aria-hidden="true"
+        />
+      )}
 
       <div
         className={cn(
-          "relative w-full max-w-2xl mx-4 rounded-lg border border-border-strong bg-surface-raised shadow-lift p-6",
-          open ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          bare
+            ? "w-full rounded-2xl border border-border-strong bg-surface-raised p-5 sm:p-7"
+            : "relative m-4 max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-2xl border border-border-strong bg-surface-raised p-5 shadow-lift sm:p-6",
+          !bare && (open ? "scale-100 opacity-100" : "scale-95 opacity-0")
         )}
-        role="dialog"
-        aria-modal="true"
+        role={bare ? undefined : "dialog"}
+        aria-modal={bare ? undefined : true}
         aria-label={assessment ? "Edit assignment" : "New assignment"}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">
-            {assessment ? "Edit assignment" : "New assignment"}
-          </h2>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Close"
-            className="pressable shrink-0 grid h-10 w-10 place-items-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
+        {bare ? (
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
+            <div>
+              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-accent">
+                Form A-19 · {assessment ? "Amendment" : "New assignment"}
+              </p>
+              <h2 className="mt-1.5 text-[19px] font-semibold tracking-tight text-foreground">
+                {assessment ? "Amend the assignment" : "Set an assignment"}
+              </h2>
+            </div>
+            <p className="hidden font-mono text-[8.5px] uppercase tracking-[0.18em] text-muted sm:block">
+              Filed under the course
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">
+              {assessment ? "Edit assignment" : "New assignment"}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close"
+              className="pressable shrink-0 grid h-10 w-10 place-items-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Course. */}

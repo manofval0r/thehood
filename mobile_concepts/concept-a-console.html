@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concept A · The Console — Cybersecurity 300L mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060906;
+    --panel:#0b0f0c;
+    --panel-2:#101613;
+    --raised:#151d18;
+    --ink:#f2f7f3;
+    --muted:#8fa596;
+    --faint:#5c6e61;
+    --line:#1e2620;
+    --line-strong:#2c3a31;
+    --green:#22c55e;
+    --green-dim:#16a34a;
+    --green-ink:#04140a;
+    --amber:#f5b73f;
+    --red:#ff6b5e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{
+    background:#0e0e10;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.045) 1px, transparent 0);
+    background-size:26px 26px;
+    color:#e8e8e6;
+    font-family:"Geist",system-ui,sans-serif;
+    padding:40px 0 80px;
+  }
+  .board-head{
+    max-width:1460px;margin:0 auto;padding:0 44px 26px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:32px;flex-wrap:wrap;
+    border-bottom:1px solid #232326;padding-bottom:26px;
+  }
+  .board-head .kicker{font-family:"Geist Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#22c55e;margin-bottom:12px}
+  .board-head h1{font-size:44px;font-weight:600;letter-spacing:-.03em;line-height:1;color:#f5f5f3}
+  .board-head h1 em{font-style:normal;color:#22c55e}
+  .thesis{max-width:430px;font-size:14px;line-height:1.6;color:#a9a9a4}
+  .thesis strong{color:#f0f0ec;font-weight:600}
+  .meta{display:flex;gap:26px;max-width:1460px;margin:16px auto 0;padding:0 44px;flex-wrap:wrap;font-family:"Geist Mono",monospace;font-size:10px;color:#8a8a85;letter-spacing:.05em}
+  .meta b{color:#d8d8d2;display:block;font-family:"Geist";font-size:10.5px;letter-spacing:0;margin-bottom:3px}
+  .swatches{display:flex;gap:6px;margin-top:6px}
+  .sw{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.14)}
+  .rail{
+    display:flex;gap:34px;overflow-x:auto;padding:34px 44px 26px;
+    scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#333 #16161a;
+    max-width:none;
+  }
+  .frame{scroll-snap-align:start;flex:0 0 auto}
+  .caption{
+    display:flex;align-items:baseline;gap:12px;margin-top:14px;padding:0 4px;
+    font-family:"Geist Mono",monospace;
+  }
+  .caption .n{font-size:10px;color:#22c55e;letter-spacing:.14em}
+  .caption .t{font-size:12px;color:#d9d9d4}
+  .caption .d{font-size:10.5px;color:#7c7c77;margin-left:auto}
+
+  /* ============ PHONE ============ */
+  .phone{
+    width:390px;height:844px;border-radius:52px;background:#000;
+    border:11px solid #1a1a1e;outline:1px solid #34343a;
+    box-shadow:0 40px 90px rgba(0,0,0,.75), 0 0 0 1px #000, inset 0 0 0 1px #2a2a2e;
+    overflow:hidden;position:relative;display:flex;flex-direction:column;
+  }
+  .statusbar{
+    height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px 0 28px;background:var(--bg);color:var(--ink);
+    font-family:"Geist";font-size:14px;font-weight:600;letter-spacing:.02em;
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:6px}
+  .screen{flex:1;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+  .topbar{
+    display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);
+  }
+  .logo-badge{
+    width:34px;height:34px;border-radius:10px;border:1px solid var(--line-strong);
+    display:flex;align-items:center;justify-content:center;background:var(--panel-2);
+    font-family:"Geist Mono";font-weight:600;font-size:15px;color:var(--green);
+  }
+  .wordmark{font-family:"Geist Mono";font-size:11px;letter-spacing:.18em;color:var(--ink)}
+  .wordmark span{display:block;font-size:8px;letter-spacing:.14em;color:var(--faint);margin-top:2px}
+  .icon-btn{
+    margin-left:auto;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--muted);position:relative;
+  }
+  .icon-btn .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--green);border:2px solid var(--bg)}
+
+  .body{flex:1;overflow:hidden;padding:16px 18px 0}
+  .mono-k{font-family:"Geist Mono";font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--green)}
+  .muted{color:var(--muted)}
+
+  /* ---- Screen 1 : Now ---- */
+  .dateline{font-family:"Geist Mono";font-size:9.5px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;display:flex;justify-content:space-between;margin:2px 2px 10px}
+  .dateline b{color:var(--muted);font-weight:500}
+  .nextup{
+    border:1px solid var(--line-strong);background:var(--panel);border-radius:18px;padding:14px 16px 16px;position:relative;
+  }
+  .nextup .row1{display:flex;align-items:center;justify-content:space-between}
+  .live-dot{display:inline-flex;align-items:center;gap:6px;font-family:"Geist Mono";font-size:9px;letter-spacing:.18em;color:var(--green);text-transform:uppercase}
+  .live-dot i{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block}
+  .nextup h2{font-size:29px;line-height:1.08;letter-spacing:-.02em;font-weight:600;margin:10px 0 6px;color:var(--ink)}
+  .nextup .sub{font-family:"Geist Mono";font-size:10px;color:var(--muted);letter-spacing:.04em}
+  .flip{display:flex;gap:8px;margin-top:14px}
+  .flip .cell{
+    flex:1;background:#05090a;border:1px solid var(--line-strong);border-radius:12px;
+    padding:8px 0 9px;text-align:center;position:relative;overflow:hidden;
+  }
+  .flip .cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#000;box-shadow:0 1px 0 rgba(255,255,255,.05)}
+  .flip .num{font-family:"Geist Mono";font-size:38px;font-weight:600;color:var(--ink);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+  .flip .lbl{font-family:"Geist Mono";font-size:8px;letter-spacing:.22em;color:var(--faint);margin-top:2px}
+  .tagrow{display:flex;gap:6px;margin-top:10px}
+  .tag{font-family:"Geist Mono";font-size:8.5px;letter-spacing:.1em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px;text-transform:uppercase}
+
+  .statstrip{display:flex;gap:0;margin:14px 2px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .statstrip>div{flex:1;padding:9px 12px;background:var(--panel)}
+  .statstrip>div+div{border-left:1px solid var(--line)}
+  .statstrip .n{font-family:"Geist Mono";font-size:19px;font-weight:600;color:var(--ink)}
+  .statstrip .n em{font-style:normal;color:var(--green)}
+  .statstrip .l{font-family:"Geist Mono";font-size:7.5px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase;margin-top:2px}
+
+  .decklist{margin-top:14px}
+  .decklist .dl-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;padding:0 2px}
+  .decklist .dl-head h3{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--ink)}
+  .decklist .dl-head a{font-family:"Geist Mono";font-size:9px;letter-spacing:.14em;color:var(--green);text-transform:uppercase;text-decoration:none}
+  .deck{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-bottom:6px;text-decoration:none}
+  .deck .chip{font-family:"Geist Mono";font-size:9px;font-weight:600;color:var(--green);border:1px solid var(--green-dim);border-radius:6px;padding:4px 6px;letter-spacing:.05em;flex:0 0 auto}
+  .deck .meta{min-width:0}
+  .deck .meta b{display:block;font-size:11.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .deck .meta span{font-family:"Geist Mono";font-size:8.5px;color:var(--faint)}
+  .deck .count{margin-left:auto;font-family:"Geist Mono";font-size:11px;color:var(--muted);flex:0 0 auto}
+
+  .tabbar{
+    flex:0 0 64px;display:flex;border-top:1px solid var(--line-strong);background:#080c0a;
+    padding-bottom:8px;
+  }
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);text-decoration:none;font-family:"Geist Mono";font-size:8px;letter-spacing:.14em;text-transform:uppercase}
+  .tabbar a.active{color:var(--green)}
+  .tabbar svg{width:19px;height:19px}
+
+  /* ---- Screen 2 : Viewer + comment sheet ---- */
+  .viewerbar{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line)}
+  .backbtn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--panel)}
+  .viewerbar .vt{min-width:0;flex:1}
+  .viewerbar .vt b{display:block;font-size:13px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .viewerbar .vt span{font-family:"Geist Mono";font-size:8.5px;color:var(--faint);letter-spacing:.06em}
+  .v-icon{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);position:relative;background:var(--panel)}
+  .v-icon.accent{color:var(--green);border-color:var(--green-dim);background:rgba(34,197,94,.08)}
+  .v-icon .n{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 4px;border-radius:999px;background:var(--green);color:var(--green-ink);font-family:"Geist Mono";font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center}
+
+  .docstage{flex:1;position:relative;background:#05090a;display:flex;justify-content:center;padding:14px 0 0;overflow:hidden}
+  .pdfpage{
+    width:270px;height:352px;background:#ffffff;color:#111;border-radius:4px;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);padding:18px 16px;position:relative;flex:0 0 auto;
+  }
+  .pdfpage .org{font-family:"Geist Mono";font-size:6.5px;letter-spacing:.18em;color:#15803d;display:flex;align-items:center;gap:6px;border-bottom:2px solid #15803d;padding-bottom:6px;text-transform:uppercase}
+  .pdfpage h4{font-family:Georgia,serif;font-size:15px;margin:10px 0 2px;color:#0b1f13}
+  .pdfpage .by{font-family:Georgia,serif;font-style:italic;font-size:8.5px;color:#3f4f45}
+  .pdfpage .figure{margin:10px 0;border:1px solid #cfd8ce;border-radius:3px;height:74px;background:repeating-linear-gradient(45deg,#eef3ec 0 8px,#e4ece2 8px 16px);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono";font-size:6.5px;color:#5c6e61;letter-spacing:.12em}
+  .pdfpage .lines{display:grid;gap:5px}
+  .pdfpage .lines i{height:5px;background:#dfe5de;border-radius:2px}
+  .pdfpage .lines i:nth-child(2){width:88%}.pdfpage .lines i:nth-child(3){width:64%}.pdfpage .lines i:nth-child(4){width:78%}
+  .pdfpage .pageno{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-family:"Geist Mono";font-size:6.5px;color:#7d8a80}
+  .comment-flag{
+    position:absolute;right:13px;top:116px;display:flex;align-items:center;gap:5px;
+    background:var(--green);color:var(--green-ink);border-radius:999px;padding:5px 9px 5px 6px;
+    font-family:"Geist Mono";font-size:9.5px;font-weight:600;box-shadow:0 6px 16px rgba(34,197,94,.35);
+  }
+
+  .sheet{
+    flex:0 0 auto;background:var(--raised);border-top:1px solid var(--line-strong);border-radius:18px 18px 0 0;
+    padding:10px 14px 14px;box-shadow:0 -12px 34px rgba(0,0,0,.5);position:relative;z-index:3;
+  }
+  .grab{width:38px;height:4px;border-radius:999px;background:#37463c;margin:0 auto 9px}
+  .sheet h5{font-family:"Geist Mono";font-size:9px;letter-spacing:.2em;color:var(--green);text-transform:uppercase;display:flex;justify-content:space-between;margin-bottom:8px}
+  .sheet h5 span{color:var(--faint)}
+  .cmt{display:flex;gap:9px;padding:8px 8px;border-radius:12px;background:var(--panel-2);margin-bottom:6px}
+  .cmt .av{width:26px;height:26px;border-radius:8px;background:#12351f;color:var(--green);font-family:"Geist Mono";font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .cmt p{font-size:11px;line-height:1.45;color:#d9e3dc}
+  .cmt .who{font-family:"Geist Mono";font-size:8px;color:var(--faint);margin-top:3px;letter-spacing:.04em}
+  .cmt.reply{margin-left:26px;background:transparent;border:1px solid var(--line)}
+  .cmt-input{display:flex;gap:8px;margin-top:4px}
+  .cmt-input div{flex:1;border:1px solid var(--line-strong);background:var(--panel);border-radius:12px;padding:10px 12px;font-size:11px;color:var(--faint)}
+  .cmt-input b{width:38px;height:38px;border-radius:12px;background:var(--green);display:flex;align-items:center;justify-content:center;color:var(--green-ink)}
+
+  /* ---- Screen 3 : Assignments ---- */
+  .pagehead{display:flex;align-items:flex-end;justify-content:space-between;padding:6px 2px 12px;border-bottom:1px solid var(--line)}
+  .pagehead h1{font-size:31px;letter-spacing:-.03em;font-weight:600;line-height:1}
+  .pagehead p{font-family:"Geist Mono";font-size:8.5px;color:var(--faint);letter-spacing:.1em;margin-top:5px;text-transform:uppercase}
+  .newbtn{display:flex;align-items:center;gap:6px;background:var(--green);color:var(--green-ink);border-radius:12px;padding:11px 13px;font-size:11.5px;font-weight:600;text-decoration:none}
+  .chips{display:flex;gap:6px;margin:12px 0;overflow:hidden}
+  .chip2{font-family:"Geist Mono";font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line-strong);padding:8px 12px;border-radius:999px;white-space:nowrap}
+  .chip2.on{background:var(--green);border-color:var(--green);color:var(--green-ink);font-weight:600}
+
+  .acard{border:1px solid var(--line-strong);background:var(--panel);border-radius:16px;padding:12px 13px;margin-bottom:8px}
+  .acard .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .acard h3{font-size:14.5px;font-weight:600;letter-spacing:-.01em;line-height:1.25}
+  .due{font-family:"Geist Mono";font-size:8.5px;text-align:right;color:var(--amber);letter-spacing:.06em;white-space:nowrap}
+  .due b{display:block;font-size:13px;color:var(--ink);letter-spacing:0;margin-top:2px}
+  .acard .mid{display:flex;gap:6px;margin:9px 0;flex-wrap:wrap}
+  .mchip{font-family:"Geist Mono";font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--panel-2);border-radius:6px;padding:4px 8px}
+  .mchip.g{color:var(--green)}
+  .acard .bottom{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:9px}
+  .progress{display:flex;gap:5px;align-items:center;font-family:"Geist Mono";font-size:8px;color:var(--faint);letter-spacing:.05em}
+  .pbar{width:78px;height:4px;background:var(--raised);border-radius:99px;overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--green);width:62%}
+  .done{display:flex;align-items:center;gap:6px;font-family:"Geist Mono";font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .tick{width:17px;height:17px;border:1px solid var(--line-strong);border-radius:5px;display:flex;align-items:center;justify-content:center}
+
+  /* ---- Screen 4 : New assignment form ---- */
+  .formbar{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line)}
+  .formbar b{font-size:13px}
+  .formbar span{margin-left:auto;font-family:"Geist Mono";font-size:8px;color:var(--faint);letter-spacing:.08em}
+  .form{flex:1;overflow:hidden;padding:12px 16px;display:flex;flex-direction:column;gap:9px}
+  .field label{font-family:"Geist Mono";font-size:8px;letter-spacing:.18em;color:var(--green);text-transform:uppercase;display:block;margin-bottom:5px}
+  .slot{border:1px solid var(--line-strong);background:var(--panel);border-radius:11px;padding:10px 12px;font-size:11.5px;color:var(--ink);display:flex;justify-content:space-between;align-items:center}
+  .slot .chev{color:var(--faint)}
+  .seg{display:flex;border:1px solid var(--line-strong);border-radius:11px;overflow:hidden}
+  .seg div{flex:1;text-align:center;padding:10px 0;font-size:10.5px;color:var(--muted);background:var(--panel)}
+  .seg div.on{background:var(--green);color:var(--green-ink);font-weight:600}
+  .seg2{display:flex;gap:6px}
+  .mth{flex:1;border:1px solid var(--line-strong);background:var(--panel);border-radius:11px;padding:9px 4px;text-align:center;font-size:9.5px;color:var(--muted)}
+  .mth.on{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.07)}
+  .valid{display:flex;align-items:center;gap:6px;font-family:"Geist Mono";font-size:8px;color:var(--green);letter-spacing:.06em;margin-top:4px}
+  .resrow{display:flex;gap:6px;flex-wrap:wrap}
+  .reschip{display:flex;align-items:center;gap:6px;border:1px solid var(--line-strong);background:var(--panel-2);border-radius:9px;padding:7px 9px;font-size:9px;color:#cfd8cf}
+  .reschip b{color:var(--green)}
+  .remind{display:flex;gap:6px}
+  .remind .slot{flex:1;font-size:10px}
+  .cta{margin-top:auto;background:var(--green);color:var(--green-ink);border-radius:14px;text-align:center;padding:14px;font-size:13px;font-weight:700;letter-spacing:-.01em;box-shadow:0 10px 26px rgba(34,197,94,.25)}
+
+  /* ---- Screen 5 : Menu ---- */
+  .menusheet{flex:1;padding:14px 16px 16px;overflow:hidden;display:flex;flex-direction:column}
+  .menu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .menu-head p{font-family:"Geist Mono";font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+  .mgroup{margin-bottom:11px}
+  .mgroup h6{font-family:"Geist Mono";font-size:8.5px;letter-spacing:.22em;color:var(--green);text-transform:uppercase;margin:0 4px 5px}
+  .mlink{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:12px;border:1px solid transparent;text-decoration:none;color:#cdd8cf;font-size:12.5px}
+  .mlink small{font-family:"Geist Mono";font-size:8.5px;color:var(--faint)}
+  .mlink.on{background:var(--panel-2);border-color:var(--line-strong);color:var(--ink)}
+  .themerow{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:13px 12px;margin-top:auto}
+  .themerow b{font-size:12px;font-weight:500}
+  .themerow span{font-family:"Geist Mono";font-size:8px;color:var(--faint);display:block;letter-spacing:.06em;margin-top:3px}
+  .toggle{width:46px;height:27px;border-radius:999px;background:var(--raised);border:1px solid var(--line-strong);position:relative}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:var(--green)}
+  .signout{display:flex;align-items:center;gap:8px;justify-content:center;border:1px solid var(--line-strong);color:var(--muted);border-radius:12px;padding:11px;font-family:"Geist Mono";font-size:9px;letter-spacing:.16em;text-transform:uppercase;margin-top:8px}
+</style>
+</head>
+<body>
+
+<header class="board-head">
+  <div>
+    <p class="kicker">Mobile concepts · 01 of 03</p>
+    <h1>The <em>Console</em></h1>
+  </div>
+  <p class="thesis"><strong>What it is.</strong> The current brand, taken seriously as a handheld instrument: pure-black ground, phosphor-green data, Geist Mono for anything measured. The phone becomes an ops console for one class cohort. <strong>Why it fits.</strong> Cybersecurity students live in terminals; the flip clock is already a device they recognise. <strong>How it moves.</strong> Screens slide like app sheets, sheets snap up from the bottom, nothing fades politely.</p>
+</header>
+<div class="meta">
+  <div>PALETTE<div class="swatches"><span class="sw" style="background:#060906"></span><span class="sw" style="background:#101613"></span><span class="sw" style="background:#22c55e"></span><span class="sw" style="background:#f5b73f"></span><span class="sw" style="background:#f2f7f3"></span></div></div>
+  <div>TYPE<b>Geist Sans + Geist Mono</b></div>
+  <div>TOUCH TARGETS<b>44px minimum, 12–14px radii</b></div>
+  <div>NAV PATTERN<b>Fixed bottom tab bar (Now · Files · Tasks · Timetable)</b></div>
+  <div>COMMENTS<b>Bottom sheet, drag handle, inline replies</b></div>
+  <div>BEST FOR<b>Staying close to today’s brand · dark-first buyers</b></div>
+</div>
+
+<div class="rail">
+
+  <!-- ============ SCREEN 1 — NOW ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Console: home screen on a phone">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.35"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 4.2a9.5 9.5 0 0 1 13 0M4.2 7a6 6 0 0 1 7.6 0M7 9.8a2.2 2.2 0 0 1 2 0"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="14" height="8" rx="1.6" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" opacity="0.6"/></svg>
+        </span>
+      </div>
+      <div class="screen">
+        <div class="topbar">
+          <div class="logo-badge">⌗</div>
+          <div class="wordmark">THE HOOD<span>NUTM · APAPA</span></div>
+          <div class="icon-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="dot"></span>
+          </div>
+        </div>
+        <div class="body">
+          <div class="dateline"><span><b>Sun</b> 8 Nov 2026</span><span>Week 9 · Session 1</span></div>
+          <section class="nextup">
+            <div class="row1">
+              <span class="live-dot"><i></i>Next class</span>
+              <span class="mono-k" style="color:var(--faint)">CYB 303</span>
+            </div>
+            <h2>Cybersecurity Risks Analysis</h2>
+            <p class="sub">WEEK 8 · RISK ASSESSMENT WORKSHOP · DR. CHALLA</p>
+            <div class="flip" aria-hidden="true">
+              <div class="cell"><div class="num">13</div><div class="lbl">HRS</div></div>
+              <div class="cell"><div class="num">09</div><div class="lbl">MIN</div></div>
+              <div class="cell"><div class="num">23</div><div class="lbl">SEC</div></div>
+            </div>
+            <div class="tagrow"><span class="tag">Hall B · 10:00</span><span class="tag">Bring laptop</span></div>
+          </section>
+
+          <div class="statstrip">
+            <div><div class="n">10</div><div class="l">Courses</div></div>
+            <div><div class="n">9</div><div class="l">With files</div></div>
+            <div><div class="n"><em>61</em></div><div class="l">Files</div></div>
+          </div>
+
+          <div class="decklist">
+            <div class="dl-head"><h3>Latest from the decks</h3><a href="#">All 61</a></div>
+            <a class="deck" href="#"><span class="chip">CSC 309</span><span class="meta"><b>Intro to Artificial Intelligence</b><span>LECTURE · PDF · 1.1 MB</span></span><span class="count">12</span></a>
+            <a class="deck" href="#"><span class="chip">CYB 305</span><span class="meta"><b>Preliminary Report (DRAFT)</b><span>TEXT · 6 KB · SHA-256 verified</span></span><span class="count">9</span></a>
+            <a class="deck" href="#"><span class="chip">DTS 304</span><span class="meta"><b>Trees and Traversal — Week 6</b><span>SLIDES · PPTX · 4.2 MB</span></span><span class="count">8</span></a>
+          </div>
+        </div>
+        <nav class="tabbar" aria-label="Primary">
+          <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/></svg>Now</a>
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Files</a>
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</a>
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Timetable</a>
+        </nav>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">A·1</span><span class="t">Now — the next class, at a glance</span><span class="d">home</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 2 — VIEWER + COMMENTS ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Console: PDF viewer with comment thread sheet">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.35"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="16" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="viewerbar">
+          <div class="backbtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <div class="vt"><b>CSC 309 — Course Outline</b><span>PDF · 1.1 MB · CSC 309</span></div>
+          <div class="v-icon accent"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.6-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="n">2</span></div>
+          <div class="v-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></div>
+        </div>
+        <div class="docstage">
+          <div class="pdfpage">
+            <div class="org">NUTM · Department of Cybersecurity</div>
+            <h4>Artificial Intelligence</h4>
+            <p class="by">Charles Igah — Course Outline · CSC 309</p>
+            <div class="figure">FIG. 1 — THE AGENT LOOP</div>
+            <div class="lines"><i></i><i></i><i></i><i></i></div>
+            <div class="pageno">1 / 12</div>
+          </div>
+          <div class="comment-flag">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.6-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            2
+          </div>
+        </div>
+        <section class="sheet" aria-label="Comment thread">
+          <div class="grab"></div>
+          <h5>Comments · page 1<span>RESOLVED 0/2</span></h5>
+          <div class="cmt">
+            <div class="av">AO</div>
+            <div><p>Does “the agent loop” come up in the mid-semester test? Trying to scope my revision.</p><div class="who">ADAEZE OWUY · 14:02 · PAGE 1</div></div>
+          </div>
+          <div class="cmt reply">
+            <div class="av" style="background:#1b2a20">VT</div>
+            <div><p>Yes — the whole outline is examinable. Focus weeks 1–6.</p><div class="who">VALOR (STAFF) · 14:20 · REPLY</div></div>
+          </div>
+          <div class="cmt-input"><div>Add a comment on page 1…</div><b><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></b></div>
+        </section>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">A·2</span><span class="t">Viewer — full-bleed page, comment sheet slides up</span><span class="d">view/[id]</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 3 — ASSIGNMENTS ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Console: assignments list">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.35"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="11" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="body" style="padding-top:12px">
+          <div class="pagehead">
+            <div><h1>Assignments</h1><p>3 open · First due 14 Nov</p></div>
+            <a class="newbtn" href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New</a>
+          </div>
+          <div class="chips"><span class="chip2 on">All</span><span class="chip2">Individual</span><span class="chip2">Group</span><span class="chip2">CYB 305 ▾</span><span class="chip2">Due ↓</span></div>
+
+          <article class="acard">
+            <div class="top"><h3>Evidence-integrity write-up for the E01–E09 set</h3><div class="due">DUE IN<b>6 DAYS</b></div></div>
+            <div class="mid"><span class="mchip g">CYB 305</span><span class="mchip">Group · 4</span><span class="mchip">Email submit</span><span class="mchip">Fri 14 Nov · 23:59</span></div>
+            <div class="bottom"><div class="progress"><div class="pbar"><i></i></div>62% READ · 2 RESOURCES</div><div class="done"><span class="tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Done</div></div>
+          </article>
+
+          <article class="acard">
+            <div class="top"><h3>Agent-loop critique: 800-word teardown</h3><div class="due" style="color:var(--muted)">DUE MON<b style="color:var(--ink)">17 NOV</b></div></div>
+            <div class="mid"><span class="mchip g">CSC 309</span><span class="mchip">Individual</span><span class="mchip">In class</span><span class="mchip">Remind 1w before</span></div>
+            <div class="bottom"><div class="progress"><div class="pbar"><i style="width:28%"></i></div>28% READ · 1 RESOURCE</div><div class="done"><span class="tick"></span>Done</div></div>
+          </article>
+
+          <article class="acard">
+            <div class="top"><h3>Traversal worksheet — trees &amp; BST</h3><div class="due" style="color:var(--faint)">DUE FRI<b style="color:var(--ink)">28 NOV</b></div></div>
+            <div class="mid"><span class="mchip g">DTS 304</span><span class="mchip">Group · 3</span><span class="mchip">Presentation</span><span class="mchip">Remind weekly</span></div>
+            <div class="bottom"><div class="progress"><div class="pbar"><i style="width:8%"></i></div>8% READ · 3 RESOURCES</div><div class="done"><span class="tick"></span>Done</div></div>
+          </article>
+        </div>
+        <nav class="tabbar" aria-label="Primary">
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/></svg>Now</a>
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Files</a>
+          <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</a>
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Timetable</a>
+        </nav>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">A·3</span><span class="t">Tasks — countdown cards, one thumb away</span><span class="d">/assignments</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 4 — NEW ASSIGNMENT ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Console: new assignment form">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.35"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="13" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="formbar">
+          <div class="backbtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+          <b>New assignment</b>
+          <span>DRAFT · 13:02</span>
+        </div>
+        <div class="form">
+          <div class="field"><label>Course</label><div class="slot">CYB 305 — Preliminary Investigation<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div class="field"><label>Title</label><div class="slot">Evidence-integrity write-up…</div></div>
+          <div class="field"><label>Type</label><div class="seg"><div>Individual</div><div class="on">Group · 4</div></div></div>
+          <div class="field"><label>Submit via</label><div class="seg2"><div class="mth on">Email</div><div class="mth">Present.</div><div class="mth">In class</div><div class="mth">Other</div></div>
+            <div class="valid"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>cyb305@nutm.edu.ng — VALID ADDRESS</div>
+          </div>
+          <div class="field"><label>Due</label><div class="slot">Fri 14 Nov 2026 · 23:59<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div></div>
+          <div class="field"><label>Resources</label>
+            <div class="resrow"><span class="reschip"><b>▶</b> SHA-256 walkthrough ×</span><span class="reschip"><b>↑</b> Brief.pdf ×</span><span class="reschip" style="border-style:dashed;color:var(--muted)">+ Add</span></div>
+          </div>
+          <div class="field"><label>Remind</label>
+            <div class="remind"><div class="slot">1 week before<svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div><div class="slot">Every 2 weeks<svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          </div>
+          <div class="cta">Create assignment</div>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">A·4</span><span class="t">Compose — a form that behaves like a console</span><span class="d">/assignments/new</span></figcaption>
+  </figure>
+
+  <!-- ============ SCREEN 5 — MENU ============ -->
+  <figure class="frame">
+    <div class="phone" role="img" aria-label="The Console: navigation sheet">
+      <div class="statusbar"><span>13:09</span>
+        <span class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.5" y="4.8" width="3" height="6.2" rx="0.8"/><rect x="9" y="2.4" width="3" height="8.6" rx="0.8"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" opacity="0.35"/></svg><svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="9" height="8" rx="1.6" fill="currentColor"/></svg></span>
+      </div>
+      <div class="screen">
+        <div class="topbar" style="opacity:.35"><div class="logo-badge">⌗</div><div class="wordmark">THE HOOD</div></div>
+        <div class="menusheet">
+          <div class="menu-head"><p>Index · All pages</p><div class="icon-btn" style="width:34px;height:34px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div></div>
+          <div class="mgroup"><h6>Study</h6>
+            <a class="mlink on" href="#">All courses<small>10 · 61 files</small></a>
+            <a class="mlink" href="#">Timetable<small>First sem</small></a>
+            <a class="mlink" href="#">Registration<small>2026/2027</small></a>
+            <a class="mlink" href="#">Study resources<small>Guides · past q.</small></a>
+          </div>
+          <div class="mgroup"><h6>Session</h6>
+            <a class="mlink" href="#">Calendar<small>Academic</small></a>
+            <a class="mlink" href="#">Timetable PDF<small>Download</small></a>
+            <a class="mlink" href="#">Staff area<small>Sign in</small></a>
+          </div>
+          <div class="mgroup"><h6>Elsewhere</h6>
+            <a class="mlink" href="#">github.com/manofval0r/thehood<small>Source</small></a>
+            <a class="mlink" href="#">davidowu.tech<small>Built by Valor</small></a>
+          </div>
+          <div class="themerow"><div><b>Lights-out mode</b><span>SYSTEM · CURRENTLY DARK</span></div><div class="toggle"></div></div>
+          <a class="signout" href="#">Sign out of staff</a>
+        </div>
+      </div>
+    </div>
+    <figcaption class="caption"><span class="n">A·5</span><span class="t">Menu — the index sheet</span><span class="d">hamburger</span></figcaption>
+  </figure>
+
+</div>
+</body>
+</html>
