@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Copy, Check, WrapText } from "lucide-react";
 import { useFileText } from "./use-file";
+import { useComments } from "./useComments";
+import CommentBadge from "./CommentBadge";
 
 /**
  * A plain text file.
@@ -21,6 +23,8 @@ export default function TextViewer({ url }: { url: string }) {
     if (state.status !== "ready") return [];
     return state.value.replace(/\r\n/g, "\n").split("\n");
   }, [state]);
+
+  const { comments } = useComments({ fileId: url, fileKind: "text" });
 
   if (state.status === "loading") {
     return (
@@ -78,24 +82,36 @@ export default function TextViewer({ url }: { url: string }) {
 
       <div className="min-h-0 flex-1 overflow-auto">
         <pre className={`px-4 py-4 font-mono text-[12.5px] leading-[1.7] text-foreground`}>
-          {lines.map((line, i) => (
-            <div
-              key={i}
-              className="flex items-start min-w-0"
-            >
-              <span
-                className="tnum shrink-0 w-8 select-none text-right text-[11px] text-muted"
-                aria-hidden="true"
-              >
-                {i + 1}
-              </span>
-              <span
-                className={`flex-1 min-w-0 ${wrap ? "break-words" : "whitespace-pre"}`}
-              >
-                {line || " "}
-              </span>
-            </div>
-          ))}
+          {lines.map((line, i) => {
+            const lineComments = comments.filter(
+              (c) =>
+                c.comment.target_type === "line" &&
+                JSON.stringify(c.comment.target_selector) ===
+                  JSON.stringify({ line: i })
+            );
+            return (
+              <div key={i} className="flex items-start min-w-0">
+                <span
+                  className="tnum shrink-0 w-8 select-none text-right text-[11px] text-muted"
+                  aria-hidden="true"
+                >
+                  {i + 1}
+                </span>
+                <span
+                  className={`flex-1 min-w-0 ${wrap ? "break-words" : "whitespace-pre"}`}
+                >
+                  {line || " "}
+                </span>
+                <CommentBadge
+                  fileId={url}
+                  fileKind="text"
+                  targetType="line"
+                  targetSelector={{ line: i }}
+                  label={`Line ${i + 1} comments`}
+                />
+              </div>
+            );
+          })}
         </pre>
       </div>
     </div>
