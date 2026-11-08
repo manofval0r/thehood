@@ -4,6 +4,7 @@ import { COURSES, getCourse } from "@/lib/resources";
 import { getCourseFiles, getCourseFolders, fileSize } from "@/lib/files";
 import { getCourseVideos, thumbBaseUrl } from "@/lib/videos";
 import { getAssignments } from "@/lib/assignments-server";
+import type { Assignment } from "@/lib/assignments";
 import CourseClient from "./client";
 
 export function generateStaticParams() {
@@ -50,7 +51,13 @@ export default async function CoursePage({
   const videos = await getCourseVideos(course.code);
 
   // The assignments for this course.
-  const allAssignments = await getAssignments();
+  let allAssignments: Assignment[] = [];
+  try {
+    allAssignments = await getAssignments();
+  } catch {
+    // The assignments table may not exist yet until the migration is run.
+    allAssignments = [];
+  }
   const assignments = allAssignments.filter(
     (a) => a.course_code === course.code
   );
