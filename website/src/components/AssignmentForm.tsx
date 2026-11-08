@@ -1,7 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { X, Clock, Mail, Presentation, MapPin, Link, Play, Upload, Plus, Trash2, Users } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  X,
+  Clock,
+  Mail,
+  Presentation,
+  MapPin,
+  Link,
+  Play,
+  Upload,
+  Plus,
+  Trash2,
+  Users,
+  Share2,
+  Copy,
+} from "lucide-react";
 import {
   type AssignmentType,
   type SubmitMethod,
@@ -20,7 +35,32 @@ const SUBMIT_METHOD_OPTIONS: SubmitMethod[] = [
   "inperson",
   "other",
 ];
-const FREQUENCY_OPTIONS: NotificationFrequency[] = ["once", "biweekly"];
+const FREQUENCY_OPTIONS: NotificationFrequency[] = [
+  "once",
+  "daily",
+  "weekly",
+  "biweekly",
+  "monthly",
+  "custom",
+];
+
+const FREQUENCY_LABELS: Record<NotificationFrequency, string> = {
+  once: "Once",
+  daily: "Every day",
+  weekly: "Every week",
+  biweekly: "Every 2 weeks",
+  monthly: "Every month",
+  custom: "Custom",
+};
+
+const FREQUENCY_HOURS: Record<NotificationFrequency, number> = {
+  once: 0,
+  daily: 24,
+  weekly: 168,
+  biweekly: 336,
+  monthly: 720,
+  custom: 0,
+};
 
 interface AssignmentFormProps {
   assessment?: {
@@ -36,8 +76,10 @@ interface AssignmentFormProps {
     event_title: string;
     event_at: string | null;
     notification_frequency: NotificationFrequency;
+    custom_reminder_hours: number | null;
     resources: AssignmentResource[];
     reminders: { offset_hours: number }[];
+    share_token: string | null;
   };
   courses: { code: string; title: string }[];
   onSubmit: (data: {
@@ -52,6 +94,7 @@ interface AssignmentFormProps {
     eventTitle: string;
     eventAt: string | null;
     notificationFrequency: NotificationFrequency;
+    customReminderHours: number | null;
     resources: { type: "youtube" | "upload"; url: string; title: string }[];
     reminders: { offset_hours: number }[];
   }) => void;
@@ -66,6 +109,8 @@ export function AssignmentForm({
   onClose,
   busy = false,
 }: AssignmentFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [open, setOpen] = React.useState(true);
   const [courseCode, setCourseCode] = React.useState(
     assessment?.course_code ?? courses[0]?.code ?? ""
@@ -92,6 +137,9 @@ export function AssignmentForm({
   const [notificationFrequency, setNotificationFrequency] = React.useState<NotificationFrequency>(
     assessment?.notification_frequency ?? "once"
   );
+  const [customReminderHours, setCustomReminderHours] = React.useState<number | null>(
+    assessment?.custom_reminder_hours ?? null
+  );
   const [resources, setResources] = React.useState<AssignmentResource[]>(
     assessment?.resources ?? []
   );
@@ -100,6 +148,11 @@ export function AssignmentForm({
       ? assessment.reminders?.map((r) => ({ offset_hours: r.offset_hours })) ??
         []
       : [{ offset_hours: 168 }]
+  );
+  const [shareUrl, setShareUrl] = React.useState<string | null>(
+    assessment?.share_token
+      ? `${window.location.origin}/assignments/${assessment.id}?share=${assessment.share_token}`
+      : null
   );
 
   React.useEffect(() => {
@@ -114,6 +167,7 @@ export function AssignmentForm({
   const currentCourse = courses.find((c) => c.code === courseCode);
 
   const isEmailMethod = submitMethod === "email";
+  const isCustomFrequency = notificationFrequency === "custom";
 
   const valid =
     Boolean(courseCode) &&
@@ -122,7 +176,8 @@ export function AssignmentForm({
     new Date(dueAt).getTime() > Date.now() &&
     (!isEmailMethod ||
       (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submitDetail.trim()) &&
-        Boolean(submitDetail.trim())));
+        Boolean(submitDetail.trim()))) &&
+    (!isCustomFrequency || Boolean(customReminderHours));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,27 +194,38 @@ export function AssignmentForm({
       eventTitle,
       eventAt: eventAt || null,
       notificationFrequency,
+      customReminderHours,
       resources,
       reminders,
     });
   };
 
   const addResource = () => {
-    setResources([...resources, { id: crypto.randomUUID(), type: "youtube", url: "", title: "" }]);
+    setResources([
+      ...resources,
+      { id: crypto.randomUUID(), type: "youtube", url: "", title: "" },
+    ]);
   };
 
   const removeResource = (id: string) => {
     setResources(resources.filter((r) => r.id !== id));
   };
 
-  const updateResource = (id: string, field: keyof Omit<AssignmentResource, "id" | "assignment_id">, value: string) => {
-    setResources(resources.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  const updateResource = (
+    id: string,
+    field: keyof Omit<AssignmentResource, "id" | "assignment_id">,
+    value: string
+  ) => {
+    setResources(
+      resources.map((r) => (r.id === id ? { ...r, [field]: value } : r))
+    );
   };
 
   const toggleReminder = (index: number) => {
     setReminders((prev) => {
       const next = [...prev];
-      next[index].offset_hours = next[index].offset_hours === 168 ? 24 : 168;
+      next[index].offset_hours =
+        next[index].offset_hours === 168 ? 24 : 168;
       return next;
     });
   };
@@ -170,6 +236,11 @@ export function AssignmentForm({
 
   const addReminder = () => {
     setReminders((prev) => [...prev, { offset_hours: 24 }]);
+  };
+
+  const copyShareUrl = () => {
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl);
   };
 
   return (
@@ -418,6 +489,25 @@ export function AssignmentForm({
                 );
               })}
             </div>
+            {isCustomFrequency && (
+              <div className="mt-3">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
+                  Custom reminder (hours before deadline)
+                </label>
+                <input
+                  type="number"
+                  value={customReminderHours ?? ""}
+                  onChange={(e) => setCustomReminderHours(Number(e.target.value))}
+                  disabled={busy}
+                  min="1"
+                  placeholder="e.g. 48"
+                  className="w-full rounded-md border border-border bg-surface py-2 pl-3 text-[12.5px] text-foreground outline-none focus-visible:border-accent max-sm:min-h-11"
+                />
+                <p className="mt-1 text-[11px] text-muted">
+                  Remind this many hours before the deadline.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Notes. */}

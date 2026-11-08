@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useSharedTick, studentId } from "@/hooks/useAssessments";
+import { useRouter } from "next/navigation";
 import {
   upcomingAssignments,
   type Assignment,
@@ -9,7 +10,6 @@ import {
   type AssignmentType,
 } from "@/lib/assignments";
 import { AssignmentCard } from "@/components/AssignmentCard";
-import { AssignmentForm } from "@/components/AssignmentForm";
 import { Plus, Filter, Clock, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +30,9 @@ type SortOrder = "dueSoonest" | "dueLatest";
  */
 export function AssignmentList({ courses }: AssignmentListProps) {
   const now = useSharedTick();
+  const router = useRouter();
   const [assignments, setAssignments] = React.useState<UpcomingAssignment[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [formOpen, setFormOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<Assignment | null>(null);
   const [busy, setBusy] = React.useState(false);
 
   // Filters.
@@ -86,7 +85,8 @@ export function AssignmentList({ courses }: AssignmentListProps) {
     notes: string;
     eventTitle: string;
     eventAt: string | null;
-    notificationFrequency: "once" | "biweekly";
+    notificationFrequency: "once" | "daily" | "weekly" | "biweekly" | "monthly" | "custom";
+    customReminderHours: number | null;
     resources: { type: "youtube" | "upload"; url: string; title: string }[];
     reminders: { offset_hours: number }[];
   }) => {
@@ -106,7 +106,6 @@ export function AssignmentList({ courses }: AssignmentListProps) {
           sortOrder
         )
       );
-      setFormOpen(false);
     } finally {
       setBusy(false);
     }
@@ -124,7 +123,8 @@ export function AssignmentList({ courses }: AssignmentListProps) {
     notes: string;
     eventTitle: string;
     eventAt: string | null;
-    notificationFrequency: "once" | "biweekly";
+    notificationFrequency: "once" | "daily" | "weekly" | "biweekly" | "monthly" | "custom";
+    customReminderHours: number | null;
     resources: { type: "youtube" | "upload"; url: string; title: string }[];
     reminders: { offset_hours: number }[];
   }) => {
@@ -146,13 +146,11 @@ export function AssignmentList({ courses }: AssignmentListProps) {
                     new Date(now.getTime())
                   )[0]
                 : a
-            )
-          ),
+              )
+            ),
           sortOrder
         )
       );
-      setEditing(null);
-      setFormOpen(false);
     } finally {
       setBusy(false);
     }
@@ -199,10 +197,7 @@ export function AssignmentList({ courses }: AssignmentListProps) {
         </div>
         <button
           type="button"
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
+          onClick={() => router.push("/assignments/new")}
           disabled={busy}
           className={cn(
             "pressable inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2.5 text-[12.5px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:pointer-events-none max-sm:min-h-11"
@@ -287,10 +282,7 @@ export function AssignmentList({ courses }: AssignmentListProps) {
               assessment={a}
               now={now}
               onDelete={remove}
-              onEdit={(a) => {
-                setEditing(a);
-                setFormOpen(true);
-              }}
+              onEdit={(a) => router.push(`/assignments/${a.id}`)}
               onToggleDone={(id, done) => {
                 setBusy(true);
                 fetch(`/api/assignments?id=${encodeURIComponent(id)}`, {
@@ -311,38 +303,6 @@ export function AssignmentList({ courses }: AssignmentListProps) {
           </li>
         ))}
       </ul>
-
-      {formOpen && (
-        <AssignmentForm
-          assessment={editing
-            ? {
-                id: editing.id,
-                course_code: editing.course_code,
-                course_title: editing.course_title,
-                title: editing.title,
-                type: editing.type,
-                due_at: editing.due_at,
-                submit_method: editing.submit_method,
-                submit_detail: editing.submit_detail,
-                notes: editing.notes,
-                event_title: editing.event_title,
-                event_at: editing.event_at,
-                notification_frequency: editing.notification_frequency,
-                resources: editing.resources ?? [],
-                reminders: editing.reminders ?? [],
-              }
-            : undefined}
-          courses={courses}
-          onSubmit={editing
-            ? (data) => update({ ...data, id: editing.id })
-            : create}
-          onClose={() => {
-            setFormOpen(false);
-            setEditing(null);
-          }}
-          busy={busy}
-        />
-      )}
     </div>
   );
 }

@@ -18,7 +18,8 @@ export interface CreateAssignmentArgs {
   notes: string;
   eventTitle: string;
   eventAt: string | null;
-  notificationFrequency: "once" | "biweekly";
+  notificationFrequency: "once" | "daily" | "weekly" | "biweekly" | "monthly" | "custom";
+  customReminderHours: number | null;
   resources: { type: "youtube" | "upload"; url: string; title: string }[];
   reminders: { offset_hours: number }[];
 }
@@ -32,7 +33,8 @@ export interface UpdateAssignmentArgs {
   notes?: string;
   eventTitle?: string;
   eventAt?: string | null;
-  notificationFrequency?: "once" | "biweekly";
+  notificationFrequency?: "once" | "daily" | "weekly" | "biweekly" | "monthly" | "custom";
+  customReminderHours?: number | null;
   resources?: { type: "youtube" | "upload"; url: string; title: string }[] | null;
   reminders?: { offset_hours: number }[] | null;
   done?: boolean;
@@ -87,6 +89,7 @@ export async function createAssignment(args: CreateAssignmentArgs) {
     event_title: args.eventTitle,
     event_at: args.eventAt,
     notification_frequency: args.notificationFrequency,
+    custom_reminder_hours: args.customReminderHours,
     done: false,
   };
 
@@ -139,6 +142,8 @@ export async function updateAssignment(id: string, args: UpdateAssignmentArgs) {
   if (args.eventAt !== undefined) body.event_at = args.eventAt;
   if (args.notificationFrequency !== undefined)
     body.notification_frequency = args.notificationFrequency;
+  if (args.customReminderHours !== undefined)
+    body.custom_reminder_hours = args.customReminderHours;
   if (args.done !== undefined) body.done = args.done;
   if (Object.keys(body).length > 0) {
     body.updated_at = new Date().toISOString();
@@ -203,4 +208,24 @@ export async function markAssignmentDone(
     method: "PATCH",
     body: { done },
   });
+}
+
+/** Generate (or regenerate) a share token for an assignment, returning the public URL. */
+export async function generateShareToken(id: string): Promise<string> {
+  const token = crypto.randomUUID();
+  await rest(`course_assignments?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: { share_token: token },
+  });
+  return `${window.location.origin}/assignments/${id}?share=${token}`;
+}
+
+/** Get an assignment by its share token (public access). */
+export async function getAssignmentByShareToken(
+  token: string
+): Promise<Assignment | null> {
+  const rows = await rest<Assignment[]>(
+    `course_assignments?share_token=eq.${encodeURIComponent(token)}&select=*&limit=1`
+  );
+  return rows?.[0] ?? null;
 }

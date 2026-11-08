@@ -15,6 +15,8 @@ import {
   Pencil,
   Check,
   CheckCircle2,
+  Share2,
+  Copy,
 } from "lucide-react";
 import {
   formatRemaining,
@@ -59,6 +61,12 @@ export function AssignmentCard({
     });
     onToggleDone(assessment.id, !assessment.done);
   };
+
+  const shareUrl =
+    assessment.share_token
+      ? `${window.location.origin}/assignments/${assessment.id}?share=${assessment.share_token}`
+      : null;
+
   const submitIcon =
     assessment.submit_method === "email" ? (
       <Mail size={13} />
@@ -139,13 +147,6 @@ export function AssignmentCard({
         </div>
       </div>
 
-      {assessment.done && (
-        <div className="absolute inset-0 rounded-xl border border-accent bg-accent/10 flex items-center justify-center pointer-events-none">
-          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-accent">
-            Done
-          </span>
-        </div>
-      )}
       <div className="space-y-2">
         {/* Course. */}
         <div className="flex items-center gap-2">
@@ -212,23 +213,28 @@ export function AssignmentCard({
               Resources
             </p>
             {assessment.resources.map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center gap-2 rounded-md border border-border bg-surface/50 p-2"
-              >
+              <div key={r.id} className="flex items-center gap-2 rounded-md border border-border bg-surface/50 p-2">
                 {r.type === "youtube" ? (
-                  <Play size={12} className="text-red" />
+                  <a
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 flex-1 text-[12px] text-foreground hover:text-accent transition-colors"
+                  >
+                    <Play size={12} className="text-red" />
+                    <span className="flex-1 truncate">{r.title}</span>
+                  </a>
                 ) : (
-                  <Upload size={12} className="text-muted" />
+                  <a
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 flex-1 text-[12px] text-foreground hover:text-accent transition-colors"
+                  >
+                    <Upload size={12} className="text-muted" />
+                    <span className="flex-1 truncate">{r.title}</span>
+                  </a>
                 )}
-                <a
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[12px] text-muted truncate flex-1 hover:text-accent transition-colors"
-                >
-                  {r.title || r.url}
-                </a>
               </div>
             ))}
           </div>
@@ -256,6 +262,17 @@ export function AssignmentCard({
           >
             <Mail size={12} />
             Submit by email
+          </a>
+        )}
+        {shareUrl && (
+          <a
+            href={shareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-[12px] text-accent hover:underline"
+          >
+            <Share2 size={12} />
+            Share link
           </a>
         )}
       </div>

@@ -7,7 +7,7 @@
 
 export type AssignmentType = "group" | "individual";
 export type SubmitMethod = "email" | "presentation" | "inperson" | "other";
-export type NotificationFrequency = "once" | "biweekly";
+export type NotificationFrequency = "once" | "daily" | "weekly" | "biweekly" | "monthly" | "custom";
 
 export interface AssignmentResource {
   id: string;
@@ -39,9 +39,11 @@ export interface Assignment {
   event_title: string;
   event_at: string | null;
   notification_frequency: NotificationFrequency;
+  custom_reminder_hours: number | null;
   resources: AssignmentResource[];
   reminders: AssignmentReminder[];
   done: boolean;
+  share_token: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -141,5 +143,12 @@ export function submitMethodLabel(method: SubmitMethod): string {
 }
 
 export function notificationFrequencyLabel(f: NotificationFrequency): string {
-  return { once: "Once", biweekly: "Every 2 weeks" }[f];
+  return {
+    once: "Once",
+    daily: "Every day",
+    weekly: "Every week",
+    biweekly: "Every 2 weeks",
+    monthly: "Every month",
+    custom: "Custom",
+  }[f];
 }
