@@ -3,7 +3,10 @@ import { connection } from "next/server";
 import {
   createAssignment,
   deleteAssignment,
+  getAssignmentById,
   getAssignments,
+  getAssignmentByShareToken,
+  generateShareToken,
   updateAssignment,
 } from "@/lib/assignments-server";
 import { currentStaff } from "@/lib/admin-session";
@@ -19,6 +22,17 @@ import { can } from "@/lib/staff";
 export async function GET(request: Request) {
   await connection();
   try {
+    const { searchParams } = new URL(request.url);
+    const shareToken = searchParams.get("share_token");
+
+    if (shareToken) {
+      const assignment = await getAssignmentByShareToken(shareToken);
+      if (!assignment) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+      return NextResponse.json(assignment);
+    }
+
     const rows = await getAssignments();
     return NextResponse.json(rows);
   } catch {
@@ -48,6 +62,7 @@ export async function POST(request: Request) {
     eventTitle,
     eventAt,
     notificationFrequency,
+    customReminderHours,
     resources,
     reminders,
   } = body;
@@ -82,6 +97,7 @@ export async function POST(request: Request) {
       eventTitle: eventTitle ?? "",
       eventAt: eventAt ?? null,
       notificationFrequency: notificationFrequency ?? "once",
+      customReminderHours: customReminderHours ?? null,
       resources: resources ?? [],
       reminders: reminders ?? [],
     });
@@ -127,8 +143,21 @@ export async function PATCH(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
+  const action = searchParams.get("action");
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  if (action === "generate_share") {
+    try {
+      const shareUrl = await generateShareToken(id);
+      return NextResponse.json({ shareUrl });
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Failed to generate share link" },
+        { status: 500 }
+      );
+    }
   }
 
   const body = await request.json();
