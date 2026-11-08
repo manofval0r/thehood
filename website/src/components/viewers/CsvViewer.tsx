@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFileText } from "./use-file";
+import { useComments } from "./useComments";
+import CommentBadge from "./CommentBadge";
 
 /**
  * A table file, read as a table.
@@ -89,6 +91,8 @@ export default function CsvViewer({ url }: { url: string }) {
   const [limit, setLimit] = useState(200);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [overflowing, setOverflowing] = useState(false);
+
+  const { comments } = useComments({ fileId: url, fileKind: "csv" });
 
   const parsed = useMemo(() => {
     if (state.status !== "ready") return null;
@@ -192,11 +196,18 @@ export default function CsvViewer({ url }: { url: string }) {
                 {Array.from({ length: width }, (_, c) => (
                   <td
                     key={c}
-                    className="px-3 py-1.5 align-top font-mono text-[12px] text-foreground"
+                    className="relative px-3 py-1.5 align-top font-mono text-[12px] text-foreground"
                   >
                     <span className="block max-w-[26rem] whitespace-pre-wrap break-words">
                       {row[c]}
                     </span>
+                    <CommentBadge
+                      fileId={url}
+                      fileKind="csv"
+                      targetType="cell"
+                      targetSelector={{ row: r, col: c }}
+                      label={`Cell ${r + 1}, column ${c + 1} comments`}
+                    />
                   </td>
                 ))}
               </tr>

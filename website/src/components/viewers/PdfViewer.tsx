@@ -2,6 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FileText, Loader2 } from "lucide-react";
+import { useComments } from "./useComments";
+import CommentBadge from "./CommentBadge";
 
 /**
  * A PDF, read page by page.
@@ -75,6 +77,8 @@ export default function PdfViewer({
 
   const pageW = Math.min(680, Math.max(200, Math.round(innerW * zoom)));
 
+  const { comments } = useComments({ fileId: url, fileKind: "pdf" });
+
   if (error) {
     return (
       <div className="flex min-h-[45vh] flex-col items-center justify-center gap-4 p-12 text-center">
@@ -111,8 +115,9 @@ export default function PdfViewer({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div ref={containerRef} className="flex min-h-0 flex-1 justify-start overflow-auto bg-background px-4 py-4 sm:px-6 sm:py-6">
-        <div className="mx-auto rounded border border-border bg-white shadow-lift" style={{ width: pageW, maxWidth: "100%" }}>
-          <pdfLib.Document
+        <div className="relative mx-auto" style={{ width: pageW, maxWidth: "100%" }}>
+          <div className="rounded border border-border bg-white shadow-lift">
+            <pdfLib.Document
             file={url}
             onLoadSuccess={({ numPages: n }: { numPages: number }) =>
               setNumPages(n)
@@ -150,6 +155,14 @@ export default function PdfViewer({
               }
             />
           </pdfLib.Document>
+          </div>
+          <CommentBadge
+            fileId={url}
+            fileKind="pdf"
+            targetType="page"
+            targetSelector={{ page }}
+            label="Page comments"
+          />
         </div>
       </div>
 
