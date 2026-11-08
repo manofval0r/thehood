@@ -86,13 +86,14 @@ export default function SlidesViewer({
         setCount(previewer.slideCount);
         setSlide(0);
         savedIndex.current = 0;
-        if (mode === "slide") {
-          const first = host.querySelector(".pptx-preview-slide-wrapper") as HTMLElement | null;
-          if (first && first.style.height) {
-            const h = parseFloat(first.style.height);
-            const w = parseFloat(first.style.width || String(width));
-            if (w > 0) setAspect(h / w);
-          }
+        // Measure the real slide aspect in both modes. The overlay badges
+        // position off this number, and a deck that is not 4:3 puts them
+        // kilometres out by slide 30.
+        const first = host.querySelector(".pptx-preview-slide-wrapper") as HTMLElement | null;
+        if (first && first.style.height) {
+          const h = parseFloat(first.style.height);
+          const w = parseFloat(first.style.width || String(width));
+          if (w > 0) setAspect(h / w);
         }
         setFailed(null);
       } catch {
