@@ -13,6 +13,8 @@ import {
   Upload,
   Trash2,
   Pencil,
+  Check,
+  CheckCircle2,
 } from "lucide-react";
 import {
   formatRemaining,
@@ -30,6 +32,7 @@ interface AssignmentCardProps {
   now: Date;
   onDelete: (id: string) => void;
   onEdit: (a: Assignment) => void;
+  onToggleDone: (id: string, done: boolean) => void;
 }
 
 export function AssignmentCard({
@@ -37,6 +40,7 @@ export function AssignmentCard({
   now,
   onDelete,
   onEdit,
+  onToggleDone,
 }: AssignmentCardProps) {
   const remainingMs = remainingMsFor(assessment.due_at, now);
   const days = Math.floor(remainingMs / (24 * 60 * 60 * 1000));
@@ -47,6 +51,14 @@ export function AssignmentCard({
   const isOverdue = remainingMs <= 0;
   const isDueSoon = remainingMs > 0 && remainingMs < 7 * 24 * 60 * 60 * 1000;
 
+  const toggleDone = async () => {
+    await fetch(`/api/assignments?id=${assessment.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ done: !assessment.done }),
+    });
+    onToggleDone(assessment.id, !assessment.done);
+  };
   const submitIcon =
     assessment.submit_method === "email" ? (
       <Mail size={13} />
@@ -96,6 +108,26 @@ export function AssignmentCard({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                toggleDone();
+              }}
+              aria-label={assessment.done ? "Mark as not done" : "Mark as done"}
+              className={cn(
+                "pressable shrink-0 grid h-8 w-8 place-items-center rounded",
+                assessment.done
+                  ? "text-accent bg-accent/10"
+                  : "text-muted hover:bg-surface-hover hover:text-foreground"
+              )}
+            >
+              {assessment.done ? (
+                <CheckCircle2 size={13} className="text-accent" />
+              ) : (
+                <Check size={13} />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
                 onDelete(assessment.id);
               }}
               aria-label="Delete assignment"
@@ -107,6 +139,13 @@ export function AssignmentCard({
         </div>
       </div>
 
+      {assessment.done && (
+        <div className="absolute inset-0 rounded-xl border border-accent bg-accent/10 flex items-center justify-center pointer-events-none">
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-accent">
+            Done
+          </span>
+        </div>
+      )}
       <div className="space-y-2">
         {/* Course. */}
         <div className="flex items-center gap-2">

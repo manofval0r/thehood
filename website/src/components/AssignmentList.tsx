@@ -291,6 +291,22 @@ export function AssignmentList({ courses }: AssignmentListProps) {
                 setEditing(a);
                 setFormOpen(true);
               }}
+              onToggleDone={(id, done) => {
+                setBusy(true);
+                fetch(`/api/assignments?id=${encodeURIComponent(id)}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ done }),
+                })
+                  .then(() => {
+                    setAssignments((prev) =>
+                      prev.map((x) =>
+                        x.id === id ? { ...x, done } : x
+                      )
+                    );
+                  })
+                  .finally(() => setBusy(false));
+              }}
             />
           </li>
         ))}

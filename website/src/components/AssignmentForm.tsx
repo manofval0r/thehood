@@ -113,11 +113,16 @@ export function AssignmentForm({
 
   const currentCourse = courses.find((c) => c.code === courseCode);
 
+  const isEmailMethod = submitMethod === "email";
+
   const valid =
     Boolean(courseCode) &&
     Boolean(title.trim()) &&
     Boolean(dueAt) &&
-    new Date(dueAt).getTime() > Date.now();
+    new Date(dueAt).getTime() > Date.now() &&
+    (!isEmailMethod ||
+      (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submitDetail.trim()) &&
+        Boolean(submitDetail.trim())));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,8 +171,6 @@ export function AssignmentForm({
   const addReminder = () => {
     setReminders((prev) => [...prev, { offset_hours: 24 }]);
   };
-
-  const isEmailMethod = submitMethod === "email";
 
   return (
     <div

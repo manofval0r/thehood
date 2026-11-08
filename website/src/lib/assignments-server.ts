@@ -35,6 +35,7 @@ export interface UpdateAssignmentArgs {
   notificationFrequency?: "once" | "biweekly";
   resources?: { type: "youtube" | "upload"; url: string; title: string }[] | null;
   reminders?: { offset_hours: number }[] | null;
+  done?: boolean;
 }
 
 /* --------------------------------------------------------------- reading */
@@ -86,6 +87,7 @@ export async function createAssignment(args: CreateAssignmentArgs) {
     event_title: args.eventTitle,
     event_at: args.eventAt,
     notification_frequency: args.notificationFrequency,
+    done: false,
   };
 
   const created = await rest<Assignment[]>("course_assignments", {
@@ -137,6 +139,7 @@ export async function updateAssignment(id: string, args: UpdateAssignmentArgs) {
   if (args.eventAt !== undefined) body.event_at = args.eventAt;
   if (args.notificationFrequency !== undefined)
     body.notification_frequency = args.notificationFrequency;
+  if (args.done !== undefined) body.done = args.done;
   if (Object.keys(body).length > 0) {
     body.updated_at = new Date().toISOString();
     await rest(`course_assignments?id=eq.${encodeURIComponent(id)}`, {
@@ -188,5 +191,16 @@ export async function deleteAssignment(id: string): Promise<void> {
   // Deleting the assignment cascades to resources and reminders via the FK.
   await rest(`course_assignments?id=eq.${encodeURIComponent(id)}`, {
     method: "DELETE",
+  });
+}
+
+/** Mark an assignment as done, or back to pending. */
+export async function markAssignmentDone(
+  id: string,
+  done: boolean
+): Promise<void> {
+  await rest(`course_assignments?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: { done },
   });
 }

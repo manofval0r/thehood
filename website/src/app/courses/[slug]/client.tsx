@@ -6,6 +6,9 @@ import type { Course } from "@/lib/resources";
 import { repAddress, repFirstName } from "@/lib/contact";
 import CourseWorkspace from "@/components/CourseWorkspace";
 import VideoLibrary from "@/components/VideoLibrary";
+import { type Assignment } from "@/lib/assignments";
+import { typeLabel, typeColour } from "@/lib/assignments";
+import { cn } from "@/lib/utils";
 
 /**
  * The course page.
@@ -19,6 +22,7 @@ export default function CourseClient({
   resources,
   folders,
   videos,
+  assignments,
   thumbBase,
 }: {
   course: Course;
@@ -38,6 +42,7 @@ export default function CourseClient({
     note: string | null;
     thumb_path: string | null;
   }[];
+  assignments: Assignment[];
   thumbBase: string;
 }) {
   return (
@@ -121,6 +126,81 @@ export default function CourseClient({
         files={resources}
         folders={folders}
       />
+
+      {/* ---------- Assignments ---------- */}
+      {assignments.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-[15px] font-bold tracking-tight text-foreground mb-4">
+            Assignments
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {assignments.map((a) => (
+              <div
+                key={a.id}
+                className={cn(
+                  "rounded-lg border border-border bg-surface p-4",
+                  a.done ? "border-green/30 bg-green/5" : ""
+                )}
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded text-[10px] font-medium",
+                      typeColour(a.type)
+                    )}
+                  >
+                    {typeLabel(a.type)}
+                  </span>
+                  {a.done && (
+                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-green">
+                      Done
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-[13px] font-semibold text-foreground mb-1 truncate">
+                  {a.title}
+                </h3>
+                <p className="text-[11.5px] text-muted-foreground mb-3">
+                  {a.notes || "No notes."}
+                </p>
+                <div className="flex items-center gap-2 text-[11px] text-muted">
+                  <Clock size={12} />
+                  <span>{new Date(a.due_at).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}</span>
+                </div>
+                {a.event_title && (
+                  <div className="mt-2 flex items-center gap-2 text-[11px] text-muted">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.12em]">Event</span>
+                    <span>{a.event_title}</span>
+                  </div>
+                )}
+                {a.submit_detail && (
+                  <div className="mt-2 flex items-center gap-2 text-[11px] text-muted">
+                    <Mail size={12} className="text-accent" />
+                    <span>
+                      Submit via{" "}
+                      {a.submit_method === "email" ? (
+                        <a
+                          href={`mailto:${a.submit_detail}`}
+                          className="text-accent hover:underline"
+                        >
+                          {a.submit_detail}
+                        </a>
+                      ) : (
+                        a.submit_detail
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ---------- Videos ---------- */}
       <VideoLibrary videos={videos} thumbBase={thumbBase} />

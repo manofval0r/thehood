@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { COURSES, getCourse } from "@/lib/resources";
 import { getCourseFiles, getCourseFolders, fileSize } from "@/lib/files";
 import { getCourseVideos, thumbBaseUrl } from "@/lib/videos";
+import { getAssignments } from "@/lib/assignments-server";
 import CourseClient from "./client";
 
 export function generateStaticParams() {
@@ -48,6 +49,12 @@ export default async function CoursePage({
   // The videos that belong to this course.
   const videos = await getCourseVideos(course.code);
 
+  // The assignments for this course.
+  const allAssignments = await getAssignments();
+  const assignments = allAssignments.filter(
+    (a) => a.course_code === course.code
+  );
+
   // The card wants a size a human can read, not a number of bytes. The
   // address is encoded here rather than at each use, so the card, the panel
   // and the viewer all point at the same working address.
@@ -74,6 +81,7 @@ export default async function CoursePage({
           note: v.note,
           thumb_path: v.thumb_path,
         }))}
+        assignments={assignments}
         thumbBase={thumbBaseUrl() ?? ""}
       />
     </Suspense>

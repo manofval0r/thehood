@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { announceClasses, announceBroadcast } from "@/lib/push";
+import { announceClasses, announceBroadcast, announceAssignments } from "@/lib/push";
 import { getCtfEvents } from "@/lib/events";
 import { listDueAnnouncements, recordDelivery } from "@/lib/announcements";
 import { recordHealth } from "@/lib/push";
@@ -42,6 +42,7 @@ async function run(request: Request) {
   }
 
   const result = await announceClasses();
+  const assignmentResult = await announceAssignments();
 
   /* The messages that were written for a particular moment. */
   //
@@ -82,7 +83,13 @@ async function run(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true, ...result, announced, outlookSynced });
+  return NextResponse.json({
+    ok: true,
+    ...result,
+    announced,
+    assignments: assignmentResult.sent,
+    outlookSynced,
+  });
 }
 
 /**

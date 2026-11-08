@@ -14,6 +14,10 @@ import { rest } from "@/lib/rest";
 import { getAllBreaks } from "@/lib/break-store";
 import { planClassNotifications } from "@/lib/class-reminders";
 import type { ClassOccurrenceOverride } from "@/lib/bulletin-types";
+import {
+  getAssignments,
+  getAssignmentReminders,
+} from "@/lib/assignments-server";
 
 /**
  * The pushes that happen because something happened.
@@ -156,6 +160,80 @@ export async function announceClasses(): Promise<{ sent: number }> {
   }
 
   return { sent };
+}
+
+/**
+ * The assignment reminders.
+ *
+ * For every assignment that is not done, each reminder offset is checked:
+ * if the deadline minus the offset is now or in the past, and the reminder
+ * has not been sent yet, it goes out. A biweekly assignment repeats its
+ * reminder every two weeks until the deadline passes or it is marked done.
+ *
+ * The dedupe key is the assignment id plus the offset, plus the biweekly
+ * cycle number, so the same reminder is never sent twice but the next cycle
+ * can go out.
+ */
+export async function announceAssignments(): Promise<{ sent: number }> {
+  const now = Date.now();
+  const rows = await getAssignments();
+  let sent = 0;
+
+  for (const a of rows) {
+    if (a.done) continue;
+
+    const due = new Date(a.due_at).getTime();
+    const reminders = await getAssignmentReminders(a.id);
+
+    for (const r of reminders) {
+      // First due time: deadline minus offset.
+      const firstDue = due - r.offset_hours * 3600000;
+      if (firstDue > now) continue; // not due yet
+
+      // Determine the cycle: every 2 weeks (biweekly) or just once.
+      const cycleMs =
+        a.notification_frequency === "biweekly" ? 14 * 24 * 3600000 : 0;
+
+      // Find which cycle we are in: how many full cycles have elapsed
+      // since the first due time.
+      const elapsed = now - firstDue;
+      const cycle = cycleMs > 0 ? Math.floor(elapsed / cycleMs) : 0;
+      const cycleDue = firstDue + cycle * cycleMs;
+
+      // If this cycle is in the future (shouldn't happen), skip.
+      if (cycleDue > now) continue;
+
+      const dedupeKey = `assignment:${a.id}:${r.offset_hours}:${cycle}`;
+      if (await hasBeenSent(dedupeKey)) continue;
+
+      const update: Update = {
+        id: dedupeKey,
+        kind: "assignment",
+        title: `Assignment due: ${a.title}`,
+        body: `${a.course_code} · ${a.title} is due ${formatRelative(due - now)}.`,
+        at: new Date(cycleDue).toISOString(),
+        href: "/assignments",
+        course: a.course_code,
+      };
+
+      const result = await broadcast(update, {
+        kind: "assignment",
+        course: a.course_code,
+      });
+      sent += result.sent;
+      await markSent(update);
+    }
+  }
+
+  return { sent };
+}
+
+function formatRelative(ms: number): string {
+  const days = Math.floor(ms / (24 * 3600000));
+  const hours = Math.floor((ms % (24 * 3600000)) / (3600000));
+  if (days > 0) return `in ${days} day${days === 1 ? "" : "s"}`;
+  if (hours > 0) return `in ${hours} hour${hours === 1 ? "" : "s"}`;
+  return "soon";
 }
 
 /* ------------------------------------------------------------ announcements */

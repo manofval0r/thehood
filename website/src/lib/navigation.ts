@@ -72,6 +72,11 @@ export const PUBLIC_NAV_GROUPS: NavGroup[] = [
         label: "Registration",
         description: "The official registered-course list",
       },
+      {
+        href: "/assignments",
+        label: "Assignments",
+        description: "Course assignments, due dates and reminders",
+      },
     ],
   },
   {

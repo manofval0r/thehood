@@ -12,7 +12,8 @@ export type NotificationKind =
   | "attendance"
   | "calendar"
   | "staff"
-  | "system";
+  | "system"
+  | "assignment";
 
 export const KINDS: NotificationKind[] = [
   "material",
@@ -21,6 +22,7 @@ export const KINDS: NotificationKind[] = [
   "calendar",
   "staff",
   "system",
+  "assignment",
 ];
 
 export const KIND_LABEL: Record<NotificationKind, string> = {
@@ -30,6 +32,7 @@ export const KIND_LABEL: Record<NotificationKind, string> = {
   calendar: "The academic calendar",
   staff: "Staff",
   system: "The site itself",
+  assignment: "Assignment reminders",
 };
 
 export const KIND_HELP: Record<NotificationKind, string> = {
@@ -40,4 +43,5 @@ export const KIND_HELP: Record<NotificationKind, string> = {
   calendar: "Exams, registration and the rest of the calendar.",
   staff: "Approvals, unmarked classes, and changes to the courses you teach.",
   system: "When something the site depends on breaks.",
+  assignment: "When one of your assignments is due soon.",
 };

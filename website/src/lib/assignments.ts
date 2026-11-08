@@ -41,6 +41,7 @@ export interface Assignment {
   notification_frequency: NotificationFrequency;
   resources: AssignmentResource[];
   reminders: AssignmentReminder[];
+  done: boolean;
   created_at: string;
   updated_at: string;
 }
