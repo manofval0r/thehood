@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
-import { connection } from "next/server";
-import { ArrowLeft } from "lucide-react";
-import { AssignmentList } from "@/components/AssignmentList";
-import { AssignmentCard } from "@/components/AssignmentCard";
-import { getAssignmentByShareToken } from "@/lib/assignments-server";
-import { COURSES } from "@/lib/resources";
+import { AssignmentsClient } from "@/components/AssignmentsClient";
 
 export const metadata: Metadata = {
   title: "Assignments · Cybersecurity 300L",
@@ -14,15 +8,17 @@ export const metadata: Metadata = {
     "Course assignments with countdowns, resources, reminders and submission details.",
 };
 
-export default function AssignmentsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+/**
+ * The /assignments page is a shell around a client island. The share branch
+ * and the list are both rendered client-side from the browser's own URL —
+ * see AssignmentsClient for why the server could not do it reliably under
+ * cache components.
+ */
+export default function AssignmentsPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-14">
       <Suspense fallback={<AssignmentsSkeleton />}>
-        <AssignmentsArea searchParams={searchParams} />
+        <AssignmentsClient />
       </Suspense>
     </div>
   );
@@ -41,70 +37,5 @@ function AssignmentsSkeleton() {
         ))}
       </div>
     </div>
-  );
-}
-
-async function AssignmentsArea({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  // Without an explicit dynamic opt-in, Cache Components serves the
-  // build-time fallback for this boundary forever and the share branch
-  // never sees the query. connection() renders this at request time.
-  await connection();
-  const sp = await searchParams;
-  const shareTokenRaw = sp.share_token;
-  const shareToken =
-    typeof shareTokenRaw === "string"
-      ? shareTokenRaw
-      : Array.isArray(shareTokenRaw)
-        ? shareTokenRaw[0]
-        : undefined;
-
-  if (shareToken) {
-    const assignment = await getAssignmentByShareToken(shareToken);
-    if (!assignment) {
-      return (
-        <div className="mx-auto max-w-md rounded-2xl border border-border bg-surface p-10 text-center">
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">Assignment not found</h1>
-          <p className="mt-2 text-[13px] text-muted-foreground">
-            The share link is invalid or has expired.
-          </p>
-          <Link
-            href="/assignments"
-            className="pressable mt-5 inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-[12.5px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
-          >
-            <ArrowLeft size={14} aria-hidden="true" />
-            All assignments
-          </Link>
-        </div>
-      );
-    }
-    return (
-      <div className="mx-auto max-w-xl">
-        <Link
-          href="/assignments"
-          className="pressable mb-4 inline-flex min-h-11 items-center gap-2 rounded-md px-2 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-muted transition-colors hover:text-foreground"
-        >
-          <ArrowLeft size={14} aria-hidden="true" />
-          All assignments
-        </Link>
-        <AssignmentCard
-          assessment={assignment}
-          now={new Date()}
-          onDelete={() => {}}
-          onEdit={() => {}}
-          onToggleDone={() => {}}
-          readOnly
-        />
-      </div>
-    );
-  }
-
-  return (
-    <AssignmentList
-      courses={COURSES.map((c) => ({ code: c.code, title: c.title }))}
-    />
   );
 }
