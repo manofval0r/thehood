@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { ArrowLeft } from "lucide-react";
 import { AssignmentList } from "@/components/AssignmentList";
 import { AssignmentCard } from "@/components/AssignmentCard";
@@ -48,6 +49,10 @@ async function AssignmentsArea({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  // Without an explicit dynamic opt-in, Cache Components serves the
+  // build-time fallback for this boundary forever and the share branch
+  // never sees the query. connection() renders this at request time.
+  await connection();
   const sp = await searchParams;
   const shareTokenRaw = sp.share_token;
   const shareToken =
