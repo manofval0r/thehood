@@ -117,7 +117,9 @@ export default function ResourceCard({
             <Maximize2 size={14} />
             Open
           </Link>
-          <Link
+          {/* Plain <a>, not <Link>: Next prefetches <Link> targets as
+              routes, and a raw PDF is not a route — prefetch 404s. */}
+          <a
             href={href}
             download
             className={cn(
@@ -133,7 +135,7 @@ export default function ResourceCard({
           >
             <Download size={14} />
             Download
-          </Link>
+          </a>
         </div>
       </div>
     </AppleCard>
