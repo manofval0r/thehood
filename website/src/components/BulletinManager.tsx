@@ -78,7 +78,7 @@ export default function BulletinManager(props: Props) {
             </p>
             {props.connection.syncedAt && (
               <p className="mt-1 text-[11px] text-muted">
-                Last synced {new Date(props.connection.syncedAt).toLocaleString("en-GB")}
+                Last synced {new Date(props.connection.syncedAt).toLocaleString("en-GB", { timeZone: "Africa/Lagos" })}
               </p>
             )}
             {props.connection.lastError && (

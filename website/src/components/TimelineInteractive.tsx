@@ -48,8 +48,8 @@ function groupByMonth(rows: Ordered[]) {
 }
 
 function fmt(d: Date) {
-  return d.toLocaleDateString("default", {
-    month: "short",
+  return d.toLocaleDateString("en-GB", {
+    timeZone: "Africa/Lagos", month: "short",
     day: "numeric",
     year: "numeric",
   });

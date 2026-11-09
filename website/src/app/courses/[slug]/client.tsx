@@ -166,7 +166,7 @@ export default function CourseClient({
                 <div className="flex items-center gap-2 text-[11px] text-muted">
                   <Clock size={12} />
                   <span>{new Date(a.due_at).toLocaleDateString("en-GB", {
-                    day: "2-digit",
+                    timeZone: "Africa/Lagos", day: "2-digit",
                     month: "short",
                     hour: "2-digit",
                     minute: "2-digit",

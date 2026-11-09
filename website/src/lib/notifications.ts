@@ -581,7 +581,7 @@ export function upcomingCalendar(days = 14): Update[] {
         id: `calendar:${date}:${e.activity}`,
         kind: "calendar" as const,
         title: e.activity,
-        body: `${e.day} ${d.getDate()} ${d.toLocaleString("en-GB", { month: "long" })} · ${e.category}`,
+        body: `${e.day} ${d.getDate()} ${d.toLocaleString("en-GB", { timeZone: "Africa/Lagos", month: "long" })} · ${e.category}`,
         at: d.toISOString(),
         href: "/timeline",
       };

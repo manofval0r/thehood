@@ -84,7 +84,7 @@ function Branches({
           ))}
           {hidden > 0 && (
             <p className="px-1 py-0.5 text-[11.5px] text-muted">
-              and {hidden.toLocaleString()} more
+              and {hidden.toLocaleString("en-GB")} more
             </p>
           )}
         </div>

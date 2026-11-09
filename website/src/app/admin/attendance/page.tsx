@@ -319,7 +319,7 @@ async function Workspace({
                     <span className="text-muted">by {h.changed_by ?? "someone"}</span>
                     <span className="ml-auto text-[11.5px] text-muted">
                       {new Date(h.changed_at).toLocaleString("en-GB", {
-                        day: "numeric",
+                        timeZone: "Africa/Lagos", day: "numeric",
                         month: "short",
                         hour: "2-digit",
                         minute: "2-digit",

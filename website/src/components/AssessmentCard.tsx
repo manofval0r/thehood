@@ -147,7 +147,7 @@ export function AssessmentCard({
         <div className="mt-auto flex items-center gap-3 pt-3 border-t border-border/50">
           <span className="text-[11px] text-muted">
             {new Date(assessment.due_at).toLocaleString("en-GB", {
-              day: "numeric",
+              timeZone: "Africa/Lagos", day: "numeric",
               month: "short",
               year: "numeric",
               hour: "2-digit",

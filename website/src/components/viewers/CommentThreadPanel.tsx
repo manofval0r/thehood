@@ -61,8 +61,7 @@ export function CommentThreadPanel({
     .map((w) => w[0])
     .join("")
     .toUpperCase();
-  const created = new Date(comment.created_at).toLocaleString(undefined, {
-    month: "short",
+  const created = new Date(comment.created_at).toLocaleString("en-GB", { timeZone: "Africa/Lagos", month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
@@ -226,8 +225,7 @@ export function CommentThreadPanel({
                     {reply.author_name || "Someone"}
                   </span>
                   <span className="font-mono text-[8.5px] text-muted">
-                    {new Date(reply.created_at).toLocaleTimeString(undefined, {
-                      hour: "2-digit",
+                    {new Date(reply.created_at).toLocaleTimeString("en-GB", { timeZone: "Africa/Lagos", hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </span>

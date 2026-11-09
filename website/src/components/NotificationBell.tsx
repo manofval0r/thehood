@@ -39,7 +39,7 @@ function when(iso: string): string {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
   return new Date(then).toLocaleDateString("en-GB", {
-    day: "numeric",
+    timeZone: "Africa/Lagos", day: "numeric",
     month: "short",
   });
 }

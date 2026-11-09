@@ -74,8 +74,8 @@ export default function TimelinePage() {
                 Right now
               </span>
               <span className="tnum font-mono text-[11px] text-muted-foreground">
-                {serverNow.toLocaleDateString("default", {
-                  weekday: "short",
+                {serverNow.toLocaleDateString("en-GB", {
+                  timeZone: "Africa/Lagos", weekday: "short",
                   day: "numeric",
                   month: "short",
                   year: "numeric",

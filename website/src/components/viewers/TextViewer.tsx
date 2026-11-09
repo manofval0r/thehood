@@ -63,7 +63,7 @@ export default function TextViewer({ url }: { url: string }) {
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-2">
           <span className="tnum text-[11.5px] text-muted">
-            {lines.length.toLocaleString()} lines
+            {lines.length.toLocaleString("en-GB")} lines
           </span>
           <div className="flex items-center gap-1">
             <button

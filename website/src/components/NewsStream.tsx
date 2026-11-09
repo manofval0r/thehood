@@ -30,7 +30,7 @@ function timeAgo(ts: number): string {
   const d = Math.floor(h / 24);
   if (d < 7) return `${d}d ago`;
   return new Date(ts).toLocaleDateString("en-GB", {
-    day: "numeric",
+    timeZone: "Africa/Lagos", day: "numeric",
     month: "short",
   });
 }

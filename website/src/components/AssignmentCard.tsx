@@ -199,7 +199,7 @@ export function AssignmentCard({
       <div className="mt-3 flex items-center justify-between gap-2 rounded-md bg-surface-hover px-2.5 py-2">
         <span className={cn("tnum text-[11px] font-medium", dueTone)}>
           {new Date(assessment.due_at).toLocaleString("en-GB", {
-            day: "2-digit",
+            timeZone: "Africa/Lagos", day: "2-digit",
             month: "short",
             year: "numeric",
             hour: "2-digit",

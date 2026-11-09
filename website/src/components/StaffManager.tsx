@@ -96,7 +96,7 @@ function when(iso: string | null): string {
   if (days === 1) return "yesterday";
   if (days < 30) return `${days} days ago`;
   return new Date(then).toLocaleDateString("en-GB", {
-    day: "numeric",
+    timeZone: "Africa/Lagos", day: "numeric",
     month: "short",
     year: "numeric",
   });
@@ -478,7 +478,7 @@ export function StaffManager({
                   {a.detail && <span className="text-muted">({a.detail})</span>}
                   <span className="ml-auto text-[11.5px] text-muted">
                     {new Date(a.at).toLocaleString("en-GB", {
-                      day: "numeric",
+                      timeZone: "Africa/Lagos", day: "numeric",
                       month: "short",
                       hour: "2-digit",
                       minute: "2-digit",

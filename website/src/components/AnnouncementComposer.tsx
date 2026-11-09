@@ -101,12 +101,12 @@ function when(iso: string): string {
   const then = new Date(iso);
   if (Number.isNaN(then.getTime())) return "";
   return then.toLocaleString("en-GB", {
+    timeZone: "Africa/Lagos",
     day: "numeric",
     month: "short",
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: "Africa/Lagos",
   });
 }
 
