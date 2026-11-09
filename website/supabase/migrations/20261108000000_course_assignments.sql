@@ -20,7 +20,7 @@ create table if not exists public.course_assignments (
   notes text not null default '',
   event_title text not null default '',
   event_at timestamptz,
-  notification_frequency text not null default 'once' check (notification_frequency in ('once', 'biweekly')),
+  notification_frequency text not null default 'once' check (notification_frequency in ('once', 'daily', 'weekly', 'biweekly', 'monthly', 'custom')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
