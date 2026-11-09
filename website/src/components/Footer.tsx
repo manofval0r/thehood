@@ -30,7 +30,7 @@ const columns: { heading: string; links: FooterLink[] }[] = [
       { label: "Timetable PDF", href: resourceUrl(TIMETABLE_PDF), download: true },
       {
         label: "Registration PDF",
-        href: "/docs/300 Level CyberSecurity Course Registration List .pdf",
+        href: "/docs/300-level-cybersecurity-registration.pdf",
         download: true,
       },
       // Staff reach the attendance area from here. There is no link to it in

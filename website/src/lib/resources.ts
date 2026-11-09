@@ -352,8 +352,8 @@ export function resourceUrl(url: string) {
   return url.split("/").map(encodeURIComponent).join("/");
 }
 
-export const TIMETABLE_PDF = "/docs/300L_Cyber-Security_Timetable (1).pdf";
-export const REGISTRATION_PDF = "/docs/300 Level CyberSecurity Course Registration List .pdf";
+export const TIMETABLE_PDF = "/docs/300L-cyber-security-timetable.pdf";
+export const REGISTRATION_PDF = "/docs/300-level-cybersecurity-registration.pdf";
 
 /**
  * The shared Drive folder, with every course in it.
