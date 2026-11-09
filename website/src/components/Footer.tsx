@@ -138,17 +138,23 @@ export default async function Footer() {
                             className="opacity-0 transition-opacity group-hover:opacity-70"
                           />
                         </a>
+                      ) : link.download ? (
+                        // Next <Link> prefetches the target as if it were a
+                        // route; PDF files are not routes and prefetch 404s.
+                        <a
+                          href={link.href}
+                          download
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded py-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <Download size={13} className="opacity-60" />
+                          {link.label}
+                        </a>
                       ) : (
                         <Link
                           href={link.href}
-                          {...(link.download ? { download: true } : {})}
                           className="inline-flex items-center gap-1.5 whitespace-nowrap rounded py-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
                         >
-                          {link.download ? (
-                            <Download size={13} className="opacity-60" />
-                          ) : (
-                            <span className="w-[13px]" />
-                          )}
+                          <span className="w-[13px]" />
                           {link.label}
                         </Link>
                       )}
