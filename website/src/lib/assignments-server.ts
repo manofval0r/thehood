@@ -42,18 +42,62 @@ export interface UpdateAssignmentArgs {
 
 /* --------------------------------------------------------------- reading */
 
+/**
+ * Attach each assignment's resources and reminders to it.
+ *
+ * One batched query per child table, grouped in memory. The alternative —
+ * a query per assignment per child table — turns a page of a hundred
+ * assignments into two hundred round trips. The client renders
+ * `resources.length` unguarded, so the arrays must always exist.
+ */
+async function hydrate(rows: Assignment[]): Promise<Assignment[]> {
+  if (rows.length === 0) return rows;
+
+  const ids = rows
+    .map((r) => r.id.replace(/[^0-9a-fA-F-]/g, ""))
+    .filter(Boolean)
+    .join(",");
+  if (!ids) {
+    return rows.map((r) => ({ ...r, resources: [], reminders: [] }));
+  }
+
+  const [resources, reminders] = await Promise.all([
+    rest<AssignmentResource[]>(
+      `course_assignment_resources?assignment_id=in.(${ids})&select=*&order=title.asc`
+    ),
+    rest<AssignmentReminder[]>(
+      `course_assignment_reminders?assignment_id=in.(${ids})&select=*&order=offset_hours.asc`
+    ),
+  ]);
+
+  const byAssignment = new Map<
+    string,
+    { resources: AssignmentResource[]; reminders: AssignmentReminder[] }
+  >();
+  for (const row of rows) {
+    if (row.id) byAssignment.set(row.id, { resources: [], reminders: [] });
+  }
+  for (const res of resources ?? [])
+    if (res.assignment_id) byAssignment.get(res.assignment_id)?.resources.push(res);
+  for (const rem of reminders ?? [])
+    if (rem.assignment_id) byAssignment.get(rem.assignment_id)?.reminders.push(rem);
+
+  return rows.map((row) => ({ ...row, ...byAssignment.get(row.id)! }));
+}
+
 export async function getAssignments(): Promise<Assignment[]> {
-  const path =
-    "course_assignments?select=*&order=due_at.asc";
-  const rows = await rest<Assignment[]>(path);
-  return rows ?? [];
+  const rows = await rest<Assignment[]>(
+    "course_assignments?select=*&order=due_at.asc"
+  );
+  return hydrate(rows ?? []);
 }
 
 export async function getAssignmentById(id: string): Promise<Assignment | null> {
   const rows = await rest<Assignment[]>(
     `course_assignments?id=eq.${encodeURIComponent(id)}&select=*&limit=1`
   );
-  return rows?.[0] ?? null;
+  const hydrated = await hydrate(rows ?? []);
+  return hydrated[0] ?? null;
 }
 
 export async function getAssignmentResources(
@@ -227,5 +271,6 @@ export async function getAssignmentByShareToken(
   const rows = await rest<Assignment[]>(
     `course_assignments?share_token=eq.${encodeURIComponent(token)}&select=*&limit=1`
   );
-  return rows?.[0] ?? null;
+  const hydrated = await hydrate(rows ?? []);
+  return hydrated[0] ?? null;
 }

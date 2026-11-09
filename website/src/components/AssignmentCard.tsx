@@ -45,6 +45,9 @@ export function AssignmentCard({
   onToggleDone,
   readOnly = false,
 }: AssignmentCardProps) {
+  // This crosses a network boundary; a stale or partial row must not
+  // crash the page the way `resources.length` did.
+  const resources = assessment.resources ?? [];
   const remainingMs = remainingMsFor(assessment.due_at, now);
   const days = Math.max(0, Math.floor(remainingMs / (24 * 60 * 60 * 1000)));
 
@@ -168,9 +171,9 @@ export function AssignmentCard({
       )}
 
       {/* Resources. */}
-      {assessment.resources.length > 0 && (
+      {resources.length > 0 && (
         <div className="mt-3 flex flex-col gap-1.5">
-          {assessment.resources.map((r) => (
+          {resources.map((r) => (
             <a
               key={r.id}
               href={r.url}
