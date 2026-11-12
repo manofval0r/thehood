@@ -45,7 +45,7 @@ export default function CountdownPill() {
         aria-hidden="true"
         className="h-[calc(0.5rem+2.875rem)] shrink-0 sm:hidden"
       />
-      <div className="fixed inset-x-3 top-[calc(var(--nav-h,4rem)+0.5rem)] z-30 sm:hidden">
+      <div className="print-hide fixed inset-x-3 top-[calc(var(--nav-h,4rem)+0.5rem)] z-30 sm:hidden">
         <Link
           href="/timetable"
           aria-label={`${label}: ${next.course.title}, ${next.course.code}, ${note} ${text}`}

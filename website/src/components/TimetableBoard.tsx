@@ -178,7 +178,7 @@ export default function TimetableBoard({
                               />
                             </span>
                           </Td>
-                          <Td strong className="min-w-[18rem]">
+                          <Td strong className="min-w-[18rem] print:min-w-0">
                             {s.title}
                           </Td>
                           <Td numeric align="right">
@@ -214,7 +214,7 @@ export default function TimetableBoard({
                                 Break
                               </span>
                             </Td>
-                            <Td className="min-w-[18rem] text-[12.5px] text-muted">
+                            <Td className="min-w-[18rem] text-[12.5px] text-muted print:min-w-0">
                               {b.to - b.from} minute break
                             </Td>
                             <Td />

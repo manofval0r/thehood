@@ -12,8 +12,8 @@ import {
 describe("inferCourse", () => {
   it("finds normalized course codes in the subject or preview", () => {
     expect(inferCourse("CYB 305 online class", "")).toBe("CYB 305");
-    expect(inferCourse("Digital forensics", "NUT-CYB 312 follow-up")).toBe(
-      "NUT-CYB 312"
+    expect(inferCourse("Digital forensics", "NUT-CYB 313 follow-up")).toBe(
+      "NUT-CYB 313"
     );
     expect(inferCourse("Student town hall", "All cohorts")).toBeNull();
   });

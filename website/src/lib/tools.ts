@@ -126,9 +126,9 @@ export const TOOLS: Tool[] = [
       "Open a terminal or command prompt and run `nmap --version` to confirm it is installed.",
       "Run your first scan: `nmap -sV <target>` to see what services a host is running.",
     ],
-    courses: ["CYB 301", "NUT-CSC 310"],
+    courses: ["CYB 301", "NUT-CYB 311"],
     whyNeeded:
-      "CYB 301 covers cryptography and secure network design, and NUT-CSC 310 covers distributed system security. Nmap is the standard tool for reconnaissance - discovering what is on a network before you can secure it. You will use it to map hosts, find open ports and identify services that might need hardening.",
+      "CYB 301 covers cryptography and secure network design, and NUT-CYB 311 covers distributed system security. Nmap is the standard tool for reconnaissance - discovering what is on a network before you can secure it. You will use it to map hosts, find open ports and identify services that might need hardening.",
     videos: [
       {
         title: "Nmap Tutorial for Beginners",
@@ -185,9 +185,9 @@ export const TOOLS: Tool[] = [
       "Launch Burp Suite and choose 'Temporary project' for Community Edition.",
       "Configure your browser to proxy through Burp (usually 127.0.0.1:8080) and install the Burp CA certificate so HTTPS traffic can be intercepted.",
     ],
-    courses: ["NUT-CYB 312"],
+    courses: ["NUT-CYB 313"],
     whyNeeded:
-      "NUT-CYB 312 is secure coding and application security. Burp Suite is the standard tool for testing web applications - you can intercept requests, modify parameters, replay attacks and scan for vulnerabilities like SQL injection and cross-site scripting before attackers do.",
+      "NUT-CYB 313 is secure coding and application security. Burp Suite is the standard tool for testing web applications - you can intercept requests, modify parameters, replay attacks and scan for vulnerabilities like SQL injection and cross-site scripting before attackers do.",
     videos: [
       {
         title: "Burp Suite Basics",
@@ -212,9 +212,9 @@ export const TOOLS: Tool[] = [
       "Start the framework with `msfconsole` in a terminal.",
       "Run `help` to see the available commands, then `search <exploit>` to find modules for a target.",
     ],
-    courses: ["NUT-CSC 310"],
+    courses: ["NUT-CYB 311"],
     whyNeeded:
-      "NUT-CSC 310 covers distributed system security and penetration testing. Metasploit is the framework used to practice exploits safely and legally - you learn how attacks work so you can defend against them. The labs use it to validate vulnerabilities and practice remediation.",
+      "NUT-CYB 311 covers distributed system security and penetration testing. Metasploit is the framework used to practice exploits safely and legally - you learn how attacks work so you can defend against them. The labs use it to validate vulnerabilities and practice remediation.",
     videos: [
       {
         title: "Metasploit Basics",
@@ -266,7 +266,7 @@ export const TOOLS: Tool[] = [
       "Boot the VM and log in with the default credentials (kali / kali).",
       "Run `sudo apt update` to make sure all tools are current before you start.",
     ],
-    courses: ["NUT-CSC 310", "CYB 305"],
+    courses: ["NUT-CYB 311", "CYB 305"],
     whyNeeded:
       "Kali Linux bundles the tools used across the cybersecurity courses - Nmap for scanning, Metasploit for exploitation, Wireshark for analysis and Hashcat for password cracking. Running it in a virtual machine gives you a safe, disposable environment for the lab work without risking your main computer.",
     videos: [

@@ -14,7 +14,7 @@
 | 6 | CYB 301 | Cryptography Techniques, Algorithms and Applications | 2 |
 | 7 | CYB 303 | Cybersecurity Risks Analysis, Challenges and Mitigation | 2 |
 | 8 | CYB 305 | Digital Forensics and Investigation Methods | 2 |
-| 9 | NUT-CSC 310 | Distributed System Security | 3 |
-| 10 | NUT-CYB 312 | Secure Coding | 3 |
+| 9 | NUT-CYB 311 | Distributed System Security | 3 |
+| 10 | NUT-CYB 313 | Secure Coding | 3 |
 
 **Total Units: 23**

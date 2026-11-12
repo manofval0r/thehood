@@ -30,8 +30,6 @@ const VENUES: [string, number][] = (() => {
 
 /** Weekly sessions in total. Exceeds the course count when a course meets
  *  more than once a week, which is why it is not just COURSES.length. */
-const WEEKLY_SESSIONS = SCHEDULE.length;
-
 const DAY_ORDER = [
   "Monday",
   "Tuesday",
@@ -41,6 +39,16 @@ const DAY_ORDER = [
   "Saturday",
   "Sunday",
 ];
+
+/** Scheduled courses, counted from SCHEDULE rather than the manifest. A
+ *  course that exists as a page but is not on the timetable (Artificial
+ *  Intelligence is) does not belong in these numbers. */
+const SCHEDULED = [...new Set(SCHEDULE.map((s) => s.slug))];
+const WEEKLY_SESSIONS = SCHEDULE.length;
+const TOTAL_UNITS = SCHEDULED.reduce((s, slug) => {
+  const course = COURSES.find((c) => c.slug === slug);
+  return s + (course?.units ?? 0);
+}, 0);
 
 /**
  * The grid, grouped by day.
@@ -65,7 +73,7 @@ export const metadata = {
 };
 
 export default async function TimetablePage() {
-  const totalUnits = COURSES.reduce((s, c) => s + c.units, 0);
+  const totalUnits = TOTAL_UNITS;
 
   // Read here rather than taken from the bar, so that this page's own cache
   // entry depends on the breaks and a change to one reaches it.
@@ -115,7 +123,7 @@ export default async function TimetablePage() {
               2026/2027 session. Every course code links to its resources page.
             </p>
           </div>
-          <div className="flex shrink-0 flex-col gap-2.5 self-start">
+          <div className="print-hide flex shrink-0 flex-col gap-2.5 self-start">
             <a
               href={resourceUrl(TIMETABLE_PDF)}
               download
@@ -172,7 +180,7 @@ export default async function TimetablePage() {
       <TimetableBoard
         byDay={ORDERED}
         totalUnits={totalUnits}
-        courseCount={COURSES.length}
+        courseCount={SCHEDULED.length}
         weeklySessions={WEEKLY_SESSIONS}
         breaks={breaks}
       />
@@ -181,13 +189,13 @@ export default async function TimetablePage() {
       <section className="grid gap-5 py-20 md:grid-cols-3">
         <NoteCard
           variant="calendar"
-          title="Friday is free"
-          body="No lectures are scheduled. It is the one full day you get back for revision, lab work, or reading ahead."
+          title="Friday, save the afternoon"
+          body="Only CYB 301 Cryptography Techniques meets on Friday, 3:00pm - 5:00pm online with Mr Valentine. The rest of the day is yours for revision or lab work."
         />
         <NoteCard
           variant="plan"
           title={`${VENUES.length} venues`}
-          body={`Every class is held in the ${VENUES.map(([n]) => n).join(", the ")}.`}
+          body={`Classes are spread across ${VENUES.map(([n]) => n).join(", the ")}.`}
         >
           <dl className="mt-5 space-y-2 border-t border-border pt-4 text-[13px]">
             {VENUES.map(([name, n]) => (
@@ -200,8 +208,8 @@ export default async function TimetablePage() {
         </NoteCard>
         <NoteCard
           variant="plate"
-          title="Still unassigned"
-          body="Distributed System Security has no lecturer on the timetable yet. Confirm with the department before your first Thursday class."
+          title="Codes changed"
+          body="Data Structures is CSC 301 / NUT-CYB 317, Secure Coding is NUT-CYB 313, and Distributed System Security is NUT-CYB 311 — now with a lecturer, Calvin Mugwari, meeting Wednesday 3:00pm - 6:00pm online. CYB 301 moved to Friday 3:00pm - 5:00pm online with Mr Valentine."
         />
       </section>
 

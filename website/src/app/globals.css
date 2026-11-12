@@ -1646,6 +1646,20 @@ html:hover {
   table {
     break-inside: auto;
     width: 100% !important;
+    font-size: 8.5pt !important;
+  }
+
+  table th,
+  table td {
+    padding-left: 4pt !important;
+    padding-right: 4pt !important;
+  }
+
+  /* A table that scrolls sideways on screen has nowhere to scroll to on
+     paper: let it flow and shrink to the page instead of clipping. */
+  .overflow-x-auto,
+  .overflow-y-auto {
+    overflow: visible !important;
   }
 
   tr {

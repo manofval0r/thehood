@@ -135,7 +135,7 @@ export default function ThemePill({ className }: { className?: string }) {
     <div
       className={cn(
         // Below the tablet breakpoint the page menu carries the theme row.
-        "pointer-events-none fixed z-30 max-sm:hidden",
+        "print-hide pointer-events-none fixed z-30 max-sm:hidden",
         // From a tablet up it sits under the header, in the page's top
         // padding rather than over a control.
         "sm:top-[calc(var(--nav-h,4rem)+0.75rem)] sm:right-5 lg:right-7",
