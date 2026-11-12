@@ -13,5 +13,5 @@
 | Tuesday | 3:00pm - 5:00pm | GST 312 | Peace and Conflict Resolution | 2 | 300 | COS/CYB | PG 2 | Ikechukwu Alamezie |
 | Wednesday | 9:00am - 12:00pm | NUT-CSC 312 | Data Structures | 3 | 300 | COS/CYB | Software Lab | Jeremiah Ocheni |
 | Wednesday | 12:30pm - 2:30pm | CYB 305 | Digital Forensics and Investigation Methods | 2 | 300 | Cyber-Security | Cybersecurity Lab | Dr Segun |
-| Wednesday | 3:00pm - 6:00pm | NUT-CYB 311 | Distributed System Security | 3 | 300 | Cyber-Security | Online | Calvin Mugwari |
+| Wednesday | 3:00pm - 6:00pm | NUT-CYB 311 | Distributed System Security | 3 | 300 | Cyber-Security | Online | Calvin Mugauri |
 | Friday | 3:00pm - 5:00pm | CYB 301 | Cryptography Techniques, Algorithms and Applications | 2 | 300 | Cyber-Security | Online | Mr Valentine |

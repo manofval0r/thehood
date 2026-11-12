@@ -209,7 +209,7 @@ export default async function TimetablePage() {
         <NoteCard
           variant="plate"
           title="Codes changed"
-          body="Data Structures is CSC 301 / NUT-CYB 317, Secure Coding is NUT-CYB 313, and Distributed System Security is NUT-CYB 311 — now with a lecturer, Calvin Mugwari, meeting Wednesday 3:00pm - 6:00pm online. CYB 301 moved to Friday 3:00pm - 5:00pm online with Mr Valentine."
+          body="Data Structures is CSC 301 / NUT-CYB 317, Secure Coding is NUT-CYB 313, and Distributed System Security is NUT-CYB 311 — now with a lecturer, Calvin Mugauri, meeting Wednesday 3:00pm - 6:00pm online. CYB 301 moved to Friday 3:00pm - 5:00pm online with Mr Valentine."
         />
       </section>
 
