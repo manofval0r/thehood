@@ -135,22 +135,20 @@ export const COURSES: Course[] = [
     resources: [],
   },
   {
-    // Not on the 2026/2027 timetable for the Cybersecurity programme.
-    // The course page and its files stay; only the schedule entry is gone.
     code: "CSC 309",
     slug: "csc-309",
     title: "Artificial Intelligence",
     units: 2,
     lecturer: "Charles Igah",
-    venue: "",
-    day: "",
-    time: "",
+    venue: "PG 2",
+    day: "Thursday",
+    time: "3:00pm - 5:00pm",
     program: "COS/CYB",
     level: "300",
     timetable: {
-      day: "",
-      time: "",
-      venue: "",
+      day: "Thursday",
+      time: "3:00pm - 5:00pm",
+      venue: "PG 2",
       lecturer: "Charles Igah",
     },
     resources: [
