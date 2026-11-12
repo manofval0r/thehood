@@ -10,6 +10,7 @@ import {
 } from "@/lib/assignments";
 import { AssignmentCard } from "@/components/AssignmentCard";
 import { useStaffSession } from "@/components/StaffSession";
+import { ownedAssignmentIds, ownedTokenFor, forgetOwnerToken } from "@/lib/owner-tokens";
 import { Plus, ArrowUpDown, ChevronDown, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,8 +26,9 @@ type SortOrder = "dueSoonest" | "dueLatest";
  *
  * One fetch, then the countdowns are derived from the shared clock: the
  * rows are stored raw and mapped through upcomingAssignments at render, so
- * the day counters stay honest without touching the network. Staff create
- * and edit assignments; students see the same list read-only.
+ * the day counters stay honest without touching the network. Anyone may
+ * set an assignment; management controls appear only for staff and for
+ * the browser that owns a given assignment (tracked in localStorage).
  */
 export function AssignmentList({ courses }: AssignmentListProps) {
   const now = useSharedTick();
@@ -37,6 +39,12 @@ export function AssignmentList({ courses }: AssignmentListProps) {
   const [rows, setRows] = React.useState<Assignment[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
+
+  const ownedIds = React.useMemo(() => new Set(ownedAssignmentIds()), [rows]);
+  const canManage = React.useCallback(
+    (a: { id: string }) => isStaff || ownedIds.has(a.id),
+    [isStaff, ownedIds]
+  );
 
   const [typeFilter, setTypeFilter] = React.useState<TypeFilter>("all");
   const [courseFilter, setCourseFilter] = React.useState<string | "">("");
@@ -83,10 +91,15 @@ export function AssignmentList({ courses }: AssignmentListProps) {
   const remove = async (id: string) => {
     setBusy(true);
     try {
+      const headers: Record<string, string> = {};
+      const token = ownedIds.has(id) ? ownedTokenFor(id) : null;
+      if (token) headers["x-owner-token"] = token;
       const res = await fetch(`/api/assignments?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
+        headers,
       });
       if (!res.ok) throw new Error("Failed to delete");
+      forgetOwnerToken(id);
       setRows((prev) => prev.filter((a) => a.id !== id));
     } finally {
       setBusy(false);
@@ -95,9 +108,14 @@ export function AssignmentList({ courses }: AssignmentListProps) {
 
   const toggleDone = (id: string, done: boolean) => {
     setBusy(true);
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = ownedIds.has(id) ? ownedTokenFor(id) : null;
+    if (token) headers["x-owner-token"] = token;
     void fetch(`/api/assignments?id=${encodeURIComponent(id)}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ done }),
     })
       .then(() => {
@@ -148,8 +166,7 @@ export function AssignmentList({ courses }: AssignmentListProps) {
             Assignments
           </h2>
         </div>
-        {/* Always visible. Students land on the staff-only gate with a
-            sign-in link; staff go straight into the form. */}
+        {/* Always visible — anyone may set an assignment. */}
         <button
           type="button"
           onClick={() => router.push("/assignments/new")}
@@ -227,9 +244,7 @@ export function AssignmentList({ courses }: AssignmentListProps) {
             <p className="text-[14px] font-semibold text-foreground">Nothing here yet</p>
             <p className="mx-auto mt-1 max-w-xs text-[12px] leading-relaxed text-muted-foreground">
               {assignments.length === 0
-                ? isStaff
-                  ? "No assignments have been set for these courses. The first one is yours to set."
-                  : "Nothing has been set for these courses yet. Check back after the next lecture."
+                ? "No assignments have been set for these courses yet. The first one is yours to set."
                 : "No assignments match the filters. Clear the course or the type filter."}
             </p>
           </div>
@@ -254,6 +269,7 @@ export function AssignmentList({ courses }: AssignmentListProps) {
                 onDelete={remove}
                 onEdit={(edited) => router.push(`/assignments/new?edit=${edited.id}`)}
                 onToggleDone={toggleDone}
+                canManage={canManage(a)}
               />
             </li>
           ))}

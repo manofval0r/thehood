@@ -9,14 +9,20 @@ import {
   generateShareToken,
   updateAssignment,
 } from "@/lib/assignments-server";
+import { validateAssignmentBody } from "@/lib/assignment-validation";
+import { ownerTokenFor, ownerTokenMatches } from "@/lib/owner-token";
 import { currentStaff } from "@/lib/admin-session";
 import { can } from "@/lib/staff";
 
 /**
  * Course assignments.
  *
- * Staff create and manage assignments for their courses. Anybody can read
- * them; only a signed-in member of staff may create, change or remove one.
+ * Reading is public. Setting an assignment is open to everyone, matching
+ * the old assessments page's openness: no sign-in, no roster check. Because
+ * creation is public, management is scoped instead of admin-gated: each
+ * creator receives a deterministic owner token at creation time and the
+ * server verifies it on edits and deletes. Staff can always edit or delete
+ * anything, which is the moderation path for a public board.
  */
 
 export async function GET(request: Request) {
@@ -51,66 +57,61 @@ export async function GET(request: Request) {
   }
 }
 
+/* ---------- throttling for the open form ---------- */
+
+/**
+ * A per-instance speed bump. Serverless instances each keep their own
+ * counter, so this does not stop a distributed hammering — that is what
+ * staff moderation is for. It stops one page refresh loop from filling the
+ * table.
+ */
+const createTimes: number[] = [];
+const MAX_CREATES_PER_HOUR = 30;
+
+function creationAllowanceExhausted(): boolean {
+  const now = Date.now();
+  const cutoff = now - 60 * 60 * 1000;
+  while (createTimes.length > 0 && createTimes[0] < cutoff) createTimes.shift();
+  if (createTimes.length >= MAX_CREATES_PER_HOUR) return true;
+  createTimes.push(now);
+  return false;
+}
+
+/* ---------- who may manage what ---------- */
+
+/** Staff always may; otherwise the caller must hold the creator's token. */
+async function callerCanManage(id: string, request: Request): Promise<boolean> {
+  const me = await currentStaff();
+  if (me && can(me, "staff")) return true;
+  return ownerTokenMatches(id, request.headers.get("x-owner-token"));
+}
+
+function notYours(message = "You can only manage assignments you set") {
+  return NextResponse.json({ error: message }, { status: 403 });
+}
+
 export async function POST(request: Request) {
   await connection();
-  const me = await currentStaff();
-  if (!me || !can(me, "staff")) {
-    return NextResponse.json({ error: "Not permitted" }, { status: 403 });
-  }
 
-  const body = await request.json();
-  const {
-    courseCode,
-    courseTitle,
-    title,
-    type,
-    dueAt,
-    submitMethod,
-    submitDetail,
-    notes,
-    eventTitle,
-    eventAt,
-    notificationFrequency,
-    customReminderHours,
-    resources,
-    reminders,
-  } = body;
-
-  if (
-    !courseCode ||
-    !courseTitle ||
-    !title ||
-    !type ||
-    !dueAt ||
-    !submitMethod
-  ) {
+  if (creationAllowanceExhausted()) {
     return NextResponse.json(
-      {
-        error:
-          "courseCode, courseTitle, title, type, dueAt and submitMethod are required",
-      },
-      { status: 400 }
+      { error: "Too many assignments just now — try again in a bit" },
+      { status: 429 }
     );
   }
 
+  const body = await request.json().catch(() => null);
+  const validated = validateAssignmentBody(body);
+  if (!validated.ok) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
+
   try {
-    const assignment = await createAssignment({
-      courseCode,
-      courseTitle,
-      title,
-      type,
-      dueAt,
-      submitMethod,
-      submitDetail: submitDetail ?? "",
-      notes: notes ?? "",
-      eventTitle: eventTitle ?? "",
-      eventAt: eventAt ?? null,
-      notificationFrequency: notificationFrequency ?? "once",
-      customReminderHours: customReminderHours ?? null,
-      resources: resources ?? [],
-      reminders: reminders ?? [],
-    });
-    return NextResponse.json(assignment, { status: 201 });
+    const assignment = await createAssignment(validated.value);
+    // The creator's proof of ownership. Only they get it; anyone holding it
+    // can edit or delete this one assignment.
+    const ownerToken = ownerTokenFor(assignment.id);
+    return NextResponse.json({ assignment, ownerToken }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to create" },
@@ -121,16 +122,14 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   await connection();
-  const me = await currentStaff();
-  if (!me || !can(me, "staff")) {
-    return NextResponse.json({ error: "Not permitted" }, { status: 403 });
-  }
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
+
+  if (!(await callerCanManage(id, request))) return notYours();
 
   try {
     await deleteAssignment(id);
@@ -145,10 +144,6 @@ export async function DELETE(request: Request) {
 
 export async function PATCH(request: Request) {
   await connection();
-  const me = await currentStaff();
-  if (!me || !can(me, "staff")) {
-    return NextResponse.json({ error: "Not permitted" }, { status: 403 });
-  }
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -156,6 +151,8 @@ export async function PATCH(request: Request) {
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
+
+  if (!(await callerCanManage(id, request))) return notYours();
 
   if (action === "generate_share") {
     try {
@@ -169,9 +166,38 @@ export async function PATCH(request: Request) {
     }
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  // The card's "mark done" button sends exactly { done }. Handle it without
+  // demanding the whole assignment back.
+  const doneOnly =
+    Object.keys(body as Record<string, unknown>).length === 1 &&
+    typeof (body as Record<string, unknown>).done === "boolean";
+
+  if (doneOnly) {
+    try {
+      await updateAssignment(id, {
+        done: (body as Record<string, unknown>).done as boolean,
+      });
+      return new NextResponse(null, { status: 204 });
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Failed to update" },
+        { status: 500 }
+      );
+    }
+  }
+
+  const validated = validateAssignmentBody(body);
+  if (!validated.ok) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
+
   try {
-    await updateAssignment(id, body);
+    await updateAssignment(id, validated.value);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     return NextResponse.json(

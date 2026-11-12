@@ -35,6 +35,13 @@ interface AssignmentCardProps {
   onToggleDone: (id: string, done: boolean) => void;
   /** Hide staff controls (edit, delete, mark done). The share view uses this. */
   readOnly?: boolean;
+  /**
+   * Hide the management controls specifically. False for assignments this
+   * browser did not create and are not staff's — the write endpoints would
+   * refuse them anyway, this just keeps the card honest. Defaults to true
+   * so existing call sites keep working.
+   */
+  canManage?: boolean;
 }
 
 export function AssignmentCard({
@@ -44,6 +51,7 @@ export function AssignmentCard({
   onEdit,
   onToggleDone,
   readOnly = false,
+  canManage = true,
 }: AssignmentCardProps) {
   // This crosses a network boundary; a stale or partial row must not
   // crash the page the way `resources.length` did.
@@ -56,12 +64,7 @@ export function AssignmentCard({
   const isDueSoon = remainingMs > 0 && remainingMs < 3 * 24 * 60 * 60 * 1000;
   const isDone = assessment.done;
 
-  const toggleDone = async () => {
-    await fetch(`/api/assignments?id=${assessment.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ done: !assessment.done }),
-    });
+  const toggleDone = () => {
     onToggleDone(assessment.id, !assessment.done);
   };
 
@@ -216,7 +219,7 @@ export function AssignmentCard({
               <Mail size={14} aria-hidden="true" />
             </a>
           )}
-          {shareUrl && !readOnly && (
+          {shareUrl && !readOnly && canManage && (
             <a
               href={shareUrl}
               target="_blank"
@@ -227,7 +230,7 @@ export function AssignmentCard({
               <Share2 size={14} aria-hidden="true" />
             </a>
           )}
-          {!readOnly && (
+          {!readOnly && canManage && (
             <>
               <button
                 type="button"

@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2, ShieldAlert } from "lucide-react";
 import { AssignmentForm } from "@/components/AssignmentForm";
 import { useStaffSession } from "@/components/StaffSession";
 import { COURSES } from "@/lib/resources";
+import { ownedTokenFor, recordOwnerToken } from "@/lib/owner-tokens";
 import type {
   Assignment,
   AssignmentType,
@@ -16,12 +17,13 @@ import type {
 } from "@/lib/assignments";
 
 /**
- * Set an assignment / amend one that exists.
+ * Set an assignment.
  *
- * With ?edit=<id> the form opens prefilled from the API and submits as a
- * PATCH; otherwise it creates. Staff only: the API enforces it too, but a
- * page that lets anyone type a whole assignment and then rejects them is a
- * rude page.
+ * Creation is open to anyone: no sign-in, no roster check. Whoever creates
+ * an assignment receives an owner token in the response and keeps it in
+ * localStorage, which is what lets them edit or delete it later. Staff can
+ * moderate anything. With ?edit=<id> the form opens prefilled for that
+ * assignment; only staff or the browser holding its owner token may save.
  */
 export default function NewAssignmentPage() {
   return (
@@ -32,34 +34,27 @@ export default function NewAssignmentPage() {
         </div>
       }
     >
-      <NewAssignmentForm />
+      <ComposeAssignment />
     </Suspense>
   );
 }
 
-function NewAssignmentForm() {
+function ComposeAssignment() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const defaultCourseCode = searchParams.get("course") ?? undefined;
 
-  const { session, refresh } = useStaffSession();
-  const [checked, setChecked] = React.useState(false);
+  const { session } = useStaffSession();
+  const isStaff = session?.isAdmin === true;
+
   const [loadingEdit, setLoadingEdit] = React.useState(Boolean(editId));
   const [existing, setExisting] = React.useState<Assignment | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    let live = true;
-    void refresh().finally(() => {
-      if (live) setChecked(true);
-    });
-    return () => {
-      live = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const ownToken = editId ? ownedTokenFor(editId) : null;
+  const canEdit = !editId || isStaff || Boolean(ownToken);
 
   React.useEffect(() => {
     if (!editId) return;
@@ -107,21 +102,38 @@ function NewAssignmentForm() {
     setBusy(true);
     setError(null);
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (ownToken) headers["x-owner-token"] = ownToken;
+
       const res = editId
         ? await fetch(`/api/assignments?id=${encodeURIComponent(editId)}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify(data),
           })
         : await fetch("/api/assignments", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify(data),
           });
+
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(body?.error ?? "Could not save the assignment");
       }
+
+      if (!editId) {
+        const json = (await res.json().catch(() => null)) as {
+          assignment?: Assignment;
+          ownerToken?: string;
+        } | null;
+        if (json?.ownerToken && json?.assignment?.id) {
+          recordOwnerToken(json.assignment.id, json.ownerToken);
+        }
+      }
+
       router.push("/assignments");
       router.refresh();
     } catch (e) {
@@ -129,12 +141,6 @@ function NewAssignmentForm() {
       setBusy(false);
     }
   };
-
-  const busyOverlay = (
-    <div className="flex min-h-[40vh] items-center justify-center" aria-hidden="true">
-      <Loader2 size={20} className="animate-spin text-muted" />
-    </div>
-  );
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
@@ -147,32 +153,32 @@ function NewAssignmentForm() {
           <ArrowLeft size={14} aria-hidden="true" />
           Assignments
         </Link>
-        <span className="hidden font-mono text-[8.5px] uppercase tracking-[0.2em] text-muted sm:inline">
+        <span className="font-mono text-[8.5px] uppercase tracking-[0.2em] text-muted">
           The Hood · Dept. of Cybersecurity
         </span>
       </div>
 
-      {!checked ? (
-        busyOverlay
-      ) : !session || session.isAdmin !== true ? (
+      {editId && !canEdit ? (
         <div className="rounded-2xl border border-border-strong bg-surface-raised p-10 text-center">
           <ShieldAlert size={36} className="mx-auto text-amber" aria-hidden="true" />
           <h1 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
-            Staff only
+            Not yours to edit
           </h1>
           <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-muted-foreground">
-            Setting assignments is a staff action. Sign in to the staff area,
-            then come back here and this page will behave.
+            Assignments are set by whoever creates them. You can only change
+            the ones this browser set, or any of them as staff.
           </p>
           <Link
-            href="/admin"
+            href="/assignments"
             className="pressable mt-5 inline-flex min-h-11 items-center rounded-md bg-accent px-4 text-[13px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
           >
-            Staff sign in
+            Back to assignments
           </Link>
         </div>
-      ) : loadingEdit ? (
-        busyOverlay
+      ) : editId && loadingEdit ? (
+        <div className="flex min-h-[40vh] items-center justify-center" aria-hidden="true">
+          <Loader2 size={20} className="animate-spin text-muted" />
+        </div>
       ) : (
         <>
           {error && (
