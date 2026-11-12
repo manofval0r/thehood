@@ -86,6 +86,8 @@ interface AssignmentFormProps {
     reminders: { offset_hours: number }[];
     share_token: string | null;
   };
+  /** Pre-select a course (used by per-course "Add assignment" links). */
+  defaultCourseCode?: string;
   courses: { code: string; title: string }[];
   onSubmit: (data: {
     courseCode: string;
@@ -111,6 +113,7 @@ export function AssignmentForm({
   bare = false,
   assessment,
   courses,
+  defaultCourseCode,
   onSubmit,
   onClose,
   busy = false,
@@ -119,10 +122,13 @@ export function AssignmentForm({
   const searchParams = useSearchParams();
   const [open, setOpen] = React.useState(true);
   const [courseCode, setCourseCode] = React.useState(
-    assessment?.course_code ?? courses[0]?.code ?? ""
+    assessment?.course_code ?? defaultCourseCode ?? courses[0]?.code ?? ""
   );
   const [courseTitle, setCourseTitle] = React.useState(
-    assessment?.course_title ?? ""
+    assessment?.course_title ??
+      (defaultCourseCode
+        ? (courses.find((c) => c.code === defaultCourseCode)?.title ?? "")
+        : "")
   );
   const [title, setTitle] = React.useState(assessment?.title ?? "");
   const [type, setType] = React.useState<AssignmentType>(

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, MapPin, User, Calendar, Clock, Mail } from "lucide-react";
+import { ArrowLeft, MapPin, User, Calendar, Clock, Mail, Plus } from "lucide-react";
 import type { Course } from "@/lib/resources";
 import { repAddress, repFirstName } from "@/lib/contact";
 import CourseWorkspace from "@/components/CourseWorkspace";
@@ -128,12 +128,34 @@ export default function CourseClient({
       />
 
       {/* ---------- Assignments ---------- */}
-      {assignments.length > 0 && (
-        <section className="mt-12">
-          <h2 className="text-[15px] font-bold tracking-tight text-foreground mb-4">
-            Assignments
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="mt-12">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-[15px] font-bold tracking-tight text-foreground">
+              Assignments
+            </h2>
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              What is due for {course.code}, and where to submit it.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/assignments"
+              className="pressable inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border px-3 text-[12px] font-medium text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+            >
+              View all assignments
+            </Link>
+            <Link
+              href={`/assignments/new?course=${encodeURIComponent(course.code)}`}
+              className="pressable inline-flex min-h-11 items-center gap-1.5 rounded-md bg-accent px-4 text-[12px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+            >
+              <Plus size={15} strokeWidth={2.6} />
+              Add an assignment
+            </Link>
+          </div>
+        </div>
+        {assignments.length > 0 ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {assignments.map((a) => (
               <div
                 key={a.id}
@@ -199,8 +221,12 @@ export default function CourseClient({
               </div>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <p className="mt-4 rounded-lg border border-border bg-surface p-5 text-center text-[12.5px] text-muted-foreground">
+            Nothing assigned for {course.code} yet.
+          </p>
+        )}
+      </section>
 
       {/* ---------- Videos ---------- */}
       <VideoLibrary videos={videos} thumbBase={thumbBase} />

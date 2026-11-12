@@ -148,17 +148,17 @@ export function AssignmentList({ courses }: AssignmentListProps) {
             Assignments
           </h2>
         </div>
-        {isStaff && (
-          <button
-            type="button"
-            onClick={() => router.push("/assignments/new")}
-            disabled={busy}
-            className="pressable inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-[12.5px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <Plus size={15} aria-hidden="true" strokeWidth={2.6} />
-            {assignments.length === 0 ? "Add your first" : "Add assignment"}
-          </button>
-        )}
+        {/* Always visible. Students land on the staff-only gate with a
+            sign-in link; staff go straight into the form. */}
+        <button
+          type="button"
+          onClick={() => router.push("/assignments/new")}
+          disabled={busy}
+          className="pressable inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-[12.5px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:pointer-events-none"
+        >
+          <Plus size={15} aria-hidden="true" strokeWidth={2.6} />
+          Add an assignment
+        </button>
       </div>
 
       {/* Filters + sort. Mono chips, console style. */}
@@ -233,14 +233,14 @@ export function AssignmentList({ courses }: AssignmentListProps) {
                 : "No assignments match the filters. Clear the course or the type filter."}
             </p>
           </div>
-          {assignments.length === 0 && isStaff && (
+          {assignments.length === 0 && (
             <button
               type="button"
               onClick={() => router.push("/assignments/new")}
               className="pressable mt-1 inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-[12.5px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
             >
               <Plus size={15} aria-hidden="true" strokeWidth={2.6} />
-              Set the first assignment
+              Add an assignment
             </button>
           )}
         </div>

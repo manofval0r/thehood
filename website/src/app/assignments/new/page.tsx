@@ -41,6 +41,7 @@ function NewAssignmentForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
+  const defaultCourseCode = searchParams.get("course") ?? undefined;
 
   const { session, refresh } = useStaffSession();
   const [checked, setChecked] = React.useState(false);
@@ -210,6 +211,7 @@ function NewAssignmentForm() {
                 : undefined
             }
             courses={COURSES.map((c) => ({ code: c.code, title: c.title }))}
+            defaultCourseCode={defaultCourseCode}
             onSubmit={submit}
             onClose={() => router.push("/assignments")}
             busy={busy}

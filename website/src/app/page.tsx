@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, ClipboardList, Plus } from "lucide-react";
 import { COURSES, DRIVE_FOLDER } from "@/lib/resources";
 import { getAllFiles } from "@/lib/files";
 import { getBulletinFeed } from "@/lib/bulletin";
@@ -40,8 +40,8 @@ export default async function Home() {
             programme from the shared Drive.
           </p>
 
-          <div className="mt-7 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-start">
-            <div className="relative z-20 min-w-0">
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto] lg:items-start">
+            <div className="relative z-20 min-w-0 sm:col-span-2 lg:col-span-1">
               <SearchBar />
             </div>
             <Link
@@ -51,6 +51,14 @@ export default async function Home() {
               <CalendarDays size={17} />
               Weekly timetable
               <ArrowRight size={14} />
+            </Link>
+            <Link
+              href="/assignments"
+              className="pressable inline-flex min-h-12 items-center justify-center gap-3 rounded-lg border border-border bg-surface px-4 text-[13px] font-semibold text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover"
+            >
+              <ClipboardList size={17} className="text-accent" />
+              Assignments
+              <ArrowRight size={14} className="text-muted" />
             </Link>
             <a
               href={DRIVE_FOLDER}
@@ -87,13 +95,22 @@ export default async function Home() {
               Open a course for its files, folders, videos, lecturer and class details.
             </p>
           </div>
-          <Link
-            href="/registration"
-            className="pressable inline-flex min-h-11 shrink-0 items-center gap-1.5 self-start rounded-md px-3 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
-          >
-            Registration list
-            <ArrowRight size={14} />
-          </Link>
+          <div className="flex flex-wrap items-center gap-2 self-start">
+            <Link
+              href="/assignments/new"
+              className="pressable inline-flex min-h-11 shrink-0 items-center gap-2 rounded-md bg-accent px-4 text-[13px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
+            >
+              <Plus size={15} strokeWidth={2.6} />
+              Add an assignment
+            </Link>
+            <Link
+              href="/registration"
+              className="pressable inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md px-3 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+            >
+              Registration list
+              <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
 
         <div className="mt-8 grid auto-rows-fr grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
