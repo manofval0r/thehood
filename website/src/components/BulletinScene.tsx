@@ -5,9 +5,11 @@ import { OrbitControls, Text } from "@react-three/drei";
 import { Suspense, useRef, useState } from "react";
 import * as THREE from "three";
 import {
+  NOTE_GAP,
   NOTE_H,
   NOTE_W,
   ROW_PITCH,
+  noteRows,
   type PlacedNote,
 } from "@/components/bulletin/board/layout";
 import type { BulletinPalette } from "@/components/BulletinPalette";
@@ -23,8 +25,9 @@ import { noteTone } from "@/components/BulletinPalette";
  * reader opens the board view at a desktop width.
  */
 
-const BOARD_HALF_W = 2.8;
-const BOARD_SCALING = 1.9;
+// The 3-note row is 3 * NOTE_W + 2 * NOTE_GAP = 5.49 world units wide, so the
+// board needs at least that plus margin; computed, not eyeballed.
+const BOARD_WIDTH = 3 * NOTE_W + 2 * NOTE_GAP + 1.35;
 
 function BoardPlane({
   rows,
@@ -33,13 +36,41 @@ function BoardPlane({
   rows: number;
   palette: BulletinPalette;
 }) {
-  const height = Math.max(rows, 1) * ROW_PITCH + 1.3;
-  const width = BOARD_HALF_W * BOARD_SCALING;
+  // A vertical backdrop that grows with the note count. The old version
+  // lay flat like a table and the camera stood nearly edge-on to it, which
+  // is why the canvas came up as a black void.
+  const count = Math.max(rows, 4);
+  const topY = 3.55;
+  const bottomY = Math.min(-0.7, 2.6 - (count - 1) * ROW_PITCH - 1.3);
+  const height = topY - bottomY;
+  const width = BOARD_WIDTH;
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -0.05]} receiveShadow>
-      <planeGeometry args={[width, height]} />
-      <meshStandardMaterial color={palette.surfaceRaised} roughness={0.9} metalness={0} />
-    </mesh>
+    <group>
+      <mesh position={[0, (topY + bottomY) / 2, -0.15]}>
+        <planeGeometry args={[width, height]} />
+        <meshStandardMaterial color={palette.surfaceRaised} roughness={0.92} metalness={0} />
+      </mesh>
+      {/* The accent rail along the top and bottom edges, so the board reads as one object. */}
+      <mesh position={[0, topY, -0.13]}>
+        <boxGeometry args={[width, 0.08, 0.02]} />
+        <meshStandardMaterial color={palette.accent} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, bottomY, -0.13]}>
+        <boxGeometry args={[width, 0.08, 0.02]} />
+        <meshStandardMaterial color={palette.accent} roughness={0.5} />
+      </mesh>
+      <Text
+        font="/fonts/GeistSans-Regular.ttf"
+        fontSize={0.17}
+        letterSpacing={0.08}
+        anchorX="center"
+        anchorY="middle"
+        color={palette.mutedForeground}
+        position={[0, topY + 0.3, -0.1]}
+      >
+        THE HOOD · LIVE BOARD
+      </Text>
+    </group>
   );
 }
 
@@ -102,7 +133,7 @@ function Note({
         <mesh position={[0, 0, 0.02]}>
           <planeGeometry args={[NOTE_W, NOTE_H]} />
           <meshStandardMaterial
-            color={hover ? palette.surfaceHover : palette.surfaceRaised}
+            color={hover ? "#fffdf0" : "#f7f2e3"}
             roughness={0.8}
             metalness={0}
           />
@@ -122,7 +153,7 @@ function Note({
 
         {/* Title and lines of context */}
         <Text
-          font="/fonts/GeistSans-Regular.woff2"
+          font="/fonts/GeistSans-Regular.ttf"
           fontSize={0.15}
           maxWidth={NOTE_W - 0.24}
           lineHeight={1.05}
@@ -134,7 +165,7 @@ function Note({
           {title}
         </Text>
         <Text
-          font="/fonts/GeistSans-Regular.woff2"
+          font="/fonts/GeistSans-Regular.ttf"
           fontSize={0.085}
           color={palette.mutedForeground}
           anchorX="center"
@@ -159,39 +190,42 @@ export default function BulletinScene({
   autoRotate?: boolean;
   onSelect: (item: PlacedNote["item"]) => void;
 }) {
+  const rows = noteRows(placed.length);
+  const centerY = 2.6 - ((Math.max(rows, 1) - 1) * ROW_PITCH) / 2;
+  const span = rows * ROW_PITCH + 1.5;
+  const distance = (span / 2 / Math.tan((21 * Math.PI) / 180)) * 1.02;
+
   return (
     <Canvas
       shadows={false}
       dpr={[1, 1.5]}
-      camera={{ position: [0, 1.2, 7.2], fov: 40 }}
-      gl={{ antialias: true, alpha: false }}
+      camera={{ position: [0, centerY + 1.0, distance], fov: 40 }}
+      gl={{ antialias: true, alpha: true }}
       style={{ width: "100%", height: "100%" }}
     >
-      <ambientLight intensity={1.1} />
-      <directionalLight position={[4, 6, 5]} intensity={1.4} />
+      {palette && <color attach="background" args={[palette.background]} />}
+      <ambientLight intensity={1.15} />
+      <directionalLight position={[4, 6, 5]} intensity={1.35} />
 
       {palette && (
         <>
-          <BoardPlane
-            rows={placed.length}
-            palette={palette}
-          />
           <Suspense fallback={null}>
             {placed.map((note) => (
               <Note key={note.item.id} note={note} palette={palette} onSelect={onSelect} />
             ))}
           </Suspense>
+          <BoardPlane rows={noteRows(placed.length)} palette={palette} />
         </>
       )}
 
       <OrbitControls
-        target={[0, 1, 0]}
+        target={[0, centerY, 0]}
         enableZoom={false}
         enablePan
-        minPolarAngle={1.2}
-        maxPolarAngle={1.75}
-        minAzimuthAngle={-0.6}
-        maxAzimuthAngle={0.6}
+        minPolarAngle={1.3}
+        maxPolarAngle={1.7}
+        minAzimuthAngle={-0.5}
+        maxAzimuthAngle={0.5}
         autoRotate={autoRotate}
         autoRotateSpeed={0.4}
       />

@@ -59,6 +59,8 @@ function useBoardCapability(): boolean {
   );
 }
 
+import { KIND_TONES } from "@/lib/bulletin-ui";
+
 export default function BulletinBoardView({
   items,
   verified,
@@ -75,10 +77,19 @@ export default function BulletinBoardView({
   const show3d = useBoardCapability();
 
   const placed = placeNotes(items);
-  const boardHeight = 20 + noteRows(items.length) * 12;
+  const boardHeight = 15 + noteRows(items.length) * 9.5;
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-border bg-surface">
+      <div className="pointer-events-none absolute right-3 top-3 z-10 hidden items-center gap-3 rounded-md border border-border bg-surface/90 px-3 py-2 backdrop-blur-sm md:flex">
+        {KIND_TONES.map((t) => (
+          <span key={t.kind} className="flex items-center gap-1.5 font-mono text-[8px] font-semibold uppercase tracking-[0.14em] text-muted">
+            <i className="h-2 w-2 rounded-full" style={{ background: t.tone }} />
+            {t.label}
+          </span>
+        ))}
+      </div>
+
       <div className="hidden md:block">
         {show3d && palette ? (
           <div style={{ height: `${boardHeight}rem` }} aria-label="Bulletin board">

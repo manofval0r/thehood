@@ -16,7 +16,7 @@ import type { BulletinItem } from "@/lib/bulletin-types";
 export const NOTE_W = 1.55;
 export const NOTE_H = 1.02;
 export const NOTE_GAP = 0.42;
-export const ROW_PITCH = 1.62;
+export const ROW_PITCH = 1.32;
 export const COLUMNS = 3;
 export const BOARD_TOP = 2.6;
 
