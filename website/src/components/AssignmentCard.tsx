@@ -16,6 +16,8 @@ import {
   CheckCircle2,
   Share2,
 } from "lucide-react";
+import AddToCalendar from "@/components/AddToCalendar";
+import { youtubeId } from "@/lib/calendar-links";
 import {
   formatRemaining,
   remainingMsFor,
@@ -42,6 +44,55 @@ interface AssignmentCardProps {
    * so existing call sites keep working.
    */
   canManage?: boolean;
+}
+
+export function ResourceRow({
+  url,
+  type,
+  title,
+}: {
+  url: string;
+  type: "youtube" | "upload";
+  title: string;
+}) {
+  const [thumbBroken, setThumbBroken] = React.useState(false);
+  const yt = type === "youtube" ? youtubeId(url) : null;
+
+  return (
+    <li>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pressable flex min-w-0 items-center gap-2.5 rounded-md bg-surface-hover p-1.5 text-[11.5px] font-medium text-muted-foreground transition-colors hover:text-accent"
+      >
+        {yt && !thumbBroken ? (
+          <span className="relative h-11 w-[4.75rem] shrink-0 overflow-hidden rounded">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`https://i.ytimg.com/vi/${yt}/hqdefault.jpg`}
+              alt=""
+              loading="lazy"
+              onError={() => setThumbBroken(true)}
+              className="h-full w-full object-cover"
+            />
+            <span className="absolute bottom-0.5 right-0.5 rounded bg-black/70 px-1 py-px font-mono text-[8px] font-bold text-red">
+              ▶
+            </span>
+          </span>
+        ) : (
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded bg-surface-raised">
+            {type === "youtube" ? (
+              <Play size={15} className="text-red" aria-hidden="true" />
+            ) : (
+              <Upload size={15} className="text-accent" aria-hidden="true" />
+            )}
+          </span>
+        )}
+        <span className="min-w-0 flex-1 truncate">{title}</span>
+      </a>
+    </li>
+  );
 }
 
 export function AssignmentCard({
@@ -142,8 +193,8 @@ export function AssignmentCard({
         </div>
       </div>
 
-      {/* Meta chips. */}
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      {/* Meta chips + calendar shortcut. */}
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span
           className={cn(
             "rounded px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]",
@@ -164,6 +215,32 @@ export function AssignmentCard({
             In class: {assessment.event_title}
           </span>
         )}
+        <AddToCalendar
+          className="ml-auto"
+          uid={`assignment:${assessment.id}`}
+          event={{
+            title: `Assignment: ${assessment.title}`,
+            dueAt: assessment.due_at,
+            details: [
+              `${assessment.course_code} · ${assessment.course_title}`,
+              assessment.submit_method === "email" && assessment.submit_detail
+                ? `Submit by email to ${assessment.submit_detail}`
+                : assessment.submit_detail
+                  ? `${submitMethodLabel(assessment.submit_method)}: ${assessment.submit_detail}`
+                  : submitMethodLabel(assessment.submit_method),
+              assessment.event_title ? `In class: ${assessment.event_title}` : null,
+              assessment.notes || null,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+            location:
+              (assessment.submit_method === "inperson" ||
+                assessment.submit_method === "presentation") &&
+              assessment.submit_detail
+                ? assessment.submit_detail
+                : undefined,
+          }}
+        />
       </div>
 
       {/* Notes. */}
@@ -175,24 +252,11 @@ export function AssignmentCard({
 
       {/* Resources. */}
       {resources.length > 0 && (
-        <div className="mt-3 flex flex-col gap-1.5">
+        <ul className="mt-3 flex flex-col gap-1.5">
           {resources.map((r) => (
-            <a
-              key={r.id}
-              href={r.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pressable flex min-w-0 items-center gap-2 rounded-md bg-surface-hover px-2.5 py-2 text-[11.5px] font-medium text-muted-foreground transition-colors hover:text-accent"
-            >
-              {r.type === "youtube" ? (
-                <Play size={13} className="shrink-0 text-red" aria-hidden="true" />
-              ) : (
-                <Upload size={13} className="shrink-0 text-accent" aria-hidden="true" />
-              )}
-              <span className="min-w-0 truncate">{r.title}</span>
-            </a>
+            <ResourceRow key={r.id} url={r.url} type={r.type} title={r.title} />
           ))}
-        </div>
+        </ul>
       )}
 
       {/* Spacer pushes the footer to the bottom on tall cards. */}

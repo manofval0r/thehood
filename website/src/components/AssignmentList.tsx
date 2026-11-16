@@ -10,6 +10,7 @@ import {
 } from "@/lib/assignments";
 import { AssignmentCard } from "@/components/AssignmentCard";
 import { useStaffSession } from "@/components/StaffSession";
+import AssignmentHelp, { AssignmentHelpButton } from "@/components/AssignmentHelp";
 import { ownedAssignmentIds, ownedTokenFor, forgetOwnerToken } from "@/lib/owner-tokens";
 import { Plus, ArrowUpDown, ChevronDown, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ export function AssignmentList({ courses }: AssignmentListProps) {
   const [rows, setRows] = React.useState<Assignment[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
+  const [helpOpen, setHelpOpen] = React.useState(false);
 
   const ownedIds = React.useMemo(() => new Set(ownedAssignmentIds()), [rows]);
   const canManage = React.useCallback(
@@ -166,16 +168,19 @@ export function AssignmentList({ courses }: AssignmentListProps) {
             Assignments
           </h2>
         </div>
-        {/* Always visible — anyone may set an assignment. */}
-        <button
-          type="button"
-          onClick={() => router.push("/assignments/new")}
-          disabled={busy}
-          className="pressable inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-[12.5px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:pointer-events-none"
-        >
-          <Plus size={15} aria-hidden="true" strokeWidth={2.6} />
-          Add an assignment
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <AssignmentHelpButton onOpen={() => setHelpOpen(true)} />
+          {/* Always visible — anyone may set an assignment. */}
+          <button
+            type="button"
+            onClick={() => router.push("/assignments/new")}
+            disabled={busy}
+            className="pressable inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-[12.5px] font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <Plus size={15} aria-hidden="true" strokeWidth={2.6} />
+            Add an assignment
+          </button>
+        </div>
       </div>
 
       {/* Filters + sort. Mono chips, console style. */}
@@ -275,6 +280,7 @@ export function AssignmentList({ courses }: AssignmentListProps) {
           ))}
         </ul>
       )}
+      <AssignmentHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

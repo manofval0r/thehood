@@ -62,6 +62,12 @@ const FREQUENCY_HOURS: Record<NotificationFrequency, number> = {
   custom: 0,
 };
 
+function Hint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-1 text-[10.5px] leading-snug text-muted">{children}</p>
+  );
+}
+
 interface AssignmentFormProps {
   /**
    * Render as a plain in-flow section instead of a full-screen modal. The
@@ -108,6 +114,8 @@ interface AssignmentFormProps {
   onClose: () => void;
   busy?: boolean;
 }
+
+import { youtubeId } from "@/lib/calendar-links";
 
 export function AssignmentForm({
   bare = false,
@@ -324,9 +332,10 @@ export function AssignmentForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Course. */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
               Course
             </label>
+            <Hint>The class this appears under.</Hint>
             <select
               value={courseCode}
               onChange={(e) => {
@@ -350,9 +359,10 @@ export function AssignmentForm({
 
           {/* Title. */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
               Title
             </label>
+            <Hint>Keep it concrete, e.g. “CYB 305: Evidence integrity write-up”.</Hint>
             <input
               type="text"
               value={title}
@@ -370,6 +380,7 @@ export function AssignmentForm({
                 Assignment type
               </label>
             </div>
+            <Hint>Group: one shared submission. Individual: each student hands in their own.</Hint>
             <div className="grid grid-cols-2 gap-2">
               {TYPE_OPTIONS.map((t) => {
                 const active = type === t;
@@ -402,6 +413,7 @@ export function AssignmentForm({
             <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
               How to submit
             </label>
+            <Hint>The channel students use. “Email” opens their mail client with the address prefilled.</Hint>
             <div className="grid grid-cols-2 gap-2">
               {SUBMIT_METHOD_OPTIONS.map((m) => {
                 const active = submitMethod === m;
@@ -465,6 +477,7 @@ export function AssignmentForm({
             <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
               Due date & time
             </label>
+            <Hint>Africa/Lagos. Students see a live countdown everywhere it appears.</Hint>
             <input
               type="datetime-local"
               value={dueAt}
@@ -480,6 +493,7 @@ export function AssignmentForm({
             <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
               In-class event (optional)
             </label>
+            <Hint>E.g. a volunteer going over it in class. Shown on the card; not sent as a reminder.</Hint>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
@@ -508,6 +522,7 @@ export function AssignmentForm({
             <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
               Reminder frequency
             </label>
+            <Hint>How often we push before the deadline. “Every 2 weeks” works for most work.</Hint>
             <div className="flex gap-2">
               {FREQUENCY_OPTIONS.map((f) => {
                 const active = notificationFrequency === f;
@@ -555,6 +570,7 @@ export function AssignmentForm({
             <label className="block text-[11px] font-bold uppercase tracking-[0.16em] text-accent mb-1">
               Notes (optional)
             </label>
+            <Hint>Marking scheme, late policy, format. Keep it short; students read this first.</Hint>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -571,6 +587,7 @@ export function AssignmentForm({
               <label className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
                 Resources (YouTube or uploads)
               </label>
+              <Hint>Link the video itself, or any direct file link. Students tap and it opens.</Hint>
               <button
                 type="button"
                 onClick={addResource}
@@ -582,8 +599,19 @@ export function AssignmentForm({
               </button>
             </div>
             <div className="space-y-2">
-              {resources.map((r) => (
+              {resources.map((r) => {
+                const yt = r.type === "youtube" ? youtubeId(r.url) : null;
+                return (
                 <div key={r.id} className="flex items-center gap-2 rounded-md border border-border bg-surface p-2">
+                  {yt && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={`https://i.ytimg.com/vi/${yt}/hqdefault.jpg`}
+                      alt=""
+                      loading="lazy"
+                      className="h-9 w-16 shrink-0 rounded object-cover"
+                    />
+                  )}
                   <select
                     value={r.type}
                     onChange={(e) => updateResource(r.id, "type", e.target.value as "youtube" | "upload")}
@@ -615,7 +643,8 @@ export function AssignmentForm({
                     <Trash2 size={12} aria-hidden="true" />
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -625,6 +654,7 @@ export function AssignmentForm({
               <label className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
                 Remind before deadline
               </label>
+              <Hint>Specific milestones: 1h, 12h, 1 day, 3 days, 1 week. Stack as many as you like.</Hint>
               <button
                 type="button"
                 onClick={addReminder}
