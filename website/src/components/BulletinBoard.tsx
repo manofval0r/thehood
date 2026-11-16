@@ -9,6 +9,7 @@ import StudentVerifyDialog from "@/components/StudentVerifyDialog";
 import type { BulletinFeed } from "@/lib/bulletin-feed";
 import {
   filterBulletinItems,
+  groupBulletinItems,
   pickLeadBulletinItem,
   type BulletinFilter,
 } from "@/lib/bulletin-ui";
@@ -264,15 +265,29 @@ export default function BulletinBoard({
             onRefresh={refresh}
           />
         ) : displayed.length > 0 ? (
-          displayed.map((item) => (
-            <BulletinItemRow
-              key={item.id}
-              item={item}
-              verified={verified}
-              onVerify={() => setVerifying(true)}
-              onRefresh={refresh}
-            />
-          ))
+          <div className="flex flex-col">
+            {groupBulletinItems(displayed).map((group) => (
+              <section key={group.key} aria-label={group.label}>
+                <div className="flex items-center justify-between gap-3 border-b border-border px-4 pb-2 pt-4 sm:px-5">
+                  <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-muted">
+                    {group.label}
+                  </p>
+                  <span className="tnum rounded bg-surface-hover px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                    {group.items.length}
+                  </span>
+                </div>
+                {group.items.map((item) => (
+                  <BulletinItemRow
+                    key={item.id}
+                    item={item}
+                    verified={verified}
+                    onVerify={() => setVerifying(true)}
+                    onRefresh={refresh}
+                  />
+                ))}
+              </section>
+            ))}
+          </div>
         ) : (
           <div className="px-4 py-10 text-center sm:px-6">
             <Radio size={20} className="mx-auto text-muted" />

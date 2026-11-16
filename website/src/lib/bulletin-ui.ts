@@ -9,6 +9,53 @@ export type BulletinFilter =
   | "events"
   | "notices";
 
+export type BulletinSectionKey =
+  | "alerts"
+  | "classes"
+  | "deadlines"
+  | "events"
+  | "notices"
+  | "other";
+
+export interface BulletinGroup {
+  key: BulletinSectionKey;
+  label: string;
+  items: BulletinItem[];
+}
+
+/**
+ * The same items the flat feed shows, organised so a reader can tell what
+ * needs them now from what can wait. Order within each group is the feed's
+ * own order — pinned, urgent, live, then chronological.
+ */
+export function groupBulletinItems(items: BulletinItem[]): BulletinGroup[] {
+  const groups: BulletinGroup[] = [
+    { key: "alerts", label: "Needs you now", items: [] },
+    { key: "classes", label: "Classes", items: [] },
+    { key: "deadlines", label: "Deadlines", items: [] },
+    { key: "events", label: "Events", items: [] },
+    { key: "notices", label: "Notices", items: [] },
+    { key: "other", label: "More", items: [] },
+  ];
+  for (const item of items) {
+    if (item.kind === "alert" || item.urgent) groups[0].items.push(item);
+    else if (item.kind === "class") groups[1].items.push(item);
+    else if (item.kind === "deadline") groups[2].items.push(item);
+    else if (item.kind === "event") groups[3].items.push(item);
+    else if (item.kind === "notice" || item.kind === "resource") groups[4].items.push(item);
+    else groups[5].items.push(item);
+  }
+  return groups.filter((g) => g.items.length > 0);
+}
+
+/** One colour per kind, shared by the 2D legend and the 3D pins. */
+export const KIND_TONES: { kind: string; label: string; tone: string }[] = [
+  { kind: "class", label: "Classes", tone: "var(--tone-academic)" },
+  { kind: "deadline", label: "Deadlines", tone: "var(--tone-exams)" },
+  { kind: "event", label: "Events", tone: "var(--tone-ceremony)" },
+  { kind: "notice", label: "Notices", tone: "var(--tone-statutory)" },
+];
+
 export function filterBulletinItems(
   items: BulletinItem[],
   filter: BulletinFilter,
